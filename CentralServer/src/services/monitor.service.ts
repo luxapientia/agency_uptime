@@ -115,8 +115,7 @@ export class MonitorService {
       const httpIsUpCount = checks.filter(check => check.getCheck.isUp).length;
       const httpIsUp = workerKeys.length >= 2 ? httpIsUpCount >= Math.ceil(checks.length / 2) : httpIsUpCount > 0;
 
-      const getCheck = checks.find(check => check.getCheck.isUp);
-      const ssl = getCheck?.getCheck.ssl;
+      const ssl = checks[0].getCheck.ssl;
 
       const checkedAt = checks.reduce((latest, check) => new Date(check.checkedAt) > latest ? new Date(check.checkedAt) : latest, new Date(0));
 
