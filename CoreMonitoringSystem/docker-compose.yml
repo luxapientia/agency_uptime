@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # US East Worker
+  worker_us_east:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - WORKER_REGION=us-east
+      - CHECK_TIMEOUT=30000
+    depends_on:
+      - redis
+
+  # US West Worker
+  worker_us_west:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - WORKER_REGION=us-west
+      - CHECK_TIMEOUT=30000
+    depends_on:
+      - redis
+
+  # Europe Worker
+  worker_eu:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - WORKER_REGION=eu
+      - CHECK_TIMEOUT=30000
+    depends_on:
+      - redis
+
+  # Asia Worker
+  worker_asia:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - WORKER_REGION=asia
+      - CHECK_TIMEOUT=30000
+    depends_on:
+      - redis
+
+  # API Server
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PORT=3000
+      - WORKER_ENABLED=false
+    depends_on:
+      - redis
+
+volumes:
+  redis_data: 

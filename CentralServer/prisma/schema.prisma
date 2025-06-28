@@ -1,0 +1,67 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(uuid())
+  firstName   String
+  lastName    String
+  email       String       @unique
+  password    String
+  companyName String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sites       Site[]
+  statuses    SiteStatus[]
+
+  @@map("users")
+}
+
+model Site {
+  id            String       @id @default(uuid())
+  name          String
+  url           String
+  checkInterval Int          @default(5)
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  statuses      SiteStatus[]
+
+  @@index([userId])
+  @@map("sites")
+}
+
+model SiteStatus {
+  id        String   @id @default(uuid())
+  siteId    String
+  userId    String
+  isUp      Boolean
+  pingIsUp  Boolean
+  httpIsUp  Boolean
+  checkedAt DateTime @default(now())
+
+  // SSL Information
+  hasSsl             Boolean   @default(false)
+  sslValidFrom       DateTime?
+  sslValidTo         DateTime?
+  sslIssuer          String?
+  sslDaysUntilExpiry Int?
+
+  // Relations
+  site Site @relation(fields: [siteId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([siteId])
+  @@index([userId])
+  @@index([checkedAt])
+  @@map("site_statuses")
+}
