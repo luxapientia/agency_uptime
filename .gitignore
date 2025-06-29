@@ -30,6 +30,10 @@ frontend/public/hot
 CentralServer/logs/combined.log
 CentralServer/logs/error.log
 CentralServer/dist/
+CentralServer/public/assets/
+CentralServer/public/index.html
+CentralServer/public/vite.svg
+
 
 # CoreMonitoringSystem specific
 CoreMonitoringSystem/dist/
