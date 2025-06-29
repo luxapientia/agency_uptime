@@ -143,6 +143,10 @@ export class WorkerService {
 
     const cronExpression = `*/${site.checkInterval} * * * *`;
 
+    this.performCheck(site).catch((error) => {
+      logger.error(`Initial check failed for ${site.url}:`, error);
+    });
+
     const task = cron.schedule(cronExpression, async () => {
       await this.performCheck(site);
     });
