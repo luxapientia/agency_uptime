@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 import { Site } from '@prisma/client';
 import logger from '../utils/logger';
+import { config } from '../config';
 
 class RedisService {
   private redis: Redis;
@@ -8,7 +9,11 @@ class RedisService {
   private readonly SYNC_LOCK_KEY = 'sync:lock';
 
   constructor() {
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    this.redis = new Redis({
+      host: config.redis.host,
+      port: config.redis.port,
+      password: config.redis.password,
+    });
     
     this.redis.on('error', (error) => {
       logger.error('Redis connection error:', error);
