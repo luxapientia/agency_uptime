@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { SiteCheckService, SiteMonitorResult } from './site-check.service';
 import cron, { ScheduledTask } from 'node-cron';
 import { logger } from '../utils/logger';
+import { config } from '../config';
 
 interface SiteConfig {
   id: string;
@@ -14,7 +15,6 @@ interface SiteConfig {
 
 interface WorkerConfig {
   region: string;
-  redisUrl: string;
   checkTimeout?: number;
 }
 
@@ -33,10 +33,15 @@ export class WorkerService {
   private isRunning = false;
   private siteConfigs: Map<string, SiteConfig> = new Map();
 
-  constructor(config: WorkerConfig) {
-    this.workerId = `${config.region}`;
-    this.region = config.region;
-    this.redis = new Redis(config.redisUrl);
+  constructor(workerConfig: WorkerConfig) {
+    console.log(config.redis)
+    this.workerId = `${workerConfig.region}`;
+    this.region = workerConfig.region;
+    this.redis = new Redis({
+      host: config.redis.host,
+      port: config.redis.port,
+      password: config.redis.password,
+    });
     this.siteChecker = new SiteCheckService(this.workerId);
 
     this.redis.on('error', (error: Error) => {

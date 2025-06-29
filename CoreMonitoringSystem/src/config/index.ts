@@ -14,6 +14,11 @@ interface Config {
       dbName: string;
     };
   };
+  redis: {
+    host: string;
+    port: number;
+    password: string;
+  };
 }
 
 export const config: Config = {
@@ -26,5 +31,10 @@ export const config: Config = {
     options: {
       dbName: process.env.MONGODB_DB_NAME || 'agency_uptime',
     },
+  },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || '',
   },
 }; 
