@@ -18,13 +18,7 @@ app.use(express.json());
 
 // Static file serving
 const staticPath = path.join(__dirname, '../public');
-app.use('/static', express.static(staticPath, {
-  maxAge: '1d', // Cache static files for 1 day
-  etag: true, // Enable ETag for caching
-  lastModified: true, // Enable Last-Modified header
-  index: false, // Disable directory listing
-  dotfiles: 'ignore', // Ignore dotfiles
-}));
+app.use('/', express.static(staticPath));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -90,6 +84,8 @@ async function startServer() {
     }
     
     monitorService.start();
+
+    console.log(staticPath)
 
     app.listen(port, () => {
       logger.info(`Server is running on port ${port}`);
