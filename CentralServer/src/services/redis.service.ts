@@ -9,6 +9,7 @@ class RedisService {
   private readonly SYNC_LOCK_KEY = 'sync:lock';
 
   constructor() {
+    console.log(config.redis)
     this.redis = new Redis({
       host: config.redis.host,
       port: config.redis.port,
