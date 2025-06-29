@@ -2,6 +2,7 @@ import { Redis } from 'ioredis';
 import { PrismaClient, Site } from '@prisma/client';
 import cron, { ScheduledTask } from 'node-cron';
 import logger from '../utils/logger';
+import { config } from '../config';
 
 export class MonitorService {
   private readonly redis: Redis;
@@ -9,8 +10,12 @@ export class MonitorService {
   private isRunning = false;
   private scheduledTasks: Map<string, ScheduledTask> = new Map();
 
-  constructor(redisUrl: string) {
-    this.redis = new Redis(redisUrl);
+  constructor() {
+    this.redis = new Redis({
+      host: config.redis.host,
+      port: config.redis.port,
+      password: config.redis.password,
+    });
     this.prisma = new PrismaClient();
 
     this.redis.on('error', (error: Error) => {
@@ -85,6 +90,7 @@ export class MonitorService {
       // Get all active workers
       const workerPattern = 'workers:*';
       const workerKeys = await this.redis.keys(workerPattern);
+      console.log(workerKeys)
 
       if (!workerKeys.length) {
         logger.error('No active workers found');
@@ -153,5 +159,5 @@ export class MonitorService {
   }
 } 
 
-const monitorService = new MonitorService('redis://localhost:6379');
+const monitorService = new MonitorService();
 export default monitorService;
