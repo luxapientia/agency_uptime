@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { errorHandler } from './middleware/errorHandler';
 import router from './routes';
 import { PrismaClient } from '@prisma/client';
@@ -14,6 +15,16 @@ const prisma = new PrismaClient();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Static file serving
+const staticPath = path.join(__dirname, '../public');
+app.use('/static', express.static(staticPath, {
+  maxAge: '1d', // Cache static files for 1 day
+  etag: true, // Enable ETag for caching
+  lastModified: true, // Enable Last-Modified header
+  index: false, // Disable directory listing
+  dotfiles: 'ignore', // Ignore dotfiles
+}));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -55,6 +66,13 @@ async function syncSitesToRedis() {
 // Start server with Redis sync
 async function startServer() {
   try {
+    // Create static directory if it doesn't exist
+    const fs = require('fs');
+    if (!fs.existsSync(staticPath)) {
+      fs.mkdirSync(staticPath, { recursive: true });
+      logger.info(`Created static files directory at ${staticPath}`);
+    }
+
     // Attempt Redis sync with retries
     let retries = 3;
     while (retries > 0) {
@@ -75,6 +93,7 @@ async function startServer() {
 
     app.listen(port, () => {
       logger.info(`Server is running on port ${port}`);
+      logger.info(`Static files are being served from ${staticPath}`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
