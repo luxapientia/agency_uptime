@@ -61,8 +61,6 @@ export default function Header() {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-    { text: 'Monitoring', icon: <Speed />, path: '/dashboard/monitoring' },
     { text: 'Sites', icon: <Business />, path: '/dashboard/sites' },
   ];
 
