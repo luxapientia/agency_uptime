@@ -42,10 +42,12 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
   const [formData, setFormData] = useState<Partial<Site>>({
     name: '',
     url: '',
-    checkInterval: 5,
+    checkInterval: 1,
     isActive: true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  console.log(formData)
 
   useEffect(() => {
     if (site) {
@@ -59,7 +61,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
       setFormData({
         name: '',
         url: '',
-        checkInterval: 5,
+        checkInterval: 1,
         isActive: true,
       });
     }

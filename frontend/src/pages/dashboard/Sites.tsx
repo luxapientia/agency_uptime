@@ -245,12 +245,12 @@ export default function Sites() {
                 ? 'rgba(255, 255, 255, 0.05)'
                 : 'rgba(33, 150, 243, 0.05)'
             }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>URL</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Check Interval</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Last Updated</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }} align="center" >Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }} align="center">Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }} align="center">URL</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }} align="center">Check Interval</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }} align="center">Last Updated</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -268,8 +268,8 @@ export default function Sites() {
                   }
                 }}
               >
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TableCell align="center">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
                     <Tooltip title={`${site.isActive ? 'Active' : 'Inactive'} Monitoring`}>
                       <Switch
                         checked={site.isActive}
@@ -284,7 +284,7 @@ export default function Sites() {
                     </Tooltip>
                   </Box>
                 </TableCell>
-                <TableCell>
+                <TableCell align="center">
                   <Stack direction="row" spacing={2} alignItems="center">
                     <Avatar
                       sx={{
@@ -301,7 +301,7 @@ export default function Sites() {
                     </Typography>
                   </Stack>
                 </TableCell>
-                <TableCell>
+                <TableCell align="center">
                   <Link 
                     href={site.url} 
                     target="_blank" 
@@ -321,19 +321,19 @@ export default function Sites() {
                     {site.url}
                   </Link>
                 </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TableCell align="center">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
                     <SpeedIcon fontSize="small" color="action" />
                     Every {site.checkInterval} minute{site.checkInterval > 1 ? 's' : ''}
                   </Box>
                 </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TableCell align="center">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
                     <UpdateIcon fontSize="small" color="action" />
                     {formatDate(site.updatedAt)}
                   </Box>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="center">
                   <Tooltip title="View Statistics">
                     <IconButton
                       onClick={() => handleStatusClick(site)}
