@@ -7,6 +7,7 @@ import type { AuthenticatedRequest } from '../types/express';
 import redisService from '../services/redis.service';
 import logger from '../utils/logger';
 import monitorService from '../services/monitor.service';
+import pdfService from '../services/pdf.service';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -215,8 +216,26 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
   });
 };
 
+// Generate PDF report for all sites
+const generatePDFReport = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const pdfBuffer = await pdfService.generateReport(req.user.id);
+    
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=sites-report.pdf');
+    
+    // Send the PDF buffer
+    res.send(pdfBuffer);
+  } catch (error) {
+    logger.error('Failed to generate PDF report:', error);
+    throw error;
+  }
+};
+
 router.get('/', getSites as any);
 router.get('/:id/status', getSiteStatus as any);
+router.get('/report', generatePDFReport as any);
 router.post('/', validateRequest(createSiteSchema), createSite as any);
 router.patch('/:id', validateRequest(updateSiteSchema), updateSite as any);
 router.delete('/:id', deleteSite as any);
