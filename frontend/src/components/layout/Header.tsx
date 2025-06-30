@@ -22,11 +22,9 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Dashboard,
   Settings,
   Person,
   ExitToApp,
-  Speed,
   Business,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
