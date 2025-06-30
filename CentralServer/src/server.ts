@@ -20,13 +20,12 @@ app.use(express.json());
 const staticPath = path.join(__dirname, '../public');
 app.use('/', express.static(staticPath));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
 // API routes
 app.use('/api', router);
+
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
 // Error handling
 app.use(errorHandler);
