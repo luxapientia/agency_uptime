@@ -43,6 +43,7 @@ import {
   SignalCellularAlt as SignalIcon,
   NetworkCheck as NetworkIcon,
   DnsOutlined as ServerIcon,
+  PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
 import {
@@ -55,6 +56,7 @@ import {
 import type { Site, CreateSiteData, UpdateSiteData } from '../../types/site.types';
 import SiteForm from '../../components/sites/SiteForm';
 import axios from '../../lib/axios';
+import { showToast } from '../../utils/toast';
 
 interface SiteStatus {
   isUp: boolean | null;
@@ -94,6 +96,8 @@ export default function Sites() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedSiteStatus, setSelectedSiteStatus] = useState<SiteStatus | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
+
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
     dispatch(fetchSites());
@@ -170,6 +174,41 @@ export default function Sites() {
     return `${percentage.toFixed(2)}%`;
   };
 
+  const handleGenerateReport = async () => {
+    try {
+      setIsGeneratingReport(true);
+      const response = await axios.get('/sites/report', {
+        responseType: 'blob', // Important for handling PDF binary data
+      });
+
+      // Create a blob from the PDF data
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'sites-report.pdf'; // Set the download filename
+      
+      // Append link to body, click it, and remove it
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL object
+      window.URL.revokeObjectURL(url);
+      
+      showToast.success('Report generated successfully');
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+      showToast.error('Failed to generate report. Please try again.');
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   if (isLoading && sites.length === 0) {
     return (
       <Box sx={{ 
@@ -203,28 +242,50 @@ export default function Sites() {
         }}>
           Monitored Sites
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddClick}
-          fullWidth={isMobile}
-          sx={{ 
-            borderRadius: 2,
-            py: 1.5,
-            background: theme.palette.mode === 'dark' 
-              ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-              : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-            boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-            '&:hover': {
-              background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)'
-                : 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)',
-            }
-          }}
-        >
-          Add New Site
-        </Button>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={isGeneratingReport ? <CircularProgress size={20} /> : <PdfIcon />}
+            onClick={handleGenerateReport}
+            disabled={isGeneratingReport}
+            fullWidth={isMobile}
+            sx={{ 
+              borderRadius: 2,
+              py: 1.5,
+              borderColor: theme.palette.primary.main,
+              color: theme.palette.primary.main,
+              '&:hover': {
+                borderColor: theme.palette.primary.dark,
+                backgroundColor: `${theme.palette.primary.main}10`,
+              }
+            }}
+          >
+            {isGeneratingReport ? 'Generating...' : 'Generate Report'}
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddClick}
+            fullWidth={isMobile}
+            sx={{ 
+              borderRadius: 2,
+              py: 1.5,
+              background: theme.palette.mode === 'dark' 
+                ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+              '&:hover': {
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)'
+                  : 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)',
+              }
+            }}
+          >
+            Add New Site
+          </Button>
+        </Stack>
       </Box>
 
       <TableContainer 
