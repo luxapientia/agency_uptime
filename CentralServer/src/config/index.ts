@@ -13,6 +13,9 @@ interface Config {
     port: number;
     password: string;
   };
+  root: {
+    url: string;
+  }
 }
 
 export const config: Config = {
@@ -25,4 +28,7 @@ export const config: Config = {
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD || '',
   },
+  root: {
+    url: process.env.ROOT_URL || '',
+  }
 }; 
