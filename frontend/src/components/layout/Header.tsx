@@ -22,9 +22,11 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
+  Dashboard,
   Settings,
   Person,
   ExitToApp,
+  Speed,
   Business,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
@@ -103,20 +105,24 @@ export default function Header() {
             </IconButton>
           )}
 
-          <Typography
-            variant="h6"
-            component="div"
+          <Box
             sx={{
               flexGrow: 1,
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'left',
               gap: 1,
               cursor: 'pointer',
+              backgroundImage: 'url(/agency-uptime-iii.png)',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'left',
+              width: 50,
+              height: 50,
+              backgroundColor: 'transparent',
             }}
             onClick={() => navigate('/')}
           >
-            Agency Uptime
-          </Typography>
+          </Box>
 
           {isAuthenticated ? (
             <>
