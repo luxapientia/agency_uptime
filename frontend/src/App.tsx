@@ -12,12 +12,13 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { theme } from './theme';
 
 export default function App() {
+  const rootUrl = import.meta.env.VITE_ROOT_URL;
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Router>
+          <Router basename={rootUrl}>
             <Layout>
               <Routes>
                 <Route path="/login" element={<Login />} />
@@ -38,7 +39,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </Layout>
           </Router>
