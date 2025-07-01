@@ -7,6 +7,7 @@ import { PrismaClient } from '@prisma/client';
 import redisService from './services/redis.service';
 import logger from './utils/logger';
 import monitorService from './services/monitor.service';
+import { config } from './config';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,12 +19,12 @@ app.use(express.json());
 
 // Static file serving
 const staticPath = path.join(__dirname, '../public');
-app.use('/', express.static(staticPath));
+app.use(`${config.root.url}/`, express.static(staticPath));
 
 // API routes
-app.use('/api', router);
+app.use(`${config.root.url}/api`, router);
 
-app.get('/*', (req, res) => {
+app.get(`${config.root.url}/*`, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
