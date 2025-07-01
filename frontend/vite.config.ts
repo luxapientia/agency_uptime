@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   
   return {
+    base: env.VITE_ROOT_URL || '/',
     plugins: [react()],
     build: {
       outDir: staticPath,
