@@ -15,7 +15,10 @@ interface Config {
   };
   root: {
     url: string;
-  }
+  };
+  telegram?: {
+    botToken: string;
+  };
 }
 
 export const config: Config = {
@@ -30,5 +33,8 @@ export const config: Config = {
   },
   root: {
     url: process.env.ROOT_URL || '',
+  },
+  telegram: {
+    botToken: process.env.TELEGRAM_BOT_TOKEN || '',
   }
 }; 

@@ -65,3 +65,15 @@ model SiteStatus {
   @@index([checkedAt])
   @@map("site_statuses")
 }
+
+model TelegramChat {
+  id        String   @id @default(uuid())
+  chatId    String   @unique
+  username  String?
+  firstName String?
+  lastName  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("telegram_chats")
+}
