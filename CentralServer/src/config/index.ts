@@ -19,6 +19,11 @@ interface Config {
   telegram?: {
     botToken: string;
   };
+  discord?: {
+    botToken: string;
+    channelId: string;
+    serverId: string;
+  };
 }
 
 export const config: Config = {
@@ -36,5 +41,10 @@ export const config: Config = {
   },
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',
+  },
+  discord: {
+    botToken: process.env.DISCORD_BOT_TOKEN || '',
+    channelId: process.env.DISCORD_CHANNEL_ID || '',
+    serverId: process.env.DISCORD_SERVER_ID || '',
   }
 }; 
