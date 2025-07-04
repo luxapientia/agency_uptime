@@ -29,6 +29,9 @@ interface Config {
     domain: string;
     fromEmail: string;
   };
+  slack: {
+    botToken: string;
+  };
 }
 
 export const config: Config = {
@@ -56,5 +59,8 @@ export const config: Config = {
     apiKey: process.env.MAILGUN_API_KEY || '',
     domain: process.env.MAILGUN_DOMAIN || '',
     fromEmail: process.env.MAILGUN_FROM_EMAIL || '',
-  }
+  },
+  slack: {
+    botToken: process.env.SLACK_BOT_TOKEN || '',
+  },
 }; 
