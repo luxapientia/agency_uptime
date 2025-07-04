@@ -31,6 +31,7 @@ import type { AppDispatch, RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
 
 export default function Header() {
+  const rootUrl = import.meta.env.VITE_ROOT_URL;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
@@ -110,7 +111,7 @@ export default function Header() {
               alignItems: 'left',
               gap: 1,
               cursor: 'pointer',
-              backgroundImage: 'url(/agency-uptime-iii.png)',
+              backgroundImage: `url(${rootUrl}/agency-uptime-iii.png)`,
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'left',
