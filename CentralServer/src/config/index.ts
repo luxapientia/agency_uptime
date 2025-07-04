@@ -16,13 +16,18 @@ interface Config {
   root: {
     url: string;
   };
-  telegram?: {
+  telegram: {
     botToken: string;
   };
-  discord?: {
+  discord: {
     botToken: string;
     channelId: string;
     serverId: string;
+  };
+  mailgun: {
+    apiKey: string;
+    domain: string;
+    fromEmail: string;
   };
 }
 
@@ -46,5 +51,10 @@ export const config: Config = {
     botToken: process.env.DISCORD_BOT_TOKEN || '',
     channelId: process.env.DISCORD_CHANNEL_ID || '',
     serverId: process.env.DISCORD_SERVER_ID || '',
+  },
+  mailgun: {
+    apiKey: process.env.MAILGUN_API_KEY || '',
+    domain: process.env.MAILGUN_DOMAIN || '',
+    fromEmail: process.env.MAILGUN_FROM_EMAIL || '',
   }
 }; 
