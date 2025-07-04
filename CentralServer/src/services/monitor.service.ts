@@ -90,7 +90,6 @@ export class MonitorService {
       // Get all active workers
       const workerPattern = 'workers:*';
       const workerKeys = await this.redis.keys(workerPattern);
-      console.log(workerKeys)
 
       if (!workerKeys.length) {
         logger.error('No active workers found');
