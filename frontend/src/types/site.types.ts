@@ -6,6 +6,25 @@ export interface Site {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  notifications: Notification[];
+}
+
+export interface Notification {
+  id: string;
+  siteId: string;
+  enabled: boolean;
+  type: NotificationType;
+  contactInfo?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum NotificationType {
+  EMAIL = 'EMAIL',
+  SLACK = 'SLACK',
+  TELEGRAM = 'TELEGRAM',
+  DISCORD = 'DISCORD',
+  PUSH_NOTIFICATION = 'PUSH_NOTIFICATION'
 }
 
 export interface CreateSiteData {
