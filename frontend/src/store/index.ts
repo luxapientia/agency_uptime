@@ -14,6 +14,10 @@ import type { AuthState } from '../types/auth.types';
 import type { SiteState } from '../types/site.types';
 import authReducer from './slices/authSlice';
 import siteReducer from './slices/siteSlice';
+import notificationChannelReducer from './slices/notificationChannelSlice';
+import notificationReducer from './slices/notificationSlice';
+import type { NotificationChannelState } from './slices/notificationChannelSlice';
+import type { NotificationState } from './slices/notificationSlice';
 
 const authPersistConfig = {
   key: 'auth',
@@ -24,6 +28,8 @@ const authPersistConfig = {
 const rootReducer = combineReducers({
   auth: persistReducer<AuthState>(authPersistConfig, authReducer),
   sites: siteReducer,
+  notificationChannel: notificationChannelReducer,
+  notification: notificationReducer,
 });
 
 export const store = configureStore({
@@ -41,5 +47,7 @@ export const persistor = persistStore(store);
 export type RootState = {
   auth: AuthState;
   sites: SiteState;
+  notificationChannel: NotificationChannelState;
+  notification: NotificationState;
 };
 export type AppDispatch = typeof store.dispatch; 
