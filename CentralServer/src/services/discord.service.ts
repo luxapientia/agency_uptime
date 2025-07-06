@@ -76,6 +76,21 @@ class DiscordService {
         });
     }
 
+    async verifyChannelId(userId: string): Promise<boolean> {
+
+        if (!this.client) {
+            logger.warn('Discord client not initialized');
+            return false;
+        }
+
+        const user = await this.client.users.fetch(userId);
+        if (!user) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Send a direct message to a specific user
      */
@@ -108,7 +123,6 @@ class DiscordService {
             }
         } catch (error) {
             logger.error(`Failed to send Discord message to user ${userId}:`, error);
-            throw new Error(error instanceof Error ? error.message : 'Failed to send Discord message');
         }
     }
 
@@ -151,30 +165,3 @@ class DiscordService {
 
 // Export as singleton
 export default new DiscordService();
-
-
-// import { Client, GatewayIntentBits, TextChannel } from 'discord.js';
-// import dotenv from 'dotenv';
-// dotenv.config();
-
-// export const client = new Client({
-//   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
-// });
-
-// client.once('ready', () => {
-//   console.log(`Logged in as ${client.user?.tag}`);
-// });
-
-// // client.login(process.env.DISCORD_BOT_TOKEN);
-
-// // Send a message to a specific channel
-// export async function sendMessageToChannel(channelId: string, message: string) {
-//   try {
-//     const channel = await client.channels.fetch(channelId);
-//     if (!channel) throw new Error('Channel not found');
-//     await (channel as TextChannel).send(message);
-//     console.log('Message sent!');
-//   } catch (error) {
-//     console.error('Error sending message:', error);
-//   }
-// }
