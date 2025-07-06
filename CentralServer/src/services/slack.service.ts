@@ -43,6 +43,16 @@ class SlackService {
             logger.error(`Failed to send message to Slack user ${email}:`, error);
         }
     }
+
+    async verifyUser(email: string): Promise<boolean> {
+        try {
+            const userResult = await this.client?.users.lookupByEmail({ email });
+            return userResult?.user?.id !== undefined;
+        } catch (error) {
+            logger.error(`Failed to verify Slack user ${email}:`, error);
+            return false;
+        }
+    }
 }
 
 export default new SlackService();
