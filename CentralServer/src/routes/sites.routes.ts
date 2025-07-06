@@ -8,6 +8,10 @@ import redisService from '../services/redis.service';
 import logger from '../utils/logger';
 import monitorService from '../services/monitor.service';
 import pdfService from '../services/pdf.service';
+import telegramService from '../services/telegram.service';
+import slackService from '../services/slack.service';
+import { config } from '../config';
+import discordService from '../services/discord.service';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -26,6 +30,23 @@ const updateSiteSchema = z.object({
     url: z.string().url('Must be a valid URL').optional(),
     checkInterval: z.number().min(1).max(60).optional(),
     isActive: z.boolean().optional(),
+  }),
+});
+
+// Notification schemas
+const createNotificationSchema = z.object({
+  body: z.object({
+    type: z.enum(['EMAIL', 'SLACK', 'TELEGRAM', 'DISCORD', 'PUSH_NOTIFICATION']),
+    contactInfo: z.string().min(1, 'Contact info is required'),
+    enabled: z.boolean().default(true),
+  }),
+});
+
+const updateNotificationSchema = z.object({
+  body: z.object({
+    type: z.enum(['EMAIL', 'SLACK', 'TELEGRAM', 'DISCORD', 'PUSH_NOTIFICATION']).optional(),
+    contactInfo: z.string().min(1, 'Contact info is required').optional(),
+    enabled: z.boolean().optional(),
   }),
 });
 
@@ -220,11 +241,11 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
 const generatePDFReport = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const pdfBuffer = await pdfService.generateReport(req.user.id);
-    
+
     // Set response headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=sites-report.pdf');
-    
+
     // Send the PDF buffer
     res.send(pdfBuffer);
   } catch (error) {
@@ -233,11 +254,237 @@ const generatePDFReport = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+// Get all notifications for a site
+const getSiteNotifications = async (req: AuthenticatedRequest, res: Response) => {
+  const { id: siteId } = req.params;
+
+  const site = await prisma.site.findUnique({
+    where: { id: siteId },
+    include: { notifications: true },
+  });
+
+  if (!site) {
+    res.status(404).json({ error: 'Site not found' });
+    return;
+  }
+
+  if (site.userId !== req.user.id) {
+    res.status(403).json({ error: 'You do not have permission to access this site' });
+    return;
+  }
+
+  res.json(site.notifications);
+};
+
+// Create a notification for a site
+const createNotification = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id: siteId } = req.params;
+
+    const site = await prisma.site.findUnique({
+      where: { id: siteId },
+    });
+
+    const contactInfo = req.body.contactInfo;
+
+    let isValidContactInfo = false;
+
+    if (req.body.type === 'TELEGRAM') {
+      isValidContactInfo = await telegramService.verifyChatId(contactInfo);
+    } else if (req.body.type === 'SLACK') {
+      isValidContactInfo = await slackService.verifyUser(contactInfo);
+    } else if (req.body.type === 'DISCORD') {
+      isValidContactInfo = await discordService.verifyChannelId(contactInfo);
+    } else if (req.body.type === 'EMAIL') {
+      isValidContactInfo = true;
+    }
+
+    if (!isValidContactInfo) {
+      res.status(400).json({ error: 'Invalid contact info' });
+      return;
+    }
+
+    if (!site) {
+      res.status(404).json({ error: 'Site not found' });
+      return;
+    }
+
+    if (site.userId !== req.user.id) {
+      res.status(403).json({ error: 'You do not have permission to modify this site' });
+      return;
+    }
+
+    const existingNotification = await prisma.notification.findFirst({
+      where: {
+        siteId,
+        type: req.body.type,
+        contactInfo: contactInfo,
+      },
+    });
+
+    if (existingNotification) {
+      res.status(400).json({ error: 'Notification already exists' });
+      return;
+    }
+
+    const notification = await prisma.notification.create({
+      data: {
+        ...req.body,
+        siteId,
+      },
+    });
+
+    await prisma.site.update({
+      where: { id: siteId },
+      data: {
+        notifications: {
+          connect: { id: notification.id }
+        }
+      }
+    });
+
+    logger.info(`Notification ${notification.id} created for site ${siteId}`);
+    res.status(201).json(notification);
+  } catch (error) {
+    logger.error('Failed to create notification:', error);
+    res.status(500).json({ error: 'Failed to create notification' });
+  }
+};
+
+// Update a notification
+const updateNotification = async (req: AuthenticatedRequest, res: Response) => {
+  const { id: siteId, notificationId } = req.params;
+
+  const notification = await prisma.notification.findUnique({
+    where: { id: notificationId },
+    include: { site: true },
+  });
+
+  if (!notification) {
+    res.status(404).json({ error: 'Notification not found' });
+    return;
+  }
+
+  if (notification.site.userId !== req.user.id) {
+    res.status(403).json({ error: 'You do not have permission to modify this notification' });
+    return;
+  }
+
+  if (notification.siteId !== siteId) {
+    res.status(400).json({ error: 'Notification does not belong to this site' });
+    return;
+  }
+
+  try {
+    const updatedNotification = await prisma.notification.update({
+      where: { id: notificationId },
+      data: req.body,
+    });
+
+    logger.info(`Notification ${notificationId} updated`);
+    res.json(updatedNotification);
+  } catch (error) {
+    logger.error('Failed to update notification:', error);
+    throw error;
+  }
+};
+
+// Delete a notification
+const deleteNotification = async (req: AuthenticatedRequest, res: Response) => {
+  const { id: siteId, notificationId } = req.params;
+
+  const notification = await prisma.notification.findUnique({
+    where: { id: notificationId },
+    include: { site: true },
+  });
+
+  if (!notification) {
+    res.status(404).json({ error: 'Notification not found' });
+    return;
+  }
+
+  if (notification.site.userId !== req.user.id) {
+    res.status(403).json({ error: 'You do not have permission to delete this notification' });
+    return;
+  }
+
+  if (notification.siteId !== siteId) {
+    res.status(400).json({ error: 'Notification does not belong to this site' });
+    return;
+  }
+
+  try {
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+
+    logger.info(`Notification ${notificationId} deleted`);
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Failed to delete notification:', error);
+    throw error;
+  }
+};
+
+// Get notification channels information
+const getNotificationChannels = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const channelsInfo = {
+      telegram: {
+        botUsername: config.telegram.botName,
+        instructions: [
+          `Start a chat with our bot: @${config.telegram.botName}`,
+          'Send the /start command to the bot',
+          'The bot will reply with your Chat ID',
+          'Use this Chat ID in the contact info field'
+        ]
+      },
+      slack: {
+        inviteLink: config.slack.invitationLink,
+        instructions: [
+          'Join our Slack workspace using the invite link: ' + config.slack.invitationLink,
+          'Add our Slack app to your workspace',
+          'Copy the channel ID where you want to receive notifications',
+          'Use the channel ID in the contact info field'
+        ]
+      },
+      discord: {
+        inviteLink: config.discord.invitationLink,
+        instructions: [
+          'Join our Discord server using the invite link: ' + config.discord.invitationLink,
+          'Enable developer mode in Discord (Settings > App Settings > Advanced > Developer Mode)',
+          'Right-click on the channel and click "Copy Channel ID"',
+          'Use the channel ID in the contact info field'
+        ]
+      },
+      email: {
+        instructions: [
+          'Enter your email address in the contact info field',
+          'You will receive a verification email',
+          'Click the verification link to confirm your email'
+        ]
+      }
+    };
+
+    res.json(channelsInfo);
+  } catch (error) {
+    logger.error('Failed to get notification channels info:', error);
+    res.status(500).json({ error: 'Failed to get notification channels information' });
+  }
+};
+
 router.get('/', getSites as any);
 router.get('/:id/status', getSiteStatus as any);
 router.get('/report', generatePDFReport as any);
+router.get('/notification-channels', getNotificationChannels as any);
 router.post('/', validateRequest(createSiteSchema), createSite as any);
 router.patch('/:id', validateRequest(updateSiteSchema), updateSite as any);
 router.delete('/:id', deleteSite as any);
+
+// Add notification routes
+router.get('/:id/notifications', getSiteNotifications as any);
+router.post('/:id/notifications', validateRequest(createNotificationSchema), createNotification as any);
+router.patch('/:id/notifications/:notificationId', validateRequest(updateNotificationSchema), updateNotification as any);
+router.delete('/:id/notifications/:notificationId', deleteNotification as any);
 
 export default router;
