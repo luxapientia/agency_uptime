@@ -68,7 +68,6 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     const [contactInfo, setContactInfo] = React.useState('');
     const [verificationCode, setVerificationCode] = React.useState('');
     const [isVerifying, setIsVerifying] = React.useState(false);
-    const [verificationSent, setVerificationSent] = React.useState(false);
     const [verificationLoading, setVerificationLoading] = React.useState(false);
     const [addingNotification, setAddingNotification] = React.useState(false);
 
@@ -82,7 +81,6 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         try {
             setVerificationLoading(true);
             await axios.post('/auth/send-verification', { email: contactInfo });
-            setVerificationSent(true);
             setIsVerifying(true);
             showToast.success('Verification code sent to your email');
         } catch (error) {
@@ -107,7 +105,6 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 setContactInfo('');
                 setVerificationCode('');
                 setIsVerifying(false);
-                setVerificationSent(false);
                 showToast.success('Email verified and notification added successfully');
             } else {
                 showToast.error('Invalid verification code');
@@ -418,7 +415,6 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                             onChange={(e) => {
                                 setNotificationType(e.target.value as NotificationType);
                                 setIsVerifying(false);
-                                setVerificationSent(false);
                                 setVerificationCode('');
                             }}
                             label="Notification Type"
