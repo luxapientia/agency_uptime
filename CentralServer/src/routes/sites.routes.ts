@@ -123,25 +123,31 @@ const updateSite = async (req: AuthenticatedRequest, res: Response) => {
 const deleteSite = async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
 
-  const existingSite = await prisma.site.findUnique({
-    where: { id },
-  });
-
-  if (!existingSite) {
-    throw new NotFoundError('Site not found');
-  }
-
-  if (existingSite.userId !== req.user.id) {
-    throw new BadRequestError('You do not have permission to delete this site');
-  }
-
   try {
-    // First delete all related status records
+    const site = await prisma.site.findUnique({
+      where: { id },
+      include: { notifications: true }
+    });
+
+    if (!site) {
+      throw new NotFoundError('Site not found');
+    }
+
+    if (site.userId !== req.user.id) {
+      throw new BadRequestError('You do not have permission to delete this site');
+    }
+
+    // First delete all notifications
+    await prisma.notification.deleteMany({
+      where: { siteId: id }
+    });
+
+    // Then delete all status records
     await prisma.siteStatus.deleteMany({
       where: { siteId: id }
     });
 
-    // Then delete the site
+    // Finally delete the site
     await prisma.site.delete({
       where: { id },
     });
