@@ -190,6 +190,52 @@ class RedisService {
       throw error;
     }
   }
+
+  /**
+   * Sets a key-value pair in Redis with optional expiration
+   * @param key - The key to set
+   * @param value - The value to set
+   * @param expirySeconds - Optional expiration time in seconds
+   */
+  async setValue(key: string, value: string, expirySeconds?: number): Promise<void> {
+    try {
+      if (expirySeconds) {
+        await this.redis.set(key, value, 'EX', expirySeconds);
+      } else {
+        await this.redis.set(key, value);
+      }
+    } catch (error) {
+      logger.error('Failed to set value in Redis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets a value from Redis by key
+   * @param key - The key to get
+   * @returns The value or null if not found
+   */
+  async getValue(key: string): Promise<string | null> {
+    try {
+      return await this.redis.get(key);
+    } catch (error) {
+      logger.error('Failed to get value from Redis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deletes a key from Redis
+   * @param key - The key to delete
+   */
+  async deleteValue(key: string): Promise<void> {
+    try {
+      await this.redis.del(key);
+    } catch (error) {
+      logger.error('Failed to delete value from Redis:', error);
+      throw error;
+    }
+  }
 }
 
 export default new RedisService(); 
