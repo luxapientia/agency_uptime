@@ -1,10 +1,10 @@
 import TelegramBot from 'node-telegram-bot-api';
 import logger from '../utils/logger';
 import { config } from '../config';
-import prisma from '../lib/prisma';
 
 class TelegramService {
     private bot: TelegramBot | null = null;
+    private botUsername: string | null = null;
 
     constructor() {
         try {
@@ -15,6 +15,15 @@ class TelegramService {
             }
 
             this.bot = new TelegramBot(config.telegram.botToken, { polling: true });
+            
+            // Get bot username on initialization
+            this.bot.getMe().then(botInfo => {
+                this.botUsername = botInfo.username || null;
+                logger.info(`Telegram bot username: @${this.botUsername}`);
+            }).catch(error => {
+                logger.error('Failed to get bot username:', error);
+                this.botUsername = null;
+            });
             
             logger.info('Telegram service initialized successfully');
         } catch (error) {
@@ -33,8 +42,7 @@ class TelegramService {
         this.bot.on('message', async (msg) => {
             try {
                 const chatId = msg.chat.id.toString();
-                await this.saveChatInfo(chatId, msg.from);
-                
+
                 // Send welcome message
                 if (msg.text?.toLowerCase() === '/start') {
                     await this.sendMessageToChat(chatId, `Welcome to Agency Uptime Bot! Your chat ID is ${chatId}. Register your chatId to get notified when your website is down.`);
@@ -46,36 +54,18 @@ class TelegramService {
     }
 
     /**
-     * Save or update chat information in the database
+     * Verify if the chatId is valid
      */
-    private async saveChatInfo(
-        chatId: string,
-        from?: TelegramBot.User
-    ): Promise<void> {
+    async verifyChatId(chatId: string): Promise<boolean> {
         try {
-
-            await prisma.telegramChat.upsert({
-                where: { chatId },
-                update: {
-                    username: from?.username,
-                    firstName: from?.first_name,
-                    lastName: from?.last_name,
-                    updatedAt: new Date(),
-                },
-                create: {
-                    chatId,
-                    username: from?.username,
-                    firstName: from?.first_name,
-                    lastName: from?.last_name,
-                },
-            });
-
-            logger.info(`Chat information saved for chat ID: ${chatId}`);
+            const chat = await this.bot?.getChat(chatId);
+            return chat !== null;
         } catch (error) {
-            logger.error('Failed to save chat information:', error);
-            throw new Error('Failed to save chat information');
+            logger.error('Error verifying chat ID:', error);
+            return false;
         }
     }
+
 
     /**
      * Send a message to a specific chat ID
@@ -126,6 +116,28 @@ class TelegramService {
         } catch (error) {
             logger.error(`Failed to send Telegram photo to chat ${chatId}:`, error);
             throw new Error('Failed to send Telegram photo');
+        }
+    }
+
+    /**
+     * Get the bot's username
+     */
+    async getBotUsername(): Promise<string> {
+        if (this.botUsername) {
+            return this.botUsername;
+        }
+
+        if (!this.bot) {
+            throw new Error('Telegram bot not initialized');
+        }
+
+        try {
+            const botInfo = await this.bot.getMe();
+            this.botUsername = botInfo.username || 'AgencyUptimeBot';
+            return this.botUsername;
+        } catch (error) {
+            logger.error('Failed to get bot username:', error);
+            return 'AgencyUptimeBot'; // Fallback to default name
         }
     }
 }
