@@ -18,11 +18,13 @@ interface Config {
   };
   telegram: {
     botToken: string;
+    botName: string;
   };
   discord: {
     botToken: string;
     channelId: string;
     serverId: string;
+    invitationLink: string;
   };
   mailgun: {
     apiKey: string;
@@ -31,6 +33,7 @@ interface Config {
   };
   slack: {
     botToken: string;
+    invitationLink: string;
   };
 }
 
@@ -49,11 +52,13 @@ export const config: Config = {
   },
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    botName: process.env.TELEGRAM_BOT_NAME || '',
   },
   discord: {
     botToken: process.env.DISCORD_BOT_TOKEN || '',
     channelId: process.env.DISCORD_CHANNEL_ID || '',
     serverId: process.env.DISCORD_SERVER_ID || '',
+    invitationLink: process.env.DISCORD_INVITATION_LINK || '',
   },
   mailgun: {
     apiKey: process.env.MAILGUN_API_KEY || '',
@@ -62,5 +67,6 @@ export const config: Config = {
   },
   slack: {
     botToken: process.env.SLACK_BOT_TOKEN || '',
+    invitationLink: process.env.SLACK_INVITATION_LINK || '',
   },
 }; 
