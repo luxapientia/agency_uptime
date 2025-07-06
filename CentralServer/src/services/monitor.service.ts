@@ -3,6 +3,7 @@ import { PrismaClient, Site } from '@prisma/client';
 import cron, { ScheduledTask } from 'node-cron';
 import logger from '../utils/logger';
 import { config } from '../config';
+import notificationService from './notification.service';
 
 export class MonitorService {
   private readonly redis: Redis;
@@ -87,6 +88,16 @@ export class MonitorService {
 
   private async checkSite(site: Site): Promise<void> {
     try {
+      const previousStatus = await this.prisma.siteStatus.findFirst({
+        where: {
+          siteId: site.id
+        },
+        orderBy: {
+          checkedAt: 'desc'
+        },
+        take: 1
+      });
+
       // Get all active workers
       const workerPattern = 'workers:*';
       const workerKeys = await this.redis.keys(workerPattern);
@@ -124,6 +135,14 @@ export class MonitorService {
 
       const checkedAt = checks.reduce((latest, check) => new Date(check.checkedAt) > latest ? new Date(check.checkedAt) : latest, new Date(0));
 
+      await this.prisma.siteStatus.deleteMany({
+        where: {
+          checkedAt: {
+            lt: new Date(Date.now() - 1000 * 60 * 60 * 24)
+          }
+        }
+      });
+
       await this.prisma.siteStatus.create({
         data: {
           siteId: site.id,
@@ -139,6 +158,12 @@ export class MonitorService {
           checkedAt
         }
       });
+
+      if (previousStatus) {
+        if(previousStatus.isUp !== isUp) {
+          notificationService.sendNotification(site.id);
+        }
+      }
     } catch (error) {
       logger.error(`Error checking site ${site.url}:`, error);
       
