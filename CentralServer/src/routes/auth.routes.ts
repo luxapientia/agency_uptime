@@ -3,6 +3,7 @@ import { validateRequest } from '../middleware/validateRequest';
 import { z } from 'zod';
 import authService from '../services/auth.service';
 import { BadRequestError, UnauthorizedError } from '../utils/errors';
+import mailgunService from '../services/mailgun.service';
 
 const router = Router();
 
@@ -49,6 +50,36 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       res.status(401).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
+router.post('/send-verification', async (req, res, next) => {
+  try {
+    const result = await mailgunService.sendVerificationCode(req.body.email);
+    res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof BadRequestError) {
+      res.status(400).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
+router.post('/verify-code', async (req, res, next) => {
+  try {
+    const result = await mailgunService.verifyCode(req.body.email, req.body.code);
+    if (result) {
+      res.status(200).json({ verified: true });
+    } else {
+      res.status(400).json({ verified: false });
+    }
+  } catch (error) {
+    if (error instanceof BadRequestError) {
+      res.status(400).json({ message: error.message });
       return;
     }
     next(error);
