@@ -44,6 +44,7 @@ import {
   NetworkCheck as NetworkIcon,
   DnsOutlined as ServerIcon,
   PictureAsPdf as PdfIcon,
+  NotificationsOutlined as NotificationIcon,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
 import {
@@ -55,6 +56,7 @@ import {
 } from '../../store/slices/siteSlice';
 import type { Site, CreateSiteData, UpdateSiteData } from '../../types/site.types';
 import SiteForm from '../../components/sites/SiteForm';
+import NotificationSettings from '../../components/sites/NotificationSettings';
 import axios from '../../lib/axios';
 import { showToast } from '../../utils/toast';
 
@@ -88,7 +90,7 @@ export default function Sites() {
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+
   // Pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -98,6 +100,9 @@ export default function Sites() {
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [selectedSiteForNotification, setSelectedSiteForNotification] = useState<Site | null>(null);
 
   useEffect(() => {
     dispatch(fetchSites());
@@ -183,23 +188,23 @@ export default function Sites() {
 
       // Create a blob from the PDF data
       const blob = new Blob([response.data], { type: 'application/pdf' });
-      
+
       // Create a URL for the blob
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create a temporary link element
       const link = document.createElement('a');
       link.href = url;
       link.download = 'sites-report.pdf'; // Set the download filename
-      
+
       // Append link to body, click it, and remove it
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Clean up the URL object
       window.URL.revokeObjectURL(url);
-      
+
       showToast.success('Report generated successfully');
     } catch (error) {
       console.error('Failed to generate report:', error);
@@ -209,13 +214,18 @@ export default function Sites() {
     }
   };
 
+  const handleNotificationClick = (site: Site) => {
+    setSelectedSiteForNotification(site);
+    setNotificationDialogOpen(true);
+  };
+
   if (isLoading && sites.length === 0) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '60vh' 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '60vh'
       }}>
         <CircularProgress />
       </Box>
@@ -224,17 +234,17 @@ export default function Sites() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      <Box sx={{ 
-        mb: 4, 
-        display: 'flex', 
+      <Box sx={{
+        mb: 4,
+        display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         gap: 2,
-        justifyContent: 'space-between', 
-        alignItems: { xs: 'stretch', sm: 'center' } 
+        justifyContent: 'space-between',
+        alignItems: { xs: 'stretch', sm: 'center' }
       }}>
-        <Typography variant="h4" component="h1" sx={{ 
+        <Typography variant="h4" component="h1" sx={{
           fontWeight: 'bold',
-          background: theme.palette.mode === 'dark' 
+          background: theme.palette.mode === 'dark'
             ? 'linear-gradient(45deg, #fff 30%, #f0f0f0 90%)'
             : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
           WebkitBackgroundClip: 'text',
@@ -250,7 +260,7 @@ export default function Sites() {
             onClick={handleGenerateReport}
             disabled={isGeneratingReport}
             fullWidth={isMobile}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               py: 1.5,
               borderColor: theme.palette.primary.main,
@@ -269,10 +279,10 @@ export default function Sites() {
             startIcon={<AddIcon />}
             onClick={handleAddClick}
             fullWidth={isMobile}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               py: 1.5,
-              background: theme.palette.mode === 'dark' 
+              background: theme.palette.mode === 'dark'
                 ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
                 : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
               boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
@@ -288,10 +298,10 @@ export default function Sites() {
         </Stack>
       </Box>
 
-      <TableContainer 
-        component={Paper} 
+      <TableContainer
+        component={Paper}
         elevation={2}
-        sx={{ 
+        sx={{
           borderRadius: 2,
           overflow: 'hidden',
           '& .MuiTableCell-root': {
@@ -301,8 +311,8 @@ export default function Sites() {
       >
         <Table>
           <TableHead>
-            <TableRow sx={{ 
-              background: theme.palette.mode === 'dark' 
+            <TableRow sx={{
+              background: theme.palette.mode === 'dark'
                 ? 'rgba(255, 255, 255, 0.05)'
                 : 'rgba(33, 150, 243, 0.05)'
             }}>
@@ -319,11 +329,11 @@ export default function Sites() {
               ? sites.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               : sites
             ).map((site) => (
-              <TableRow 
+              <TableRow
                 key={site.id}
-                sx={{ 
-                  '&:hover': { 
-                    backgroundColor: theme.palette.mode === 'dark' 
+                sx={{
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark'
                       ? 'rgba(255, 255, 255, 0.05)'
                       : 'rgba(33, 150, 243, 0.05)'
                   }
@@ -363,11 +373,11 @@ export default function Sites() {
                   </Stack>
                 </TableCell>
                 <TableCell align="center">
-                  <Link 
-                    href={site.url} 
-                    target="_blank" 
+                  <Link
+                    href={site.url}
+                    target="_blank"
                     rel="noopener noreferrer"
-                    sx={{ 
+                    sx={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
@@ -399,10 +409,10 @@ export default function Sites() {
                     <IconButton
                       onClick={() => handleStatusClick(site)}
                       size="small"
-                      sx={{ 
+                      sx={{
                         mr: 1,
                         color: theme.palette.info.main,
-                        '&:hover': { 
+                        '&:hover': {
                           background: `${theme.palette.info.main}15`
                         }
                       }}
@@ -410,13 +420,26 @@ export default function Sites() {
                       <StatsIcon />
                     </IconButton>
                   </Tooltip>
+                  <Tooltip title="Notification Settings">
+                    <IconButton
+                      onClick={() => handleNotificationClick(site)}
+                      size="small"
+                      sx={{
+                        mr: 1,
+                        color: theme.palette.warning.main,
+                        '&:hover': { background: `${theme.palette.warning.main}15` }
+                      }}
+                    >
+                      <NotificationIcon />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip title="Edit Site">
                     <IconButton
                       onClick={() => handleEditClick(site)}
                       size="small"
-                      sx={{ 
+                      sx={{
                         color: theme.palette.primary.main,
-                        '&:hover': { 
+                        '&:hover': {
                           background: `${theme.palette.primary.main}15`
                         }
                       }}
@@ -428,10 +451,10 @@ export default function Sites() {
                     <IconButton
                       onClick={() => handleDeleteClick(site)}
                       size="small"
-                      sx={{ 
+                      sx={{
                         ml: 1,
                         color: theme.palette.error.main,
-                        '&:hover': { 
+                        '&:hover': {
                           background: `${theme.palette.error.main}15`
                         }
                       }}
@@ -466,8 +489,8 @@ export default function Sites() {
         isLoading={isLoading}
       />
 
-      <Dialog 
-        open={isDeleteDialogOpen} 
+      <Dialog
+        open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         PaperProps={{
           sx: {
@@ -484,9 +507,9 @@ export default function Sites() {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
-          <Button 
+          <Button
             onClick={() => setIsDeleteDialogOpen(false)}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               px: 3,
               color: theme.palette.text.secondary
@@ -499,7 +522,7 @@ export default function Sites() {
             color="error"
             variant="contained"
             disabled={isLoading}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               px: 3,
               background: theme.palette.error.main,
@@ -568,7 +591,7 @@ export default function Sites() {
                       icon={<SignalIcon />}
                       label="Online"
                       color="success"
-                      sx={{ 
+                      sx={{
                         '& .MuiChip-icon': { fontSize: 20 }
                       }}
                     />
@@ -577,14 +600,14 @@ export default function Sites() {
                       icon={<ErrorIcon />}
                       label="Offline"
                       color="error"
-                      sx={{ 
+                      sx={{
                         '& .MuiChip-icon': { fontSize: 20 }
                       }}
                     />
                   )}
                   <Typography variant="body2" color="text.secondary">
-                    Last checked: {selectedSiteStatus.lastChecked ? 
-                      new Date(selectedSiteStatus.lastChecked).toLocaleString() : 
+                    Last checked: {selectedSiteStatus.lastChecked ?
+                      new Date(selectedSiteStatus.lastChecked).toLocaleString() :
                       'Never'}
                   </Typography>
                 </Stack>
@@ -716,6 +739,72 @@ export default function Sites() {
             Close
           </Button>
         </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={notificationDialogOpen}
+        onClose={() => {
+          setNotificationDialogOpen(false);
+          setSelectedSiteForNotification(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            overflow: 'hidden',
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))'
+              : 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))',
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            py: 2,
+          }}
+        >
+          <Stack direction="row" spacing={2} alignItems="center">
+            <NotificationIcon color="warning" />
+            <Typography variant="h6">Notification Settings</Typography>
+          </Stack>
+          <IconButton
+            onClick={() => {
+              setNotificationDialogOpen(false);
+              setSelectedSiteForNotification(null);
+            }}
+            size="small"
+            sx={{
+              color: theme.palette.text.secondary,
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Stack spacing={3}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                Site
+              </Typography>
+              <Typography variant="body1" fontWeight="medium">
+                {selectedSiteForNotification?.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {selectedSiteForNotification?.url}
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            <NotificationSettings
+              siteId={selectedSiteForNotification?.id || ''} />
+          </Stack>
+        </DialogContent>
       </Dialog>
     </Box>
   );
