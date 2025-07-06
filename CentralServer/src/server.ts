@@ -10,7 +10,7 @@ import monitorService from './services/monitor.service';
 import telegramService from './services/telegram.service';
 import discordService from './services/discord.service';
 import { config } from './config';
-import axios from 'axios';
+// import axios from 'axios';
 
 // const webhookUrl = process.env.WEB_HOOK_POST_URL || '';
 // const apiToken = process.env.LEADCONNECTOR_API_TOKEN || '';
