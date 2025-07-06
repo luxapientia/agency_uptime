@@ -25,19 +25,41 @@ model User {
 }
 
 model Site {
-  id            String       @id @default(uuid())
+  id            String         @id @default(uuid())
   name          String
   url           String
-  checkInterval Int          @default(5)
-  isActive      Boolean      @default(true)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  checkInterval Int            @default(5)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   userId        String
-  user          User         @relation(fields: [userId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
   statuses      SiteStatus[]
+  notifications  Notification[]
 
   @@index([userId])
   @@map("sites")
+}
+
+enum NotificationType {
+  EMAIL
+  SLACK
+  TELEGRAM
+  DISCORD
+  PUSH_NOTIFICATION
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  siteId      String
+  site        Site             @relation(fields: [siteId], references: [id])
+  enabled     Boolean          @default(false)
+  type        NotificationType
+  contactInfo String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("notifications")
 }
 
 model SiteStatus {
@@ -66,24 +88,24 @@ model SiteStatus {
   @@map("site_statuses")
 }
 
-model TelegramChat {
-  id        String   @id @default(uuid())
-  chatId    String   @unique
-  username  String?
-  firstName String?
-  lastName  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// model TelegramChat {
+//   id        String   @id @default(uuid())
+//   chatId    String   @unique
+//   username  String?
+//   firstName String?
+//   lastName  String?
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  @@map("telegram_chats")
-}
+//   @@map("telegram_chats")
+// }
 
-model DiscordUser {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  username    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// model DiscordUser {
+//   id        String   @id @default(uuid())
+//   userId    String   @unique
+//   username  String?
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  @@map("discord_users")
-}
+//   @@map("discord_users")
+// }
