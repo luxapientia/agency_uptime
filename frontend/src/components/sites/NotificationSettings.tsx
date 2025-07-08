@@ -22,6 +22,8 @@ import {
     Chat as SlackIcon,
     Forum as DiscordIcon,
     Delete as DeleteIcon,
+    Notifications as PushIcon,
+    Http as WebhookIcon,
 } from '@mui/icons-material';
 import type { Notification } from '../../types/site.types';
 import { NotificationType } from '../../types/site.types';
@@ -172,6 +174,10 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 return <SlackIcon />;
             case NotificationType.DISCORD:
                 return <DiscordIcon />;
+            case NotificationType.PUSH_NOTIFICATION:
+                return <PushIcon />;
+            case NotificationType.WEB_HOOK:
+                return <WebhookIcon />;
             default:
                 return null;
         }
@@ -292,6 +298,10 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 return "Enter Slack channel or user ID";
             case NotificationType.DISCORD:
                 return "Enter Discord channel ID";
+            case NotificationType.PUSH_NOTIFICATION:
+                return "Enter the email address associated with your GoHighLevel account";
+            case NotificationType.WEB_HOOK:
+                return "Enter the webhook URL to receive notifications";
             default:
                 return "Enter contact information";
         }
@@ -321,6 +331,40 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                     {verificationLoading ? 'Sending...' : 'Resend Code'}
                 </Button>
             </Box>
+        );
+    };
+
+    const renderPushInstructions = () => {
+        if (notificationType !== NotificationType.PUSH_NOTIFICATION) return null;
+
+        return (
+            <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                    How to set up Push notifications:
+                </Typography>
+                <ol style={{ margin: 0, paddingLeft: '1rem' }}>
+                    <li>Enter the email address associated with your GoHighLevel account</li>
+                    <li>Make sure you have the GoHighLevel mobile app installed</li>
+                    <li>Enable push notifications in the GoHighLevel app settings</li>
+                </ol>
+            </Alert>
+        );
+    };
+
+    const renderWebhookInstructions = () => {
+        if (notificationType !== NotificationType.WEB_HOOK) return null;
+
+        return (
+            <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                    How to set up Webhook notifications:
+                </Typography>
+                <ol style={{ margin: 0, paddingLeft: '1rem' }}>
+                    <li>Enter a valid HTTPS webhook URL that can receive POST requests</li>
+                    <li>Your endpoint should accept JSON payloads</li>
+                    <li>We will send notifications with site status updates to this URL</li>
+                </ol>
+            </Alert>
         );
     };
 
@@ -443,6 +487,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                     {renderSlackInstructions()}
                     {renderDiscordInstructions()}
                     {renderEmailInstructions()}
+                    {renderPushInstructions()}
+                    {renderWebhookInstructions()}
                     <Button
                         variant="contained"
                         onClick={() => handleAdd(notificationType, contactInfo)}
