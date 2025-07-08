@@ -12,6 +12,7 @@ import telegramService from '../services/telegram.service';
 import slackService from '../services/slack.service';
 import { config } from '../config';
 import discordService from '../services/discord.service';
+import { leadConnectorService } from '../services/leadconnector.service';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -303,6 +304,13 @@ const createNotification = async (req: AuthenticatedRequest, res: Response) => {
       isValidContactInfo = await discordService.verifyChannelId(contactInfo);
     } else if (req.body.type === 'EMAIL') {
       isValidContactInfo = true;
+    } else if (req.body.type === 'PUSH_NOTIFICATION') {
+      await leadConnectorService.createGoHighLevelContact(contactInfo);
+      isValidContactInfo = true;
+    } else if (req.body.type === 'WEB_HOOK') {
+      isValidContactInfo = true;
+    } else  {
+      isValidContactInfo = false;
     }
 
     if (!isValidContactInfo) {
