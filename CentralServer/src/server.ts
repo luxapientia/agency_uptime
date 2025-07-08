@@ -10,25 +10,6 @@ import monitorService from './services/monitor.service';
 import telegramService from './services/telegram.service';
 import discordService from './services/discord.service';
 import { config } from './config';
-// import axios from 'axios';
-
-// const webhookUrl = process.env.WEB_HOOK_POST_URL || '';
-// const apiToken = process.env.LEADCONNECTOR_API_TOKEN || '';
-
-// console.log(webhookUrl, apiToken, '----------------------')
-// const payload = {
-//   phone: '+17273466423',
-//   message: 'Test push notification',
-//   title: 'Agency Uptime'
-// };
-
-// axios.post(webhookUrl, payload)
-//   .then(response => {
-//     console.log('Test webhook sent successfully:', response.data);
-//   })
-//   .catch(error => {
-//     console.error('Error sending test webhook:', error.message);
-//   });
 
 const app = express();
 const port = process.env.PORT || 3000;
