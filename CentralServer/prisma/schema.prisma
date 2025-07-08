@@ -47,6 +47,7 @@ enum NotificationType {
   TELEGRAM
   DISCORD
   PUSH_NOTIFICATION
+  WEB_HOOK
 }
 
 model Notification {
