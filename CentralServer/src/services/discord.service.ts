@@ -1,7 +1,6 @@
-import { Client, GatewayIntentBits, Message, TextChannel, User } from 'discord.js';
+import { Client, GatewayIntentBits, TextChannel } from 'discord.js';
 import logger from '../utils/logger';
 import { config } from '../config';
-import prisma from '../lib/prisma';
 
 class DiscordService {
     private client: Client | null = null;
