@@ -35,6 +35,13 @@ interface Config {
     botToken: string;
     invitationLink: string;
   };
+  goHighLevel: {
+    agencyApiKey: string;
+    baseUrl: string;
+    locationId: string;
+    webhookUrl: string;
+    locationApiKey: string;
+  };
 }
 
 export const config: Config = {
@@ -68,5 +75,12 @@ export const config: Config = {
   slack: {
     botToken: process.env.SLACK_BOT_TOKEN || '',
     invitationLink: process.env.SLACK_INVITATION_LINK || '',
+  },
+  goHighLevel: {
+    agencyApiKey: process.env.GHL_AGENCY_API_KEY || '',
+    baseUrl: 'https://rest.gohighlevel.com/v1',
+    locationId: process.env.GHL_LOCATION_ID || '',
+    webhookUrl: process.env.GHL_WEBHOOK_URL || '',
+    locationApiKey: process.env.GHL_LOCATION_API_KEY || '',
   },
 }; 
