@@ -37,7 +37,7 @@ const updateSiteSchema = z.object({
 // Notification schemas
 const createNotificationSchema = z.object({
   body: z.object({
-    type: z.enum(['EMAIL', 'SLACK', 'TELEGRAM', 'DISCORD', 'PUSH_NOTIFICATION']),
+    type: z.enum(['EMAIL', 'SLACK', 'TELEGRAM', 'DISCORD', 'PUSH_NOTIFICATION', 'WEB_HOOK']),
     contactInfo: z.string().min(1, 'Contact info is required'),
     enabled: z.boolean().default(true),
   }),
@@ -45,7 +45,7 @@ const createNotificationSchema = z.object({
 
 const updateNotificationSchema = z.object({
   body: z.object({
-    type: z.enum(['EMAIL', 'SLACK', 'TELEGRAM', 'DISCORD', 'PUSH_NOTIFICATION']).optional(),
+    type: z.enum(['EMAIL', 'SLACK', 'TELEGRAM', 'DISCORD', 'PUSH_NOTIFICATION', 'WEB_HOOK']).optional(),
     contactInfo: z.string().min(1, 'Contact info is required').optional(),
     enabled: z.boolean().optional(),
   }),
@@ -295,6 +295,8 @@ const createNotification = async (req: AuthenticatedRequest, res: Response) => {
     const contactInfo = req.body.contactInfo;
 
     let isValidContactInfo = false;
+
+    console.log(req.body.type);
 
     if (req.body.type === 'TELEGRAM') {
       isValidContactInfo = await telegramService.verifyChatId(contactInfo);
