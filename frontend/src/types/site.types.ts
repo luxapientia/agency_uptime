@@ -24,7 +24,8 @@ export enum NotificationType {
   SLACK = 'SLACK',
   TELEGRAM = 'TELEGRAM',
   DISCORD = 'DISCORD',
-  PUSH_NOTIFICATION = 'PUSH_NOTIFICATION'
+  PUSH_NOTIFICATION = 'PUSH_NOTIFICATION',
+  WEB_HOOK = 'WEB_HOOK'
 }
 
 export interface CreateSiteData {
