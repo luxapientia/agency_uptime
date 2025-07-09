@@ -303,13 +303,15 @@ export default function Sites() {
         elevation={2}
         sx={{
           borderRadius: 2,
-          overflow: 'hidden',
+          overflow: 'auto',
+          maxWidth: '100%',
           '& .MuiTableCell-root': {
-            borderColor: theme.palette.divider
+            borderColor: theme.palette.divider,
+            whiteSpace: 'nowrap'
           }
         }}
       >
-        <Table>
+        <Table sx={{ minWidth: 800 }}>
           <TableHead>
             <TableRow sx={{
               background: theme.palette.mode === 'dark'
@@ -383,13 +385,23 @@ export default function Sites() {
                       gap: 1,
                       color: theme.palette.primary.main,
                       textDecoration: 'none',
+                      maxWidth: '300px',
                       '&:hover': {
                         textDecoration: 'underline'
                       }
                     }}
                   >
                     <LanguageIcon fontSize="small" />
-                    {site.url}
+                    <Typography
+                      noWrap
+                      sx={{
+                        flex: 1,
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {site.url}
+                    </Typography>
                   </Link>
                 </TableCell>
                 <TableCell align="center">
