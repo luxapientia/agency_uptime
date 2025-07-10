@@ -39,6 +39,9 @@ export const authenticate = async (
     (req as any).user = user;
     next();
   } catch (error) {
-    next(new UnauthorizedError('Invalid token'));
+    res.status(401).send({
+      success: false,
+      message: 'Unauthorized User'
+    })
   }
 }
