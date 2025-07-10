@@ -129,12 +129,12 @@ const notificationSlice = createSlice({
 export const { clearError, resetState } = notificationSlice.actions;
 
 // Selectors
-export const selectNotifications = (state: RootState) =>
-  state.notification.notifications;
-export const selectNotificationsLoading = (state: RootState) =>
-  state.notification.loading;
-export const selectNotificationsError = (state: RootState) =>
-  state.notification.error;
+export const selectNotifications = (state: { notifications: NotificationState }) =>
+  state.notifications.notifications;
+export const selectNotificationsLoading = (state: { notifications: NotificationState }) =>
+  state.notifications.loading;
+export const selectNotificationsError = (state: { notifications: NotificationState }) =>
+  state.notifications.error;
 
 // Reducer
 export default notificationSlice.reducer; 

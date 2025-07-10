@@ -95,12 +95,12 @@ const notificationChannelSlice = createSlice({
 export const { clearError, resetState } = notificationChannelSlice.actions;
 
 // Selectors
-export const selectNotificationChannels = (state: { notificationChannel: NotificationChannelState }) =>
-  state.notificationChannel.channels;
-export const selectNotificationChannelsLoading = (state: { notificationChannel: NotificationChannelState }) =>
-  state.notificationChannel.loading;
-export const selectNotificationChannelsError = (state: { notificationChannel: NotificationChannelState }) =>
-  state.notificationChannel.error;
+export const selectNotificationChannels = (state: { notificationChannels: NotificationChannelState }) =>
+  state.notificationChannels.channels;
+export const selectNotificationChannelsLoading = (state: { notificationChannels: NotificationChannelState }) =>
+  state.notificationChannels.loading;
+export const selectNotificationChannelsError = (state: { notificationChannels: NotificationChannelState }) =>
+  state.notificationChannels.error;
 
 // Reducer
 export default notificationChannelSlice.reducer;
