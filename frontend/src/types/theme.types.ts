@@ -19,6 +19,10 @@ export interface ThemeSettings {
     primary: string;
     secondary: string;
   };
+  favicon: {
+    url: string;
+    type: string;
+  } | null;
 }
 
 export interface ThemeState {

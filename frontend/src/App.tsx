@@ -12,12 +12,37 @@ import Settings from './pages/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
 import type { RootState } from './store';
+
+// Helper function to update favicon
+const updateFavicon = (faviconUrl: string | null) => {
+  let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+  
+  // If no favicon link exists, create one
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+
+  // Update favicon URL
+  link.href = faviconUrl || '/favicon.ico';
+};
 
 function AppContent() {
   const rootUrl = import.meta.env.VITE_ROOT_URL;
   const themeSettings = useSelector((state: RootState) => state.theme.settings);
   const theme = createAppTheme(themeSettings);
+
+  // Update favicon when theme settings change
+  useEffect(() => {
+    if (themeSettings.favicon) {
+      updateFavicon(themeSettings.favicon.url);
+    } else {
+      updateFavicon(null); // Will use default favicon
+    }
+  }, [themeSettings.favicon]);
 
   return (
     <ThemeProvider theme={theme}>

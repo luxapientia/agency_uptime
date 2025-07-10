@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -10,15 +10,18 @@ import {
   Slider,
   TextField,
   Divider,
+  IconButton,
 } from '@mui/material';
 import { ChromePicker } from 'react-color';
 import type { ColorResult, RGBColor } from 'react-color';
+import { Delete as DeleteIcon, Upload as UploadIcon } from '@mui/icons-material';
 import type { RootState, AppDispatch } from '../../store';
 import {
   updateColors,
   toggleDarkMode,
   updateBorderRadius,
   updateFontFamily,
+  updateFavicon,
   resetTheme,
 } from '../../store/slices/themeSlice';
 import type { ThemeColors } from '../../types/theme.types';
@@ -72,6 +75,7 @@ const rgbaToHexAndAlpha = (rgba: string): { hex: string; alpha: number } => {
 export default function ThemeSettings() {
   const dispatch = useDispatch<AppDispatch>();
   const themeSettings = useSelector((state: RootState) => state.theme.settings);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [displayColorPicker, setDisplayColorPicker] = useState<ColorPickerType>(null);
   const [tempColors, setTempColors] = useState<ThemeColors>(() => {
@@ -172,6 +176,49 @@ export default function ThemeSettings() {
     dispatch(updateFontFamily({ [type]: value }));
   };
 
+  const handleFaviconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check if file is an image and not too large
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 1024 * 1024) { // 1MB limit
+      alert('File size should be less than 1MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      
+      // Create a new image to get dimensions
+      const img = new Image();
+      img.onload = () => {
+        // Check dimensions
+        if (img.width > 256 || img.height > 256) {
+          alert('Image dimensions should be 256x256 pixels or smaller');
+          return;
+        }
+
+        // Update favicon in the store
+        dispatch(updateFavicon({
+          url: dataUrl,
+          type: file.type
+        }));
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveFavicon = () => {
+    dispatch(updateFavicon(null));
+  };
+
   const renderColorPicker = (colorType: ColorPickerType) => {
     if (!colorType || colorType === 'text') return null;
 
@@ -247,6 +294,75 @@ export default function ThemeSettings() {
       <Typography variant="h6" gutterBottom>
         Theme Settings
       </Typography>
+
+      {/* Favicon Section */}
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Favicon
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Favicon Preview */}
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              backgroundColor: '#fff',
+            }}
+          >
+            {themeSettings.favicon ? (
+              <img
+                src={themeSettings.favicon.url}
+                alt="Favicon"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : (
+              <Typography variant="caption" color="text.secondary">
+                No favicon
+              </Typography>
+            )}
+          </Box>
+
+          {/* Upload and Remove Buttons */}
+          <Box>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFaviconUpload}
+              accept="image/x-icon,image/png,image/jpeg,image/gif"
+              style={{ display: 'none' }}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => fileInputRef.current?.click()}
+              startIcon={<UploadIcon />}
+              sx={{ mr: 1 }}
+            >
+              Upload Favicon
+            </Button>
+            {themeSettings.favicon && (
+              <IconButton
+                onClick={handleRemoveFavicon}
+                color="error"
+                size="small"
+              >
+                <DeleteIcon />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+          Recommended size: 32x32 or 16x16 pixels. Supported formats: ICO, PNG, JPEG, GIF
+        </Typography>
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
 
       <Box sx={{ mt: 3 }}>
         <FormControlLabel
