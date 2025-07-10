@@ -1,6 +1,9 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
+
+
 const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api';
+const rootUrl = import.meta.env.VITE_ROOT_URL;
 
 const axiosInstance = axios.create({
   baseURL,
@@ -27,7 +30,7 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Token expired or invalid, redirect to login
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = `/${rootUrl}/login`;
     }
     return Promise.reject(error);
   }
