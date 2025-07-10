@@ -88,7 +88,7 @@ export default function Header() {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardOutlined />, path: '/dashboard' },
-    { text: 'Sites', icon: <Business />, path: '/dashboard/sites' },
+    { text: 'Sites', icon: <Business />, path: '/sites' },
   ];
 
   const drawer = (
@@ -469,13 +469,13 @@ export default function Header() {
                   </Typography>
                 </Box>
                 <Divider sx={{ my: 0.5, mx: 0.5 }} />
-                <MenuItem onClick={() => { handleClose(); navigate('/dashboard/profile'); }}>
+                <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>
                   <ListItemIcon>
                     <Person fontSize="small" color="primary" />
                   </ListItemIcon>
                   <Typography color={theme.palette.text.primary}>Profile</Typography>
                 </MenuItem>
-                <MenuItem onClick={() => { handleClose(); navigate('/dashboard/settings'); }}>
+                <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
                   <ListItemIcon>
                     <Settings fontSize="small" color="primary" />
                   </ListItemIcon>

@@ -6,9 +6,9 @@ import { store, persistor } from './store';
 import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-import Dashboard from './pages/dashboard/Dashboard';
-import Sites from './pages/dashboard/Sites';
-import Settings from './pages/dashboard/Settings';
+import Dashboard from './pages/Dashboard';
+import Sites from './pages/Sites';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
@@ -36,7 +36,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/dashboard/sites"
+              path="/sites"
               element={
                 <ProtectedRoute>
                   <Sites />
@@ -44,7 +44,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/dashboard/settings"
+              path="/settings"
               element={
                 <ProtectedRoute>
                   <Settings />

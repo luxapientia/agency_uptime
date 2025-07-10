@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import ThemeSettings from '../../components/settings/ThemeSettings';
+import ThemeSettings from '../components/settings/ThemeSettings';
 
 export default function Settings() {
   return (

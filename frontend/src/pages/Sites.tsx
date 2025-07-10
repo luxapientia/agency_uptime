@@ -46,19 +46,19 @@ import {
   PictureAsPdf as PdfIcon,
   NotificationsOutlined as NotificationIcon,
 } from '@mui/icons-material';
-import type { AppDispatch, RootState } from '../../store';
+import type { AppDispatch, RootState } from '../store';
 import {
   fetchSites,
   createSite,
   updateSite,
   deleteSite,
   setSelectedSite,
-} from '../../store/slices/siteSlice';
-import type { Site, CreateSiteData, UpdateSiteData } from '../../types/site.types';
-import SiteForm from '../../components/sites/SiteForm';
-import NotificationSettings from '../../components/sites/NotificationSettings';
-import axios from '../../lib/axios';
-import { showToast } from '../../utils/toast';
+} from '../store/slices/siteSlice';
+import type { Site, CreateSiteData, UpdateSiteData } from '../types/site.types';
+import SiteForm from '../components/sites/SiteForm';
+import NotificationSettings from '../components/sites/NotificationSettings';
+import axios from '../lib/axios';
+import { showToast } from '../utils/toast';
 import { alpha } from '@mui/material/styles';
 
 interface SiteStatus {
