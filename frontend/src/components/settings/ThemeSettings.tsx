@@ -5,16 +5,14 @@ import {
   Typography,
   Paper,
   Button,
-  useTheme,
   Switch,
   FormControlLabel,
   Slider,
   TextField,
   Divider,
 } from '@mui/material';
-import type { GridProps } from '@mui/material';
 import { ChromePicker } from 'react-color';
-import type { ColorResult } from 'react-color';
+import type { ColorResult, RGBColor } from 'react-color';
 import type { RootState, AppDispatch } from '../../store';
 import {
   updateColors,
@@ -39,13 +37,58 @@ const colorLabels: Record<Exclude<ColorPickerType, null>, string> = {
   'text.secondary': 'Secondary Text Color',
 };
 
+// Helper function to convert hex to rgba
+const hexToRgba = (hex: string, alpha = 1) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(0, 0, 0, ${alpha})`;
+  
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+// Helper function to convert rgba to hex and alpha
+const rgbaToHexAndAlpha = (rgba: string): { hex: string; alpha: number } => {
+  const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d*\.?\d+))?\)/);
+  if (!match) return { hex: '#000000', alpha: 1 };
+
+  const r = parseInt(match[1]);
+  const g = parseInt(match[2]);
+  const b = parseInt(match[3]);
+  const a = match[4] ? parseFloat(match[4]) : 1;
+
+  const hex = '#' + [r, g, b]
+    .map(x => {
+      const hex = x.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    })
+    .join('');
+
+  return { hex, alpha: a };
+};
+
 export default function ThemeSettings() {
   const dispatch = useDispatch<AppDispatch>();
-  const theme = useTheme();
   const themeSettings = useSelector((state: RootState) => state.theme.settings);
 
   const [displayColorPicker, setDisplayColorPicker] = useState<ColorPickerType>(null);
-  const [tempColors, setTempColors] = useState<ThemeColors>(themeSettings.colors);
+  const [tempColors, setTempColors] = useState<ThemeColors>(() => {
+    // Initialize with rgba values
+    const colors = { ...themeSettings.colors };
+    Object.keys(colors).forEach(key => {
+      if (key === 'text') {
+        colors.text = {
+          primary: hexToRgba(colors.text.primary),
+          secondary: hexToRgba(colors.text.secondary)
+        };
+      } else {
+        colors[key as keyof Omit<ThemeColors, 'text'>] = hexToRgba(colors[key as keyof Omit<ThemeColors, 'text'>]);
+      }
+    });
+    return colors;
+  });
 
   const handleClick = (colorType: ColorPickerType) => {
     setDisplayColorPicker(colorType);
@@ -58,17 +101,19 @@ export default function ThemeSettings() {
   const handleChange = (color: ColorResult, colorType: ColorPickerType) => {
     if (!colorType) return;
 
+    const rgba = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`;
+
     setTempColors(prev => {
       if (colorType === 'text.primary') {
         return {
           ...prev,
-          text: { ...prev.text, primary: color.hex }
+          text: { ...prev.text, primary: rgba }
         };
       }
       if (colorType === 'text.secondary') {
         return {
           ...prev,
-          text: { ...prev.text, secondary: color.hex }
+          text: { ...prev.text, secondary: rgba }
         };
       }
       if (colorType === 'text') {
@@ -76,19 +121,47 @@ export default function ThemeSettings() {
       }
       return {
         ...prev,
-        [colorType]: color.hex
+        [colorType]: rgba
       };
     });
   };
 
   const handleSave = () => {
-    dispatch(updateColors(tempColors));
+    // Convert rgba values back to hex for storage
+    const hexColors = { ...tempColors };
+    Object.keys(hexColors).forEach(key => {
+      if (key === 'text') {
+        hexColors.text = {
+          primary: rgbaToHexAndAlpha(hexColors.text.primary).hex,
+          secondary: rgbaToHexAndAlpha(hexColors.text.secondary).hex
+        };
+      } else {
+        hexColors[key as keyof Omit<ThemeColors, 'text'>] = 
+          rgbaToHexAndAlpha(hexColors[key as keyof Omit<ThemeColors, 'text'>]).hex;
+      }
+    });
+    dispatch(updateColors(hexColors));
     handleClose();
   };
 
   const handleReset = () => {
     dispatch(resetTheme());
-    setTempColors(themeSettings.colors);
+    // Reset tempColors with rgba values
+    setTempColors(() => {
+      const colors = { ...themeSettings.colors };
+      Object.keys(colors).forEach(key => {
+        if (key === 'text') {
+          colors.text = {
+            primary: hexToRgba(colors.text.primary),
+            secondary: hexToRgba(colors.text.secondary)
+          };
+        } else {
+          colors[key as keyof Omit<ThemeColors, 'text'>] = 
+            hexToRgba(colors[key as keyof Omit<ThemeColors, 'text'>]);
+        }
+      });
+      return colors;
+    });
   };
 
   const handleBorderRadiusChange = (_event: Event, value: number | number[]) => {
@@ -111,6 +184,15 @@ export default function ThemeSettings() {
       currentColor = tempColors[colorType];
     }
 
+    // Convert rgba to color object for ChromePicker
+    const { hex, alpha } = rgbaToHexAndAlpha(currentColor);
+    const rgbColor: RGBColor = {
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+      a: alpha
+    };
+
     return (
       <Box>
         <Typography variant="subtitle1" gutterBottom>
@@ -126,6 +208,7 @@ export default function ThemeSettings() {
               cursor: 'pointer',
               border: '2px solid #e0e0e0',
               borderRadius: 1,
+              backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg==")',
             }}
           />
           {displayColorPicker === colorType && (
@@ -145,11 +228,15 @@ export default function ThemeSettings() {
                 onClick={handleClose}
               />
               <ChromePicker
-                color={currentColor}
+                color={rgbColor}
                 onChange={(color) => handleChange(color, colorType)}
+                disableAlpha={false}
               />
             </Box>
           )}
+          <Typography variant="body2" color="text.secondary">
+            {currentColor}
+          </Typography>
         </Box>
       </Box>
     );
