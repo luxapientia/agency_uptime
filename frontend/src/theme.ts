@@ -1,59 +1,151 @@
 import { createTheme } from '@mui/material';
+import type { Theme, PaletteMode } from '@mui/material';
+import type { ThemeSettings } from './types/theme.types';
 
-export const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#2563eb', // Blue
-      light: '#60a5fa',
-      dark: '#1d4ed8',
+export const createAppTheme = (settings: ThemeSettings): Theme => {
+  const mode: PaletteMode = settings.isDarkMode ? 'dark' : 'light';
+
+  return createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: settings.colors.primary,
+        light: adjustColor(settings.colors.primary, 20),
+        dark: adjustColor(settings.colors.primary, -20),
+      },
+      secondary: {
+        main: settings.colors.secondary,
+        light: adjustColor(settings.colors.secondary, 20),
+        dark: adjustColor(settings.colors.secondary, -20),
+      },
+      error: {
+        main: settings.colors.error,
+        light: adjustColor(settings.colors.error, 20),
+        dark: adjustColor(settings.colors.error, -20),
+      },
+      warning: {
+        main: settings.colors.warning,
+        light: adjustColor(settings.colors.warning, 20),
+        dark: adjustColor(settings.colors.warning, -20),
+      },
+      info: {
+        main: settings.colors.info,
+        light: adjustColor(settings.colors.info, 20),
+        dark: adjustColor(settings.colors.info, -20),
+      },
+      success: {
+        main: settings.colors.success,
+        light: adjustColor(settings.colors.success, 20),
+        dark: adjustColor(settings.colors.success, -20),
+      },
+      text: {
+        primary: settings.colors.text.primary,
+        secondary: settings.colors.text.secondary,
+      },
+      background: {
+        default: settings.isDarkMode ? '#121212' : '#f9fafb',
+        paper: settings.isDarkMode ? '#1e1e1e' : '#ffffff',
+      },
     },
-    secondary: {
-      main: '#4f46e5', // Indigo
-      light: '#818cf8',
-      dark: '#4338ca',
+    typography: {
+      fontFamily: settings.fontFamily.primary,
+      h1: {
+        fontWeight: 600,
+        fontFamily: settings.fontFamily.primary,
+      },
+      h2: {
+        fontWeight: 600,
+        fontFamily: settings.fontFamily.primary,
+      },
+      h3: {
+        fontWeight: 600,
+        fontFamily: settings.fontFamily.primary,
+      },
+      h4: {
+        fontWeight: 600,
+        fontFamily: settings.fontFamily.primary,
+      },
+      h5: {
+        fontWeight: 600,
+        fontFamily: settings.fontFamily.primary,
+      },
+      h6: {
+        fontWeight: 600,
+        fontFamily: settings.fontFamily.primary,
+      },
+      body1: {
+        fontFamily: settings.fontFamily.secondary,
+      },
+      body2: {
+        fontFamily: settings.fontFamily.secondary,
+      },
     },
-    background: {
-      default: '#f9fafb',
-      paper: '#ffffff',
+    shape: {
+      borderRadius: settings.borderRadius,
     },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 600,
-    },
-    h2: {
-      fontWeight: 600,
-    },
-    h3: {
-      fontWeight: 600,
-    },
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  shape: {
-    borderRadius: 8,
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          fontWeight: 500,
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 500,
+            borderRadius: settings.borderRadius,
+          },
+        },
+      },
+      MuiTextField: {
+        defaultProps: {
+          variant: 'outlined',
+        },
+        styleOverrides: {
+          root: {
+            borderRadius: settings.borderRadius,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: settings.borderRadius,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            borderRadius: settings.borderRadius,
+          },
         },
       },
     },
-    MuiTextField: {
-      defaultProps: {
-        variant: 'outlined',
-      },
-    },
-  },
-}); 
+  });
+};
+
+// Helper function to adjust color brightness
+function adjustColor(hex: string, percent: number): string {
+  // Remove # if present
+  hex = hex.replace('#', '');
+
+  // Convert to RGB
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  // Adjust each component
+  const adjustR = Math.floor(r * (1 + percent / 100));
+  const adjustG = Math.floor(g * (1 + percent / 100));
+  const adjustB = Math.floor(b * (1 + percent / 100));
+
+  // Ensure values are within 0-255 range
+  const finalR = Math.min(255, Math.max(0, adjustR));
+  const finalG = Math.min(255, Math.max(0, adjustG));
+  const finalB = Math.min(255, Math.max(0, adjustB));
+
+  // Convert back to hex
+  const toHex = (n: number) => {
+    const hex = n.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+
+  return `#${toHex(finalR)}${toHex(finalG)}${toHex(finalB)}`;
+} 

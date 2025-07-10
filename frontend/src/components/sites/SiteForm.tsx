@@ -17,6 +17,7 @@ import {
   CircularProgress,
   FormHelperText,
   Alert,
+  alpha,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -104,7 +105,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 2,
+          borderRadius: '16px', // 2 * default borderRadius (8px)
           overflow: 'hidden',
         },
       }}
@@ -116,8 +117,8 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             justifyContent: 'space-between',
             alignItems: 'center',
             background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))'
-              : 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))',
+              ? alpha(theme.palette.primary.main, 0.1)
+              : alpha(theme.palette.primary.main, 0.05),
             borderBottom: `1px solid ${theme.palette.divider}`,
             py: 2,
           }}
@@ -132,9 +133,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             sx={{
               color: theme.palette.text.secondary,
               '&:hover': {
-                background: theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(0, 0, 0, 0.1)',
+                bgcolor: alpha(theme.palette.text.primary, 0.1),
               },
             }}
           >
@@ -165,7 +164,12 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 1.5,
+                  borderRadius: '12px', // 1.5 * default borderRadius (8px)
+                  '&.Mui-focused': {
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                  },
                 },
               }}
             />
@@ -192,7 +196,12 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 1.5,
+                  borderRadius: '12px',
+                  '&.Mui-focused': {
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                  },
                 },
               }}
             />
@@ -208,7 +217,12 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                   </InputAdornment>
                 }
                 sx={{
-                  borderRadius: 1.5,
+                  borderRadius: '12px',
+                  '&.Mui-focused': {
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                  },
                 }}
               >
                 {INTERVAL_OPTIONS.map((interval) => (
@@ -225,7 +239,16 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
               </FormHelperText>
             </FormControl>
 
-            <Alert severity="info" sx={{ borderRadius: 1.5 }}>
+            <Alert 
+              severity="info" 
+              sx={{ 
+                borderRadius: '12px',
+                backgroundColor: alpha(theme.palette.info.main, 0.08),
+                '& .MuiAlert-icon': {
+                  color: theme.palette.info.main,
+                },
+              }}
+            >
               The site will be monitored from multiple locations to ensure accurate uptime tracking.
             </Alert>
           </Box>
@@ -236,20 +259,18 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             px: 3,
             py: 2.5,
             background: theme.palette.mode === 'dark'
-              ? 'rgba(255, 255, 255, 0.05)'
-              : 'rgba(0, 0, 0, 0.02)',
+              ? alpha(theme.palette.common.white, 0.05)
+              : alpha(theme.palette.common.black, 0.02),
           }}
         >
           <Button
             onClick={onClose}
             sx={{
-              borderRadius: 1.5,
+              borderRadius: '12px',
               px: 3,
               color: theme.palette.text.secondary,
               '&:hover': {
-                background: theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(0, 0, 0, 0.1)',
+                bgcolor: alpha(theme.palette.text.primary, 0.1),
               },
             }}
           >
@@ -260,16 +281,15 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             variant="contained"
             disabled={isLoading}
             sx={{
-              borderRadius: 1.5,
+              borderRadius: '12px',
               px: 3,
-              background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+              background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
+              boxShadow: `0 3px 5px 2px ${alpha(theme.palette.primary.main, 0.3)}`,
               '&:hover': {
-                background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)'
-                  : 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)',
+                background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.main} 90%)`,
+              },
+              '&:disabled': {
+                background: theme.palette.action.disabledBackground,
               },
             }}
           >

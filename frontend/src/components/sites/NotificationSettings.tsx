@@ -15,6 +15,7 @@ import {
     Alert,
     Link,
     CircularProgress,
+    useTheme,
 } from '@mui/material';
 import {
     Email as EmailIcon,
@@ -46,6 +47,7 @@ import {
 } from '../../store/slices/notificationSlice';
 import { showToast } from '../../utils/toast';
 import axios from '../../lib/axios';
+import { alpha } from '@mui/material/styles';
 
 interface NotificationSettingsProps {
     siteId: string;
@@ -54,6 +56,7 @@ interface NotificationSettingsProps {
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     siteId,
 }) => {
+    const theme = useTheme();
     const dispatch = useDispatch<AppDispatch>();
 
     // Channel info state
@@ -403,13 +406,20 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                                 justifyContent: 'space-between',
                                 p: 2,
                                 border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 1,
-                                bgcolor: 'background.paper',
+                                borderColor: theme.palette.divider,
+                                borderRadius: theme.shape.borderRadius,
+                                bgcolor: theme.palette.background.paper,
+                                transition: theme.transitions.create(['border-color', 'box-shadow']),
+                                '&:hover': {
+                                    borderColor: theme.palette.primary.main,
+                                    boxShadow: `0 0 0 1px ${theme.palette.primary.main}`,
+                                },
                             }}
                         >
                             <Stack direction="row" spacing={2} alignItems="center">
-                                {getNotificationIcon(notification.type)}
+                                <Box sx={{ color: theme.palette.primary.main }}>
+                                    {getNotificationIcon(notification.type)}
+                                </Box>
                                 <Box>
                                     <Typography variant="body2">
                                         {getNotificationLabel(notification.type)}
@@ -423,12 +433,17 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                                 <Switch
                                     checked={notification.enabled}
                                     onChange={() => handleToggle(notification)}
-                                    color="warning"
+                                    color="primary"
                                     size="small"
                                 />
                                 <IconButton
                                     size="small"
-                                    color="error"
+                                    sx={{
+                                        color: theme.palette.error.main,
+                                        '&:hover': {
+                                            bgcolor: alpha(theme.palette.error.main, 0.08),
+                                        },
+                                    }}
                                     onClick={() => handleDelete(notification)}
                                 >
                                     <DeleteIcon fontSize="small" />
@@ -437,14 +452,23 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                         </Box>
                     ))}
                     {notificationsList.length === 0 && (
-                        <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                        <Typography 
+                            variant="body2" 
+                            color="text.secondary" 
+                            sx={{ 
+                                py: 2, 
+                                textAlign: 'center',
+                                bgcolor: theme.palette.grey[50],
+                                borderRadius: theme.shape.borderRadius,
+                            }}
+                        >
                             No notifications configured
                         </Typography>
                     )}
                 </Stack>
             </Box>
 
-            <Divider />
+            <Divider sx={{ borderColor: theme.palette.divider }} />
 
             {/* Add New Notification */}
             <Box>
@@ -467,7 +491,9 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                             {Object.values(NotificationType).map((type) => (
                                 <MenuItem key={type} value={type}>
                                     <Stack direction="row" spacing={1} alignItems="center">
-                                        {getNotificationIcon(type)}
+                                        <Box sx={{ color: theme.palette.primary.main }}>
+                                            {getNotificationIcon(type)}
+                                        </Box>
                                         <Typography>{getNotificationLabel(type)}</Typography>
                                     </Stack>
                                 </MenuItem>
@@ -500,11 +526,14 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                         }
                         startIcon={(verificationLoading || addingNotification) && <CircularProgress size={20} color="inherit" />}
                         sx={{
-                            borderRadius: 2,
+                            borderRadius: '16px', // Using a fixed value that matches Material-UI's common border radius multiplier
                             py: 1,
-                            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                            background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
                             '&:hover': {
-                                background: 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)',
+                                background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.main} 90%)`,
+                            },
+                            '&:disabled': {
+                                background: theme.palette.action.disabledBackground,
                             }
                         }}
                     >

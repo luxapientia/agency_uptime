@@ -59,6 +59,7 @@ import SiteForm from '../../components/sites/SiteForm';
 import NotificationSettings from '../../components/sites/NotificationSettings';
 import axios from '../../lib/axios';
 import { showToast } from '../../utils/toast';
+import { alpha } from '@mui/material/styles';
 
 interface SiteStatus {
   isUp: boolean | null;
@@ -245,8 +246,8 @@ export default function Sites() {
         <Typography variant="h4" component="h1" sx={{
           fontWeight: 'bold',
           background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(45deg, #fff 30%, #f0f0f0 90%)'
-            : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            ? `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.secondary.light} 90%)`
+            : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
@@ -261,7 +262,7 @@ export default function Sites() {
             disabled={isGeneratingReport}
             fullWidth={isMobile}
             sx={{
-              borderRadius: 2,
+              borderRadius: theme.shape.borderRadius,
               py: 1.5,
               borderColor: theme.palette.primary.main,
               color: theme.palette.primary.main,
@@ -280,16 +281,16 @@ export default function Sites() {
             onClick={handleAddClick}
             fullWidth={isMobile}
             sx={{
-              borderRadius: 2,
+              borderRadius: theme.shape.borderRadius,
               py: 1.5,
               background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
+                : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+              boxShadow: `0 3px 5px 2px ${theme.palette.primary.main}30`,
               '&:hover': {
                 background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)'
-                  : 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)',
+                  ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
+                  : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
               }
             }}
           >
@@ -302,7 +303,7 @@ export default function Sites() {
         component={Paper}
         elevation={2}
         sx={{
-          borderRadius: 2,
+          borderRadius: theme.shape.borderRadius,
           overflow: 'auto',
           maxWidth: '100%',
           '& .MuiTableCell-root': {
@@ -315,15 +316,15 @@ export default function Sites() {
           <TableHead>
             <TableRow sx={{
               background: theme.palette.mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.05)'
-                : 'rgba(33, 150, 243, 0.05)'
+                ? alpha(theme.palette.primary.main, 0.05)
+                : alpha(theme.palette.primary.main, 0.05)
             }}>
-              <TableCell sx={{ fontWeight: 'bold' }} align="center" >Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }} align="center">Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }} align="center">URL</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }} align="center">Check Interval</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }} align="center">Last Updated</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">URL</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Check Interval</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Last Updated</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -336,8 +337,8 @@ export default function Sites() {
                 sx={{
                   '&:hover': {
                     backgroundColor: theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.05)'
-                      : 'rgba(33, 150, 243, 0.05)'
+                      ? alpha(theme.palette.primary.main, 0.05)
+                      : alpha(theme.palette.primary.main, 0.05)
                   }
                 }}
               >
@@ -369,7 +370,7 @@ export default function Sites() {
                     >
                       {site.name.charAt(0).toUpperCase()}
                     </Avatar>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>
                       {site.name}
                     </Typography>
                   </Stack>
@@ -387,7 +388,8 @@ export default function Sites() {
                       textDecoration: 'none',
                       maxWidth: '300px',
                       '&:hover': {
-                        textDecoration: 'underline'
+                        textDecoration: 'underline',
+                        color: theme.palette.primary.dark
                       }
                     }}
                   >
@@ -397,7 +399,8 @@ export default function Sites() {
                       sx={{
                         flex: 1,
                         textOverflow: 'ellipsis',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        color: 'inherit'
                       }}
                     >
                       {site.url}
@@ -405,14 +408,14 @@ export default function Sites() {
                   </Link>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                    <SpeedIcon fontSize="small" color="action" />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', color: theme.palette.text.secondary }}>
+                    <SpeedIcon fontSize="small" color="inherit" />
                     Every {site.checkInterval} minute{site.checkInterval > 1 ? 's' : ''}
                   </Box>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                    <UpdateIcon fontSize="small" color="action" />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', color: theme.palette.text.secondary }}>
+                    <UpdateIcon fontSize="small" color="inherit" />
                     {formatDate(site.updatedAt)}
                   </Box>
                 </TableCell>
@@ -425,7 +428,7 @@ export default function Sites() {
                         mr: 1,
                         color: theme.palette.info.main,
                         '&:hover': {
-                          background: `${theme.palette.info.main}15`
+                          background: alpha(theme.palette.info.main, 0.1)
                         }
                       }}
                     >
@@ -439,7 +442,7 @@ export default function Sites() {
                       sx={{
                         mr: 1,
                         color: theme.palette.warning.main,
-                        '&:hover': { background: `${theme.palette.warning.main}15` }
+                        '&:hover': { background: alpha(theme.palette.warning.main, 0.1) }
                       }}
                     >
                       <NotificationIcon />
@@ -452,7 +455,7 @@ export default function Sites() {
                       sx={{
                         color: theme.palette.primary.main,
                         '&:hover': {
-                          background: `${theme.palette.primary.main}15`
+                          background: alpha(theme.palette.primary.main, 0.1)
                         }
                       }}
                     >
@@ -467,7 +470,7 @@ export default function Sites() {
                         ml: 1,
                         color: theme.palette.error.main,
                         '&:hover': {
-                          background: `${theme.palette.error.main}15`
+                          background: alpha(theme.palette.error.main, 0.1)
                         }
                       }}
                     >
@@ -489,6 +492,12 @@ export default function Sites() {
           onRowsPerPageChange={handleChangeRowsPerPage}
           sx={{
             borderTop: `1px solid ${theme.palette.divider}`,
+            '.MuiTablePagination-select': {
+              color: theme.palette.text.primary
+            },
+            '.MuiTablePagination-displayedRows': {
+              color: theme.palette.text.secondary
+            }
           }}
         />
       </TableContainer>
@@ -506,15 +515,15 @@ export default function Sites() {
         onClose={() => setIsDeleteDialogOpen(false)}
         PaperProps={{
           sx: {
-            borderRadius: 2,
+            borderRadius: theme.shape.borderRadius,
             width: '100%',
             maxWidth: 400
           }
         }}
       >
-        <DialogTitle sx={{ pb: 1 }}>Delete Site</DialogTitle>
+        <DialogTitle sx={{ pb: 1, color: theme.palette.text.primary }}>Delete Site</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography color={theme.palette.text.secondary}>
             Are you sure you want to delete "{siteToDelete?.name}"? This action cannot be undone.
           </Typography>
         </DialogContent>
@@ -522,7 +531,7 @@ export default function Sites() {
           <Button
             onClick={() => setIsDeleteDialogOpen(false)}
             sx={{
-              borderRadius: 2,
+              borderRadius: theme.shape.borderRadius,
               px: 3,
               color: theme.palette.text.secondary
             }}
@@ -535,7 +544,7 @@ export default function Sites() {
             variant="contained"
             disabled={isLoading}
             sx={{
-              borderRadius: 2,
+              borderRadius: theme.shape.borderRadius,
               px: 3,
               background: theme.palette.error.main,
               '&:hover': {
@@ -555,7 +564,7 @@ export default function Sites() {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 2,
+            borderRadius: theme.shape.borderRadius,
             overflow: 'hidden',
           }
         }}
@@ -566,21 +575,24 @@ export default function Sites() {
             justifyContent: 'space-between',
             alignItems: 'center',
             background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))'
-              : 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))',
+              ? alpha(theme.palette.primary.main, 0.1)
+              : alpha(theme.palette.primary.main, 0.1),
             borderBottom: `1px solid ${theme.palette.divider}`,
             py: 2,
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <StatsIcon color="primary" />
-            <Typography variant="h6">Site Statistics</Typography>
+            <Typography variant="h6" color={theme.palette.text.primary}>Site Statistics</Typography>
           </Stack>
           <IconButton
             onClick={() => setStatusDialogOpen(false)}
             size="small"
             sx={{
               color: theme.palette.text.secondary,
+              '&:hover': {
+                background: alpha(theme.palette.text.secondary, 0.1)
+              }
             }}
           >
             <CloseIcon />
@@ -594,7 +606,7 @@ export default function Sites() {
           ) : selectedSiteStatus ? (
             <Stack spacing={3}>
               <Box>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom>
                   Current Status
                 </Typography>
                 <Stack direction="row" spacing={2} alignItems="center">
@@ -617,7 +629,7 @@ export default function Sites() {
                       }}
                     />
                   )}
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     Last checked: {selectedSiteStatus.lastChecked ?
                       new Date(selectedSiteStatus.lastChecked).toLocaleString() :
                       'Never'}
@@ -628,7 +640,7 @@ export default function Sites() {
               <Divider />
 
               <Box>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom sx={{ mb: 2 }}>
                   24-Hour Uptime
                 </Typography>
                 <Stack spacing={2.5}>
@@ -636,9 +648,9 @@ export default function Sites() {
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <SignalIcon color="success" fontSize="small" />
-                        <Typography variant="body2">Overall</Typography>
+                        <Typography variant="body2" color={theme.palette.text.primary}>Overall</Typography>
                       </Stack>
-                      <Typography variant="body2" fontWeight="medium">
+                      <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
                         {formatUptime(selectedSiteStatus.uptime.last24Hours.overall)}
                       </Typography>
                     </Stack>
@@ -646,16 +658,16 @@ export default function Sites() {
                       variant="determinate"
                       value={selectedSiteStatus.uptime.last24Hours.overall}
                       color="success"
-                      sx={{ height: 8, borderRadius: 1 }}
+                      sx={{ height: 8, borderRadius: 2 }}
                     />
                   </Box>
                   <Box>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <NetworkIcon color="info" fontSize="small" />
-                        <Typography variant="body2">HTTP</Typography>
+                        <Typography variant="body2" color={theme.palette.text.primary}>HTTP</Typography>
                       </Stack>
-                      <Typography variant="body2" fontWeight="medium">
+                      <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
                         {formatUptime(selectedSiteStatus.uptime.last24Hours.http)}
                       </Typography>
                     </Stack>
@@ -663,16 +675,16 @@ export default function Sites() {
                       variant="determinate"
                       value={selectedSiteStatus.uptime.last24Hours.http}
                       color="info"
-                      sx={{ height: 8, borderRadius: 1 }}
+                      sx={{ height: 8, borderRadius: 2 }}
                     />
                   </Box>
                   <Box>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <ServerIcon color="primary" fontSize="small" />
-                        <Typography variant="body2">Ping</Typography>
+                        <Typography variant="body2" color={theme.palette.text.primary}>Ping</Typography>
                       </Stack>
-                      <Typography variant="body2" fontWeight="medium">
+                      <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
                         {formatUptime(selectedSiteStatus.uptime.last24Hours.ping)}
                       </Typography>
                     </Stack>
@@ -680,7 +692,7 @@ export default function Sites() {
                       variant="determinate"
                       value={selectedSiteStatus.uptime.last24Hours.ping}
                       color="primary"
-                      sx={{ height: 8, borderRadius: 1 }}
+                      sx={{ height: 8, borderRadius: 2 }}
                     />
                   </Box>
                 </Stack>
@@ -690,13 +702,13 @@ export default function Sites() {
                 <>
                   <Divider />
                   <Box>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom sx={{ mb: 1 }}>
                       SSL Certificate
                     </Typography>
                     <Stack spacing={2}>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <SecurityIcon color="success" fontSize="small" />
-                        <Typography variant="body2">
+                        <Typography variant="body2" color={theme.palette.text.primary}>
                           Valid until {new Date(selectedSiteStatus.ssl.validTo).toLocaleDateString()}
                         </Typography>
                       </Stack>
@@ -704,7 +716,7 @@ export default function Sites() {
                         <Box component="span" sx={{ color: theme.palette.text.secondary }}>
                           Issuer:
                         </Box>
-                        <Typography variant="body2" sx={{ flex: 1 }}>
+                        <Typography variant="body2" sx={{ flex: 1, color: theme.palette.text.primary }}>
                           {selectedSiteStatus.ssl.issuer}
                         </Typography>
                       </Stack>
@@ -714,19 +726,22 @@ export default function Sites() {
                         color={selectedSiteStatus.ssl.daysUntilExpiry > 30 ? "success" : "warning"}
                         variant="outlined"
                         size="small"
+                        sx={{
+                          borderRadius: 2
+                        }}
                       />
                     </Stack>
                   </Box>
                 </>
               )}
 
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography variant="caption" color={theme.palette.text.secondary} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <UpdateIcon fontSize="small" />
                 Based on {selectedSiteStatus.uptime.last24Hours.totalChecks} checks in the last 24 hours
               </Typography>
             </Stack>
           ) : (
-            <Typography color="text.secondary">
+            <Typography color={theme.palette.text.secondary}>
               No status information available
             </Typography>
           )}
@@ -736,15 +751,15 @@ export default function Sites() {
             onClick={() => setStatusDialogOpen(false)}
             variant="contained"
             sx={{
-              borderRadius: 2,
+              borderRadius: theme.shape.borderRadius,
               px: 3,
               background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
+                : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
               '&:hover': {
                 background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)'
-                  : 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)',
+                  ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
+                  : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
               }
             }}
           >
@@ -763,7 +778,7 @@ export default function Sites() {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 2,
+            borderRadius: theme.shape.borderRadius,
             overflow: 'hidden',
           }
         }}
@@ -774,15 +789,15 @@ export default function Sites() {
             justifyContent: 'space-between',
             alignItems: 'center',
             background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))'
-              : 'linear-gradient(45deg, rgba(33, 150, 243, 0.1), rgba(33, 203, 243, 0.1))',
+              ? alpha(theme.palette.warning.main, 0.1)
+              : alpha(theme.palette.warning.main, 0.1),
             borderBottom: `1px solid ${theme.palette.divider}`,
             py: 2,
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <NotificationIcon color="warning" />
-            <Typography variant="h6">Notification Settings</Typography>
+            <Typography variant="h6" color={theme.palette.text.primary}>Notification Settings</Typography>
           </Stack>
           <IconButton
             onClick={() => {
@@ -792,6 +807,9 @@ export default function Sites() {
             size="small"
             sx={{
               color: theme.palette.text.secondary,
+              '&:hover': {
+                background: alpha(theme.palette.text.secondary, 0.1)
+              }
             }}
           >
             <CloseIcon />
@@ -800,13 +818,13 @@ export default function Sites() {
         <DialogContent sx={{ p: 3 }}>
           <Stack spacing={3}>
             <Box>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom>
                 Site
               </Typography>
-              <Typography variant="body1" fontWeight="medium">
+              <Typography variant="body1" fontWeight="medium" color={theme.palette.text.primary}>
                 {selectedSiteForNotification?.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color={theme.palette.text.secondary}>
                 {selectedSiteForNotification?.url}
               </Typography>
             </Box>

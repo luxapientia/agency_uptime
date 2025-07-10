@@ -8,42 +8,62 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/dashboard/Dashboard';
 import Sites from './pages/dashboard/Sites';
+import Settings from './pages/dashboard/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import { theme } from './theme';
+import { createAppTheme } from './theme';
+import { useSelector } from 'react-redux';
+import type { RootState } from './store';
+
+function AppContent() {
+  const rootUrl = import.meta.env.VITE_ROOT_URL;
+  const themeSettings = useSelector((state: RootState) => state.theme.settings);
+  const theme = createAppTheme(themeSettings);
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router basename={rootUrl}>
+        <Layout>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/sites"
+              element={
+                <ProtectedRoute>
+                  <Sites />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </ThemeProvider>
+  );
+}
 
 export default function App() {
-  const rootUrl = import.meta.env.VITE_ROOT_URL;
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Router basename={rootUrl}>
-            <Layout>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard/sites"
-                  element={
-                    <ProtectedRoute>
-                      <Sites />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </Layout>
-          </Router>
-        </ThemeProvider>
+        <AppContent />
       </PersistGate>
     </Provider>
   );
