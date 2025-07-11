@@ -10,20 +10,21 @@ import {
   Slider,
   TextField,
   Divider,
-  IconButton,
 } from '@mui/material';
 import { ChromePicker } from 'react-color';
 import type { ColorResult, RGBColor } from 'react-color';
-import { Delete as DeleteIcon, Upload as UploadIcon } from '@mui/icons-material';
+import { Upload as UploadIcon } from '@mui/icons-material';
 import type { RootState, AppDispatch } from '../../store';
 import {
   updateColors,
   toggleDarkMode,
   updateBorderRadius,
   updateFontFamily,
-  updateFavicon,
-  updateLogo,
   resetTheme,
+  uploadFavicon,
+  uploadLogo,
+  resetLogo,
+  resetFavicon
 } from '../../store/slices/themeSlice';
 import type { ThemeColors } from '../../types/theme.types';
 
@@ -222,7 +223,7 @@ export default function ThemeSettings() {
   const handleFaviconUpdate = () => {
     if (selectedFile && previewFavicon) {
       // Update favicon in the store
-      dispatch(updateFavicon(previewFavicon));
+      dispatch(uploadFavicon(selectedFile));
       // Clear preview state
       setPreviewFavicon(null);
       setSelectedFile(null);
@@ -230,7 +231,8 @@ export default function ThemeSettings() {
   };
 
   const handleRemoveFavicon = () => {
-    dispatch(updateFavicon('favicon.png'));
+    dispatch(resetFavicon());
+    fileInputRef.current!.value = '';
     setPreviewFavicon(null);
     setSelectedFile(null);
   };
@@ -275,7 +277,7 @@ export default function ThemeSettings() {
   const handleLogoUpdate = () => {
     if (selectedLogoFile && previewLogo) {
       // Update logo in the store
-      dispatch(updateLogo(previewLogo));
+      dispatch(uploadLogo(selectedLogoFile));
       // Clear preview state
       setPreviewLogo(null);
       setSelectedLogoFile(null);
@@ -283,7 +285,8 @@ export default function ThemeSettings() {
   };
 
   const handleRemoveLogo = () => {
-    dispatch(updateLogo('logo.png'));
+    dispatch(resetLogo());
+    logoFileInputRef.current!.value = '';
     setPreviewLogo(null);
     setSelectedLogoFile(null);
   };

@@ -1,6 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { ThemeState, ThemeSettings, ThemeColors } from '../../types/theme.types';
+import axios from '../../lib/axios';
 
 const initialState: ThemeState = {
   settings: {
@@ -29,6 +30,54 @@ const initialState: ThemeState = {
   error: null
 };
 
+// Upload favicon
+export const uploadFavicon = createAsyncThunk(
+  'theme/uploadFavicon',
+  async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axios.post('/settings/favicon', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data.filePath;
+  }
+);
+
+// Upload logo
+export const uploadLogo = createAsyncThunk(
+  'theme/uploadLogo',
+  async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axios.post('/settings/logo', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data.filePath;
+  }
+);
+
+// Reset favicon to default
+export const resetFavicon = createAsyncThunk(
+  'theme/resetFavicon',
+  async () => {
+    await axios.delete('/settings/favicon');
+    return 'favicon.png';
+  }
+);
+
+// Reset logo to default
+export const resetLogo = createAsyncThunk(
+  'theme/resetLogo',
+  async () => {
+    await axios.delete('/settings/logo');
+    return 'logo.png';
+  }
+);
+
 const themeSlice = createSlice({
   name: 'theme',
   initialState,
@@ -48,12 +97,6 @@ const themeSlice = createSlice({
         ...action.payload
       };
     },
-    updateFavicon(state, action: PayloadAction<string>) {
-      state.settings.favicon = action.payload;
-    },
-    updateLogo(state, action: PayloadAction<string>) {
-      state.settings.logo = action.payload;
-    },
     updateThemeSettings(state, action: PayloadAction<Partial<ThemeSettings>>) {
       state.settings = {
         ...state.settings,
@@ -63,6 +106,67 @@ const themeSlice = createSlice({
     resetTheme(state) {
       state.settings = initialState.settings;
     }
+  },
+  extraReducers: (builder) => {
+    // Upload favicon
+    builder
+      .addCase(uploadFavicon.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(uploadFavicon.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.settings.favicon = action.payload;
+      })
+      .addCase(uploadFavicon.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to upload favicon';
+      });
+
+    // Upload logo
+    builder
+      .addCase(uploadLogo.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(uploadLogo.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.settings.logo = action.payload;
+      })
+      .addCase(uploadLogo.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to upload logo';
+      });
+
+    // Reset favicon
+    builder
+      .addCase(resetFavicon.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resetFavicon.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.settings.favicon = action.payload;
+      })
+      .addCase(resetFavicon.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to reset favicon';
+      });
+
+    // Reset logo
+    builder
+      .addCase(resetLogo.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resetLogo.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.settings.logo = action.payload;
+      })
+      .addCase(resetLogo.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to reset logo';
+      });
   }
 });
 
@@ -71,8 +175,6 @@ export const {
   toggleDarkMode,
   updateBorderRadius,
   updateFontFamily,
-  updateFavicon,
-  updateLogo,
   updateThemeSettings,
   resetTheme
 } = themeSlice.actions;
