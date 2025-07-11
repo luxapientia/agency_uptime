@@ -33,10 +33,13 @@ export class CaddyService {
   async addDomain(domain: string, target: string): Promise<void> {
     const routeId = this.domainToRouteId(domain);
 
-    const existingRoute = await this.api.get(`/id/${routeId}`);
-    if (existingRoute.data) {
-      console.log(`[-] Domain already exists: ${domain}`);
-      return;
+    try {
+      const existingRoute = await this.api.get(`/id/${routeId}`);
+      if (existingRoute.data) {
+        console.log(`[-] Domain already exists: ${domain}`);
+        return;
+      }
+    } catch (error: any) {
     }
 
     const routeConfig: CaddyRoute = {
