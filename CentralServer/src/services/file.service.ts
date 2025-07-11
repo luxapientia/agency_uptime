@@ -11,18 +11,19 @@ class FileService {
   }
 
   private ensureDirectory(targetPath: string) {
-    // Split the path into parts
-    const parts = targetPath.split(path.sep);
-    let currentPath = '';
-
-    // Create each directory level if it doesn't exist
-    parts.forEach(part => {
-      currentPath = currentPath ? path.join(currentPath, part) : part;
-      if (!fs.existsSync(currentPath)) {
-        fs.mkdirSync(currentPath);
-        console.log(`Created directory: ${currentPath}`);
+    try {
+      // Normalize the path to handle different OS path separators
+      const normalizedPath = path.normalize(targetPath);
+      
+      // Create directory with recursive option
+      if (!fs.existsSync(normalizedPath)) {
+        fs.mkdirSync(normalizedPath, { recursive: true });
+        console.log(`Created directory structure: ${normalizedPath}`);
       }
-    });
+    } catch (error) {
+      console.error(`Error creating directory structure: ${targetPath}`, error);
+      throw new Error('Failed to create directory structure');
+    }
   }
 
   async saveFile(file: Express.Multer.File, fileDir: string): Promise<string> {
