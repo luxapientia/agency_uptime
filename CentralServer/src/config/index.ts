@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 // Load environment variables from .env file
 dotenv.config({ path: '.env' });
 
-interface Config {
+export interface Config {
   nodeEnv: string;
   port: number;
   corsOrigin: string;
@@ -41,6 +41,10 @@ interface Config {
     locationId: string;
     webhookUrl: string;
     locationApiKey: string;
+  };
+  caddyApi: {
+    url: string;
+    upstream: string;
   };
 }
 
@@ -83,4 +87,8 @@ export const config: Config = {
     webhookUrl: process.env.GHL_WEBHOOK_URL || '',
     locationApiKey: process.env.GHL_LOCATION_API_KEY || '',
   },
+  caddyApi: {
+    url: process.env.CADDY_API_URL || 'http://localhost:2019',
+    upstream: process.env.APP_UPSTREAM || 'localhost:3000'
+  }
 }; 
