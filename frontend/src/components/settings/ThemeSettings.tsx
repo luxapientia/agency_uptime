@@ -95,7 +95,6 @@ export default function ThemeSettings() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewLogo, setPreviewLogo] = useState<string | null>(null);
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [displayColorPicker, setDisplayColorPicker] = useState<ColorPickerType>(null);
 
   const handleClick = (colorType: ColorPickerType) => {
@@ -124,12 +123,10 @@ export default function ThemeSettings() {
       settings: { colors: newColors },
       save: false 
     }));
-    setHasUnsavedChanges(true);
   };
 
   const handleReset = () => {
     dispatch(resetTheme());
-    setHasUnsavedChanges(false);
   };
 
   const handleBorderRadiusChange = (_event: Event, value: number | number[]) => {
@@ -137,7 +134,6 @@ export default function ThemeSettings() {
       settings: { borderRadius: value as number },
       save: false 
     }));
-    setHasUnsavedChanges(true);
   };
 
   const handleFontFamilyChange = (type: 'primary' | 'secondary', value: string) => {
@@ -150,7 +146,6 @@ export default function ThemeSettings() {
       },
       save: false 
     }));
-    setHasUnsavedChanges(true);
   };
 
   const handleDarkModeToggle = () => {
@@ -158,7 +153,6 @@ export default function ThemeSettings() {
       settings: { isDarkMode: !themeSettings.isDarkMode },
       save: false 
     }));
-    setHasUnsavedChanges(true);
   };
 
   const handleSaveAll = () => {
@@ -166,8 +160,7 @@ export default function ThemeSettings() {
     dispatch(updateThemeSettings({ 
       settings: themeSettings,
       save: true 
-    }));
-    setHasUnsavedChanges(false);
+    }));  
     handleClose();
   };
 
@@ -793,7 +786,7 @@ export default function ThemeSettings() {
             <Button
               variant="contained"
               onClick={handleSaveAll}
-              disabled={!hasUnsavedChanges}
+              disabled={!themeSettings.hasUnsavedChanges}
               startIcon={<SaveIcon />}
               sx={{
                 borderRadius: theme.shape.borderRadius,

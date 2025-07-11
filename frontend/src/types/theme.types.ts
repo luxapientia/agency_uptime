@@ -21,6 +21,7 @@ export interface ThemeSettings {
   };
   favicon: string;
   logo: string;
+  hasUnsavedChanges: boolean;
 }
 
 export interface ThemeState {

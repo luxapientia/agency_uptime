@@ -20,7 +20,7 @@ export const updateThemeSettings = createAsyncThunk(
       const response = await axios.put('/settings/theme', settings);
       return response.data;
     }
-    return settings;
+    return { ...settings, hasUnsavedChanges: true };
   }
 );
 
@@ -92,6 +92,7 @@ const initialState: ThemeState = {
       primary: 'Inter',
       secondary: 'Roboto'
     },
+    hasUnsavedChanges: false,
     favicon: 'favicon.png',
     logo: 'logo.png'
   },
