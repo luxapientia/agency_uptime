@@ -13,7 +13,6 @@ import {
   useTheme,
   IconButton,
   Tooltip,
-  SvgIcon,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { ChromePicker } from 'react-color';
@@ -411,69 +410,140 @@ export default function ThemeSettings() {
                 Favicon
               </Typography>
               <SettingsCard>
-                <Stack spacing={3} alignItems="center">
-                  <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                    {/* Actual Size */}
-                    <Stack alignItems="center" spacing={1}>
-                      <Typography variant="caption" color="text.secondary">
-                        Actual Size
+                <Stack spacing={3}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 4, 
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    {/* Preview Container */}
+                    <Box sx={{ 
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 2 
+                    }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+                        Current Favicon
                       </Typography>
                       <Box
                         sx={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 1,
+                          width: 96,
+                          height: 96,
+                          borderRadius: 2,
                           overflow: 'hidden',
-                          boxShadow: theme.shadows[2],
+                          boxShadow: theme.shadows[3],
                           backgroundColor: '#fff',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          position: 'relative',
+                          '&:hover .preview-overlay': {
+                            opacity: 1,
+                          },
                         }}
                       >
                         {(previewFavicon || themeSettings.favicon) ? (
-                          <img
-                            src={previewFavicon || themeSettings.favicon}
-                            alt="Favicon"
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                          />
+                          <>
+                            <img
+                              src={previewFavicon || themeSettings.favicon}
+                              alt="Favicon"
+                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            />
+                            <Box
+                              className="preview-overlay"
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: alpha(theme.palette.common.black, 0.5),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                opacity: 0,
+                                transition: 'opacity 0.2s',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              <UploadIcon sx={{ color: '#fff', fontSize: 32 }} />
+                            </Box>
+                          </>
                         ) : (
-                          <ImageIcon color="disabled" />
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                              },
+                            }}
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <UploadIcon sx={{ color: theme.palette.primary.main, fontSize: 32, mb: 1 }} />
+                            <Typography variant="caption" color="primary" align="center">
+                              Click to Upload
+                            </Typography>
+                          </Box>
                         )}
                       </Box>
-                    </Stack>
-                    {/* Preview */}
-                    <Stack alignItems="center" spacing={1}>
-                      <Typography variant="caption" color="text.secondary">
-                        Preview
-                      </Typography>
-                      <Box
-                        sx={{
-                          width: 64,
-                          height: 64,
-                          borderRadius: 1,
-                          overflow: 'hidden',
-                          boxShadow: theme.shadows[2],
-                          backgroundColor: '#fff',
+
+                      {/* Browser Preview */}
+                      <Box sx={{ textAlign: 'center', mt: 2 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                          Browser Preview
+                        </Typography>
+                        <Box sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {(previewFavicon || themeSettings.favicon) ? (
-                          <img
-                            src={previewFavicon || themeSettings.favicon}
-                            alt="Favicon"
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                          />
-                        ) : (
-                          <ImageIcon color="disabled" />
-                        )}
+                          gap: 1,
+                          p: 1,
+                          borderRadius: 1,
+                          backgroundColor: alpha(theme.palette.background.default, 0.5),
+                          border: `1px solid ${theme.palette.divider}`,
+                        }}>
+                          <Box
+                            sx={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: 0.5,
+                              overflow: 'hidden',
+                              backgroundColor: '#fff',
+                            }}
+                          >
+                            {(previewFavicon || themeSettings.favicon) && (
+                              <img
+                                src={previewFavicon || themeSettings.favicon}
+                                alt="Favicon"
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                              />
+                            )}
+                          </Box>
+                          <Typography variant="caption" noWrap sx={{ maxWidth: 150 }}>
+                            Your Website Title
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Stack>
+                    </Box>
                   </Box>
 
-                  <Stack direction="row" spacing={2}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 2,
+                    justifyContent: 'center',
+                    flexWrap: 'wrap'
+                  }}>
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -485,7 +555,15 @@ export default function ThemeSettings() {
                       variant="outlined"
                       onClick={() => fileInputRef.current?.click()}
                       startIcon={<UploadIcon />}
-                      sx={{ borderRadius: theme.shape.borderRadius }}
+                      sx={{
+                        borderRadius: '12px',
+                        py: 1,
+                        px: 3,
+                        borderWidth: 2,
+                        '&:hover': {
+                          borderWidth: 2,
+                        },
+                      }}
                     >
                       Select File
                     </Button>
@@ -494,43 +572,69 @@ export default function ThemeSettings() {
                       onClick={handleFaviconUpdate}
                       disabled={!selectedFile || !previewFavicon}
                       sx={{
-                        borderRadius: theme.shape.borderRadius,
-                        background: theme.palette.mode === 'dark'
-                          ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
-                          : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+                        borderRadius: '12px',
+                        py: 1,
+                        px: 3,
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                         '&:hover': {
-                          background: theme.palette.mode === 'dark'
-                            ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
-                            : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
+                          background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.primary.main} 100%)`,
                         },
                       }}
                     >
-                      Update
+                      Update Favicon
                     </Button>
-                    <Tooltip title="Reset to default">
+                    <Tooltip 
+                      title="Reset to default favicon"
+                      placement="top"
+                      arrow
+                    >
                       <span>
                         <IconButton
                           onClick={handleRemoveFavicon}
                           disabled={!themeSettings.favicon && !previewFavicon}
                           sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '10px',
                             color: theme.palette.error.main,
+                            border: `2px solid ${alpha(theme.palette.error.main, 0.2)}`,
+                            transition: 'all 0.2s ease-in-out',
                             '&:hover': {
                               backgroundColor: alpha(theme.palette.error.main, 0.1),
+                              borderColor: theme.palette.error.main,
+                              transform: 'translateY(-2px)',
                             },
+                            '&:disabled': {
+                              borderColor: alpha(theme.palette.error.main, 0.1),
+                              color: alpha(theme.palette.error.main, 0.3),
+                            },
+                            '& .MuiSvgIcon-root': {
+                              fontSize: 20,
+                              transition: 'transform 0.2s ease-in-out',
+                            },
+                            '&:hover .MuiSvgIcon-root': {
+                              transform: 'rotate(-45deg)',
+                            }
                           }}
                         >
                           <ResetIcon />
                         </IconButton>
                       </span>
                     </Tooltip>
-                  </Stack>
+                  </Box>
                 </Stack>
               </SettingsCard>
-              <Typography variant="caption" color="text.secondary">
-                • Recommended size: 32x32 pixels
-                <br />
-                • Supported formats: ICO, PNG
-              </Typography>
+              <Box sx={{ px: 2 }}>
+                <Typography variant="caption" color="text.secondary" component="div">
+                  • Recommended size: 32x32 pixels
+                </Typography>
+                <Typography variant="caption" color="text.secondary" component="div">
+                  • Supported formats: ICO, PNG
+                </Typography>
+                <Typography variant="caption" color="text.secondary" component="div">
+                  • Maximum file size: 1MB
+                </Typography>
+              </Box>
             </Stack>
 
             {/* Logo */}
@@ -598,18 +702,40 @@ export default function ThemeSettings() {
                         },
                       }}
                     >
-                      Update
+                      Update Logo
                     </Button>
-                    <Tooltip title="Reset to default">
+                    <Tooltip 
+                      title="Reset to default favicon"
+                      placement="top"
+                      arrow
+                    >
                       <span>
                         <IconButton
                           onClick={handleRemoveLogo}
                           disabled={!themeSettings.logo && !previewLogo}
                           sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '10px',
                             color: theme.palette.error.main,
+                            border: `2px solid ${alpha(theme.palette.error.main, 0.2)}`,
+                            transition: 'all 0.2s ease-in-out',
                             '&:hover': {
                               backgroundColor: alpha(theme.palette.error.main, 0.1),
+                              borderColor: theme.palette.error.main,
+                              transform: 'translateY(-2px)',
                             },
+                            '&:disabled': {
+                              borderColor: alpha(theme.palette.error.main, 0.1),
+                              color: alpha(theme.palette.error.main, 0.3),
+                            },
+                            '& .MuiSvgIcon-root': {
+                              fontSize: 20,
+                              transition: 'transform 0.2s ease-in-out',
+                            },
+                            '&:hover .MuiSvgIcon-root': {
+                              transform: 'rotate(-45deg)',
+                            }
                           }}
                         >
                           <ResetIcon />
