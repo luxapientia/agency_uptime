@@ -646,9 +646,8 @@ export default function ThemeSettings() {
                 <Stack spacing={3} alignItems="center">
                   <Box
                     sx={{
-                      width: '100%',
-                      maxWidth: 400,
                       height: 200,
+                      aspectRatio: 1,
                       borderRadius: 1,
                       overflow: 'hidden',
                       boxShadow: theme.shadows[2],
