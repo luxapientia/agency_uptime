@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { ThemeState, ThemeSettings, ThemeColors } from '../../types/theme.types';
+import type { ThemeState, ThemeSettings } from '../../types/theme.types';
 import axios from '../../lib/axios';
 
 // Fetch theme settings
@@ -12,30 +12,15 @@ export const fetchThemeSettings = createAsyncThunk(
   }
 );
 
-// Toggle dark mode
-export const toggleDarkMode = createAsyncThunk(
-  'theme/toggleDarkMode',
-  async () => {
-    const response = await axios.post('/settings/dark-mode');
-    return response.data.isDarkMode;
-  }
-);
-
-// Update border radius
-export const updateBorderRadius = createAsyncThunk(
-  'theme/updateBorderRadius',
-  async (borderRadius: number) => {
-    const response = await axios.put('/settings/border-radius', { borderRadius });
-    return response.data.borderRadius;
-  }
-);
-
-// Update font family
-export const updateFontFamily = createAsyncThunk(
-  'theme/updateFontFamily',
-  async ({ primary, secondary }: { primary?: string; secondary?: string }) => {
-    const response = await axios.put('/settings/font-family', { primary, secondary });
-    return response.data.fontFamily;
+// Update theme settings
+export const updateThemeSettings = createAsyncThunk(
+  'theme/updateSettings',
+  async ({ settings, save = true }: { settings: Partial<ThemeSettings>; save?: boolean }) => {
+    if (save) {
+      const response = await axios.put('/settings/theme', settings);
+      return response.data;
+    }
+    return settings;
   }
 );
 
@@ -87,15 +72,6 @@ export const resetLogo = createAsyncThunk(
   }
 );
 
-// Update colors
-export const updateColors = createAsyncThunk(
-  'theme/updateColors',
-  async (colors: ThemeColors) => {
-    const response = await axios.put('/settings/colors', colors);
-    return response.data.colors;
-  }
-);
-
 const initialState: ThemeState = {
   settings: {
     colors: {
@@ -127,14 +103,19 @@ const themeSlice = createSlice({
   name: 'theme',
   initialState,
   reducers: {
-    updateThemeSettings(state, action: PayloadAction<Partial<ThemeSettings>>) {
+    setThemeSettings(state, action: PayloadAction<Partial<ThemeSettings>>) {
       state.settings = {
         ...state.settings,
         ...action.payload
       };
     },
     resetTheme(state) {
-      state.settings = initialState.settings;
+      const { favicon, logo } = state.settings;
+      state.settings = {
+        ...initialState.settings,
+        favicon,
+        logo
+      };
     }
   },
   extraReducers: (builder) => {
@@ -153,49 +134,22 @@ const themeSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch theme settings';
       });
 
-    // Toggle dark mode
+    // Update settings
     builder
-      .addCase(toggleDarkMode.pending, (state) => {
+      .addCase(updateThemeSettings.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(toggleDarkMode.fulfilled, (state, action) => {
+      .addCase(updateThemeSettings.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.settings.isDarkMode = action.payload;
+        state.settings = {
+          ...state.settings,
+          ...action.payload
+        };
       })
-      .addCase(toggleDarkMode.rejected, (state, action) => {
+      .addCase(updateThemeSettings.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Failed to toggle dark mode';
-      });
-
-    // Update border radius
-    builder
-      .addCase(updateBorderRadius.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateBorderRadius.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.settings.borderRadius = action.payload;
-      })
-      .addCase(updateBorderRadius.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to update border radius';
-      });
-
-    // Update font family
-    builder
-      .addCase(updateFontFamily.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateFontFamily.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.settings.fontFamily = action.payload;
-      })
-      .addCase(updateFontFamily.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to update font family';
+        state.error = action.error.message || 'Failed to update theme settings';
       });
 
     // Upload favicon
@@ -257,26 +211,11 @@ const themeSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Failed to reset logo';
       });
-
-    // Update colors
-    builder
-      .addCase(updateColors.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateColors.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.settings.colors = action.payload;
-      })
-      .addCase(updateColors.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to update colors';
-      });
   }
 });
 
 export const {
-  updateThemeSettings,
+  setThemeSettings,
   resetTheme
 } = themeSlice.actions;
 

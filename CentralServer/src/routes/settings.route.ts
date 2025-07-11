@@ -34,6 +34,15 @@ const fontFamilySchema = z.object({
   secondary: z.string().min(1).optional()
 });
 
+// Add new validation schema for complete theme settings
+const themeSettingsSchema = z.object({
+  colors: colorSchema,
+  isDarkMode: z.boolean(),
+  borderRadius: z.number().min(0).max(24),
+  fontFamily: fontFamilySchema,
+  save: z.boolean().optional()
+});
+
 const router = Router();
 
 // Configure multer for memory storage
@@ -114,104 +123,26 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
   }
 });
 
-// Toggle dark mode
-router.post('/dark-mode', authenticate, async (req: Request, res: Response) => {
+// Update all theme settings
+router.put('/theme', authenticate, async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
-    const themeSettings = await prisma.themeSettings.findUnique({
-      where: { userId: authReq.user.id }
-    });
+    const { colors, isDarkMode, borderRadius, fontFamily, save = true } = themeSettingsSchema.parse(req.body);
 
-    const newDarkMode = !themeSettings?.isDarkMode;
-
-    const updatedSettings = await prisma.themeSettings.upsert({
-      where: { userId: authReq.user.id },
-      update: { isDarkMode: newDarkMode },
-      create: {
-        userId: authReq.user.id,
-        isDarkMode: newDarkMode
-      }
-    });
-
-    res.json({ isDarkMode: updatedSettings.isDarkMode });
-  } catch (error) {
-    console.error('Error toggling dark mode:', error);
-    res.status(500).json({ error: 'Failed to toggle dark mode' });
-  }
-});
-
-// Update border radius
-router.put('/border-radius', authenticate, async (req: Request, res: Response) => {
-  try {
-    const authReq = req as AuthRequest;
-    const { borderRadius } = borderRadiusSchema.parse(req.body);
-
-    const updatedSettings = await prisma.themeSettings.upsert({
-      where: { userId: authReq.user.id },
-      update: { borderRadius },
-      create: {
-        userId: authReq.user.id,
-        borderRadius
-      }
-    });
-
-    res.json({ borderRadius: updatedSettings.borderRadius });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid border radius value' });
+    // If save is false, just return the validated data without saving
+    if (!save) {
+      return res.json({
+        colors,
+        isDarkMode,
+        borderRadius,
+        fontFamily
+      });
     }
-    console.error('Error updating border radius:', error);
-    res.status(500).json({ error: 'Failed to update border radius' });
-  }
-});
-
-// Update font family
-router.put('/font-family', authenticate, async (req: Request, res: Response) => {
-  try {
-    const authReq = req as AuthRequest;
-    const { primary, secondary } = fontFamilySchema.parse(req.body);
-
-    const themeSettings = await prisma.themeSettings.findUnique({
-      where: { userId: authReq.user.id }
-    });
 
     const updatedSettings = await prisma.themeSettings.upsert({
       where: { userId: authReq.user.id },
       update: {
-        fontPrimary: primary || themeSettings?.fontPrimary || 'Roboto',
-        fontSecondary: secondary || themeSettings?.fontSecondary || 'Roboto'
-      },
-      create: {
-        userId: authReq.user.id,
-        fontPrimary: primary || 'Roboto',
-        fontSecondary: secondary || 'Roboto'
-      }
-    });
-
-    res.json({
-      fontFamily: {
-        primary: updatedSettings.fontPrimary,
-        secondary: updatedSettings.fontSecondary
-      }
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid font family values' });
-    }
-    console.error('Error updating font family:', error);
-    res.status(500).json({ error: 'Failed to update font family' });
-  }
-});
-
-// Update colors
-router.put('/colors', authenticate, async (req: Request, res: Response) => {
-  try {
-    const authReq = req as AuthRequest;
-    const colors = colorSchema.parse(req.body);
-
-    const updatedSettings = await prisma.themeSettings.upsert({
-      where: { userId: authReq.user.id },
-      update: {
+        // Colors
         primaryColor: colors.primary,
         secondaryColor: colors.secondary,
         errorColor: colors.error,
@@ -219,10 +150,16 @@ router.put('/colors', authenticate, async (req: Request, res: Response) => {
         infoColor: colors.info,
         successColor: colors.success,
         textPrimary: colors.text.primary,
-        textSecondary: colors.text.secondary
+        textSecondary: colors.text.secondary,
+        // Other settings
+        isDarkMode,
+        borderRadius,
+        fontPrimary: fontFamily.primary || 'Roboto',
+        fontSecondary: fontFamily.secondary || 'Roboto'
       },
       create: {
         userId: authReq.user.id,
+        // Colors
         primaryColor: colors.primary,
         secondaryColor: colors.secondary,
         errorColor: colors.error,
@@ -230,7 +167,12 @@ router.put('/colors', authenticate, async (req: Request, res: Response) => {
         infoColor: colors.info,
         successColor: colors.success,
         textPrimary: colors.text.primary,
-        textSecondary: colors.text.secondary
+        textSecondary: colors.text.secondary,
+        // Other settings
+        isDarkMode,
+        borderRadius,
+        fontPrimary: fontFamily.primary || 'Roboto',
+        fontSecondary: fontFamily.secondary || 'Roboto'
       }
     });
 
@@ -246,14 +188,23 @@ router.put('/colors', authenticate, async (req: Request, res: Response) => {
           primary: updatedSettings.textPrimary,
           secondary: updatedSettings.textSecondary
         }
+      },
+      isDarkMode: updatedSettings.isDarkMode,
+      borderRadius: updatedSettings.borderRadius,
+      fontFamily: {
+        primary: updatedSettings.fontPrimary,
+        secondary: updatedSettings.fontSecondary
       }
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid color values. Colors must be valid hex codes (e.g. #FF0000)' });
+      return res.status(400).json({ 
+        error: 'Invalid theme settings',
+        details: error.errors 
+      });
     }
-    console.error('Error updating colors:', error);
-    res.status(500).json({ error: 'Failed to update colors' });
+    console.error('Error updating theme settings:', error);
+    res.status(500).json({ error: 'Failed to update theme settings' });
   }
 });
 

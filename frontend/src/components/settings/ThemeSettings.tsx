@@ -30,10 +30,7 @@ import {
 } from '@mui/icons-material';
 import type { RootState, AppDispatch } from '../../store';
 import {
-  updateColors,
-  toggleDarkMode,
-  updateBorderRadius,
-  updateFontFamily,
+  updateThemeSettings,
   resetTheme,
   uploadFavicon,
   uploadLogo,
@@ -98,23 +95,8 @@ export default function ThemeSettings() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewLogo, setPreviewLogo] = useState<string | null>(null);
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
-
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [displayColorPicker, setDisplayColorPicker] = useState<ColorPickerType>(null);
-  const [tempColors, setTempColors] = useState<ThemeColors>(() => {
-    // Initialize with rgba values
-    const colors = { ...themeSettings.colors };
-    Object.keys(colors).forEach(key => {
-      if (key === 'text') {
-        colors.text = {
-          primary: hexToRgba(colors.text.primary),
-          secondary: hexToRgba(colors.text.secondary)
-        };
-      } else {
-        colors[key as keyof Omit<ThemeColors, 'text'>] = hexToRgba(colors[key as keyof Omit<ThemeColors, 'text'>]);
-      }
-    });
-    return colors;
-  });
 
   const handleClick = (colorType: ColorPickerType) => {
     setDisplayColorPicker(colorType);
@@ -127,75 +109,66 @@ export default function ThemeSettings() {
   const handleChange = (color: ColorResult, colorType: ColorPickerType) => {
     if (!colorType) return;
 
-    const rgba = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`;
+    const newColors = { ...themeSettings.colors };
+    const hex = `#${color.hex.substring(1)}`;
 
-    setTempColors(prev => {
-      if (colorType === 'text.primary') {
-        return {
-          ...prev,
-          text: { ...prev.text, primary: rgba }
-        };
-      }
-      if (colorType === 'text.secondary') {
-        return {
-          ...prev,
-          text: { ...prev.text, secondary: rgba }
-        };
-      }
-      if (colorType === 'text') {
-        return prev;
-      }
-      return {
-        ...prev,
-        [colorType]: rgba
-      };
-    });
-  };
+    if (colorType === 'text.primary') {
+      newColors.text = { ...newColors.text, primary: hex };
+    } else if (colorType === 'text.secondary') {
+      newColors.text = { ...newColors.text, secondary: hex };
+    } else if (colorType !== 'text') {
+      newColors[colorType] = hex;
+    }
 
-  const handleSave = () => {
-    // Convert rgba values back to hex for storage
-    const hexColors = { ...tempColors };
-    Object.keys(hexColors).forEach(key => {
-      if (key === 'text') {
-        hexColors.text = {
-          primary: rgbaToHexAndAlpha(hexColors.text.primary).hex,
-          secondary: rgbaToHexAndAlpha(hexColors.text.secondary).hex
-        };
-      } else {
-        hexColors[key as keyof Omit<ThemeColors, 'text'>] = 
-          rgbaToHexAndAlpha(hexColors[key as keyof Omit<ThemeColors, 'text'>]).hex;
-      }
-    });
-    dispatch(updateColors(hexColors));
-    handleClose();
+    dispatch(updateThemeSettings({ 
+      settings: { colors: newColors },
+      save: false 
+    }));
+    setHasUnsavedChanges(true);
   };
 
   const handleReset = () => {
     dispatch(resetTheme());
-    // Reset tempColors with rgba values
-    setTempColors(() => {
-      const colors = { ...themeSettings.colors };
-      Object.keys(colors).forEach(key => {
-        if (key === 'text') {
-          colors.text = {
-            primary: hexToRgba(colors.text.primary),
-            secondary: hexToRgba(colors.text.secondary)
-          };
-        } else {
-          colors[key as keyof Omit<ThemeColors, 'text'>] = 
-            hexToRgba(colors[key as keyof Omit<ThemeColors, 'text'>]);
-        }
-      });
-      return colors;
-    });
+    setHasUnsavedChanges(false);
   };
 
   const handleBorderRadiusChange = (_event: Event, value: number | number[]) => {
-    dispatch(updateBorderRadius(value as number));
+    dispatch(updateThemeSettings({ 
+      settings: { borderRadius: value as number },
+      save: false 
+    }));
+    setHasUnsavedChanges(true);
   };
 
   const handleFontFamilyChange = (type: 'primary' | 'secondary', value: string) => {
-    dispatch(updateFontFamily({ [type]: value }));
+    dispatch(updateThemeSettings({ 
+      settings: { 
+        fontFamily: { 
+          ...themeSettings.fontFamily, 
+          [type]: value 
+        } 
+      },
+      save: false 
+    }));
+    setHasUnsavedChanges(true);
+  };
+
+  const handleDarkModeToggle = () => {
+    dispatch(updateThemeSettings({ 
+      settings: { isDarkMode: !themeSettings.isDarkMode },
+      save: false 
+    }));
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveAll = () => {
+    // Save all current settings to the server
+    dispatch(updateThemeSettings({ 
+      settings: themeSettings,
+      save: true 
+    }));
+    setHasUnsavedChanges(false);
+    handleClose();
   };
 
   const handleFaviconSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,14 +284,14 @@ export default function ThemeSettings() {
 
     let currentColor = '';
     if (colorType === 'text.primary') {
-      currentColor = tempColors.text.primary;
+      currentColor = hexToRgba(themeSettings.colors.text.primary);
     } else if (colorType === 'text.secondary') {
-      currentColor = tempColors.text.secondary;
+      currentColor = hexToRgba(themeSettings.colors.text.secondary);
     } else {
-      currentColor = tempColors[colorType];
+      currentColor = hexToRgba(themeSettings.colors[colorType]);
     }
 
-    // Convert rgba to color object for ChromePicker
+    // Convert hex to color object for ChromePicker
     const { hex, alpha } = rgbaToHexAndAlpha(currentColor);
     const rgbColor: RGBColor = {
       r: parseInt(hex.slice(1, 3), 16),
@@ -680,7 +653,7 @@ export default function ThemeSettings() {
                     control={
                       <Switch
                         checked={themeSettings.isDarkMode}
-                        onChange={() => dispatch(toggleDarkMode())}
+                        onChange={handleDarkModeToggle}
                       />
                     }
                     label={
@@ -819,8 +792,8 @@ export default function ThemeSettings() {
           >
             <Button
               variant="contained"
-              onClick={handleSave}
-              disabled={JSON.stringify(tempColors) === JSON.stringify(themeSettings.colors)}
+              onClick={handleSaveAll}
+              disabled={!hasUnsavedChanges}
               startIcon={<SaveIcon />}
               sx={{
                 borderRadius: theme.shape.borderRadius,
