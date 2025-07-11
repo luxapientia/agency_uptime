@@ -1,5 +1,4 @@
 // This is your Prisma schema file
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,16 +9,17 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(uuid())
-  firstName   String
-  lastName    String
-  email       String       @unique
-  password    String
-  companyName String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  sites       Site[]
-  statuses    SiteStatus[]
+  id            String         @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String         @unique
+  password      String
+  companyName   String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  sites         Site[]
+  statuses      SiteStatus[]
+  themeSettings ThemeSettings?
 
   @@map("users")
 }
@@ -89,24 +89,32 @@ model SiteStatus {
   @@map("site_statuses")
 }
 
-// model TelegramChat {
-//   id        String   @id @default(uuid())
-//   chatId    String   @unique
-//   username  String?
-//   firstName String?
-//   lastName  String?
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
+model ThemeSettings {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  
+  // Theme Colors
+  primaryColor   String   @default("#1976d2")
+  secondaryColor String   @default("#9c27b0")
+  errorColor     String   @default("#d32f2f")
+  warningColor   String   @default("#ed6c02")
+  infoColor      String   @default("#0288d1")
+  successColor   String   @default("#2e7d32")
+  textPrimary    String   @default("#000000")
+  textSecondary  String   @default("#666666")
+  
+  // Other Theme Settings
+  isDarkMode     Boolean  @default(false)
+  borderRadius   Int      @default(4)
+  fontPrimary    String   @default("Roboto")
+  fontSecondary  String   @default("Roboto")
+  favicon        String   @default("favicon.png")
+  logo           String   @default("logo.png")
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-//   @@map("telegram_chats")
-// }
-
-// model DiscordUser {
-//   id        String   @id @default(uuid())
-//   userId    String   @unique
-//   username  String?
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@map("discord_users")
-// }
+  @@index([userId])
+  @@map("theme_settings")
+}
