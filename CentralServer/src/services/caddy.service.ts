@@ -42,13 +42,13 @@ export class CaddyService {
     } catch (error: any) {
     }
 
-    const routeConfig: CaddyRoute = {
+    const routeConfig = {
       '@id': routeId,
       match: [{ host: [domain] }],
       handle: [
         {
-          handler: 'reverse_proxy',
-          upstreams: [{ dial: target }],
+          handler: 'subroute',
+          routes: [{ handle: [{ handler: 'reverse_proxy', upstreams: [{ dial: target }] }] }],
         },
       ],
       terminal: true,
