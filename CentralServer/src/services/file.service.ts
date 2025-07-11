@@ -7,17 +7,27 @@ class FileService {
 
   constructor() {
     this.uploadDir = path.join(__dirname, '../../public/uploads/theme');
-    this.ensureUploadDirectory();
+    this.ensureDirectory(this.uploadDir);
   }
 
-  private ensureUploadDirectory() {
-    if (!fs.existsSync(this.uploadDir)) {
-      fs.mkdirSync(this.uploadDir, { recursive: true });
-    }
+  private ensureDirectory(targetPath: string) {
+    // Split the path into parts
+    const parts = targetPath.split(path.sep);
+    let currentPath = '';
+
+    // Create each directory level if it doesn't exist
+    parts.forEach(part => {
+      currentPath = currentPath ? path.join(currentPath, part) : part;
+      if (!fs.existsSync(currentPath)) {
+        fs.mkdirSync(currentPath);
+        console.log(`Created directory: ${currentPath}`);
+      }
+    });
   }
 
   async saveFile(file: Express.Multer.File, fileDir: string): Promise<string> {
     try {
+      this.ensureDirectory(fileDir);
       const ext = path.extname(file.originalname);
       const filename = `${file.fieldname}-${uuidv4()}${ext}`;
       const filePath = path.join(fileDir, filename);
