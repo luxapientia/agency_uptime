@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -9,11 +9,25 @@ import {
   FormControlLabel,
   Slider,
   TextField,
-  Divider,
+  Stack,
+  useTheme,
+  IconButton,
+  Tooltip,
+  SvgIcon,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { ChromePicker } from 'react-color';
 import type { ColorResult, RGBColor } from 'react-color';
-import { Upload as UploadIcon } from '@mui/icons-material';
+import {
+  Upload as UploadIcon,
+  Palette as PaletteIcon,
+  DarkMode as DarkModeIcon,
+  BorderAll as BorderIcon,
+  TextFields as TextIcon,
+  Refresh as ResetIcon,
+  Save as SaveIcon,
+  Image as ImageIcon,
+} from '@mui/icons-material';
 import type { RootState, AppDispatch } from '../../store';
 import {
   updateColors,
@@ -75,6 +89,7 @@ const rgbaToHexAndAlpha = (rgba: string): { hex: string; alpha: number } => {
 };
 
 export default function ThemeSettings() {
+  const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
   const themeSettings = useSelector((state: RootState) => state.theme.settings);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -361,345 +376,479 @@ export default function ThemeSettings() {
     );
   };
 
+  const SectionTitle = ({ icon, title }: { icon: React.ReactElement; title: string }) => {
+    const theme = useTheme();
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          p: 2,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          background: theme.palette.mode === 'dark'
+            ? alpha(theme.palette.primary.main, 0.1)
+            : alpha(theme.palette.primary.main, 0.1),
+        }}
+      >
+        <Box sx={{ color: theme.palette.primary.main }}>
+          {icon}
+        </Box>
+        <Typography variant="h6" color="text.primary">
+          {title}
+        </Typography>
+      </Box>
+    );
+  };
+
+  const SettingsCard = ({ children }: { children: React.ReactNode }) => {
+    const theme = useTheme();
+    return (
+      <Box
+        sx={{
+          p: 3,
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          backgroundColor: alpha(theme.palette.background.paper, 0.5),
+        }}
+      >
+        {children}
+      </Box>
+    );
+  };
+
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Theme Settings
-      </Typography>
+    <Stack spacing={3}>
+      {/* Site Icons Section */}
+      <Paper
+        elevation={2}
+        sx={{
+          borderRadius: theme.shape.borderRadius,
+          overflow: 'hidden',
+        }}
+      >
+        <SectionTitle icon={<ImageIcon />} title="Site Icons" />
+        <Box sx={{ p: 3 }}>
+          <Stack spacing={4}>
+            {/* Favicon */}
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" color="text.primary" fontWeight={500}>
+                Favicon
+              </Typography>
+              <SettingsCard>
+                <Stack spacing={3} alignItems="center">
+                  <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    {/* Actual Size */}
+                    <Stack alignItems="center" spacing={1}>
+                      <Typography variant="caption" color="text.secondary">
+                        Actual Size
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          boxShadow: theme.shadows[2],
+                          backgroundColor: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {(previewFavicon || themeSettings.favicon) ? (
+                          <img
+                            src={previewFavicon || themeSettings.favicon}
+                            alt="Favicon"
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <ImageIcon color="disabled" />
+                        )}
+                      </Box>
+                    </Stack>
+                    {/* Preview */}
+                    <Stack alignItems="center" spacing={1}>
+                      <Typography variant="caption" color="text.secondary">
+                        Preview
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          boxShadow: theme.shadows[2],
+                          backgroundColor: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {(previewFavicon || themeSettings.favicon) ? (
+                          <img
+                            src={previewFavicon || themeSettings.favicon}
+                            alt="Favicon"
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <ImageIcon color="disabled" />
+                        )}
+                      </Box>
+                    </Stack>
+                  </Box>
 
-      {/* Favicon Section */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Favicon
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Preview Section */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                  <Stack direction="row" spacing={2}>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFaviconSelect}
+                      accept="image/x-icon,image/png"
+                      style={{ display: 'none' }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={() => fileInputRef.current?.click()}
+                      startIcon={<UploadIcon />}
+                      sx={{ borderRadius: theme.shape.borderRadius }}
+                    >
+                      Select File
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleFaviconUpdate}
+                      disabled={!selectedFile || !previewFavicon}
+                      sx={{
+                        borderRadius: theme.shape.borderRadius,
+                        background: theme.palette.mode === 'dark'
+                          ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
+                          : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+                        '&:hover': {
+                          background: theme.palette.mode === 'dark'
+                            ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
+                            : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
+                        },
+                      }}
+                    >
+                      Update
+                    </Button>
+                    <Tooltip title="Reset to default">
+                      <span>
+                        <IconButton
+                          onClick={handleRemoveFavicon}
+                          disabled={!themeSettings.favicon && !previewFavicon}
+                          sx={{
+                            color: theme.palette.error.main,
+                            '&:hover': {
+                              backgroundColor: alpha(theme.palette.error.main, 0.1),
+                            },
+                          }}
+                        >
+                          <ResetIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </Stack>
+                </Stack>
+              </SettingsCard>
               <Typography variant="caption" color="text.secondary">
-                Actual Size
+                • Recommended size: 32x32 pixels
+                <br />
+                • Supported formats: ICO, PNG
               </Typography>
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  backgroundColor: '#fff',
-                }}
-              >
-                {(previewFavicon || themeSettings.favicon) ? (
-                  <img
-                    src={previewFavicon || themeSettings.favicon}
-                    alt="Favicon"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                ) : (
-                  <Typography variant="caption" color="text.secondary">
-                    No favicon
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            </Stack>
+
+            {/* Logo */}
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" color="text.primary" fontWeight={500}>
+                Logo
+              </Typography>
+              <SettingsCard>
+                <Stack spacing={3} alignItems="center">
+                  <Box
+                    sx={{
+                      width: '100%',
+                      maxWidth: 400,
+                      height: 200,
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      boxShadow: theme.shadows[2],
+                      backgroundColor: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      p: 2,
+                    }}
+                  >
+                    {(previewLogo || themeSettings.logo) ? (
+                      <img
+                        src={previewLogo || themeSettings.logo}
+                        alt="Logo"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <ImageIcon color="disabled" sx={{ fontSize: 48 }} />
+                    )}
+                  </Box>
+
+                  <Stack direction="row" spacing={2}>
+                    <input
+                      type="file"
+                      ref={logoFileInputRef}
+                      onChange={handleLogoSelect}
+                      accept="image/png,image/jpeg,image/svg+xml"
+                      style={{ display: 'none' }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={() => logoFileInputRef.current?.click()}
+                      startIcon={<UploadIcon />}
+                      sx={{ borderRadius: theme.shape.borderRadius }}
+                    >
+                      Select File
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleLogoUpdate}
+                      disabled={!selectedLogoFile || !previewLogo}
+                      sx={{
+                        borderRadius: theme.shape.borderRadius,
+                        background: theme.palette.mode === 'dark'
+                          ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
+                          : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+                        '&:hover': {
+                          background: theme.palette.mode === 'dark'
+                            ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
+                            : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
+                        },
+                      }}
+                    >
+                      Update
+                    </Button>
+                    <Tooltip title="Reset to default">
+                      <span>
+                        <IconButton
+                          onClick={handleRemoveLogo}
+                          disabled={!themeSettings.logo && !previewLogo}
+                          sx={{
+                            color: theme.palette.error.main,
+                            '&:hover': {
+                              backgroundColor: alpha(theme.palette.error.main, 0.1),
+                            },
+                          }}
+                        >
+                          <ResetIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </Stack>
+                </Stack>
+              </SettingsCard>
               <Typography variant="caption" color="text.secondary">
-                Preview
+                • Maximum dimensions: 800x800 pixels
+                <br />
+                • Supported formats: PNG, JPEG, SVG
+                <br />
+                • Recommended: SVG with transparency
               </Typography>
-              <Box
-                sx={{
-                  width: 64,
-                  height: 64,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  backgroundColor: '#fff',
-                }}
-              >
-                {(previewFavicon || themeSettings.favicon) ? (
-                  <img
-                    src={previewFavicon || themeSettings.favicon}
-                    alt="Favicon"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            </Stack>
+          </Stack>
+        </Box>
+      </Paper>
+
+      {/* Theme Controls */}
+      <Paper
+        elevation={2}
+        sx={{
+          borderRadius: theme.shape.borderRadius,
+          overflow: 'hidden',
+        }}
+      >
+        <SectionTitle icon={<PaletteIcon />} title="Theme Controls" />
+        <Box sx={{ p: 3 }}>
+          <Stack spacing={4}>
+            {/* Appearance & Border Radius */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4}>
+              {/* Dark Mode */}
+              <Stack spacing={2} sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" color="text.primary" fontWeight={500}>
+                  Appearance
+                </Typography>
+                <SettingsCard>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={themeSettings.isDarkMode}
+                        onChange={() => dispatch(toggleDarkMode())}
+                      />
+                    }
+                    label={
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <DarkModeIcon color={themeSettings.isDarkMode ? "primary" : "disabled"} />
+                        <Typography>Dark Mode</Typography>
+                      </Stack>
+                    }
                   />
-                ) : (
-                  <Typography variant="caption" color="text.secondary">
-                    No favicon
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          </Box>
+                </SettingsCard>
+              </Stack>
+
+              {/* Border Radius */}
+              <Stack spacing={2} sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" color="text.primary" fontWeight={500}>
+                  Border Radius
+                </Typography>
+                <SettingsCard>
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <BorderIcon color="primary" />
+                      <Slider
+                        value={themeSettings.borderRadius}
+                        min={0}
+                        max={24}
+                        step={1}
+                        onChange={handleBorderRadiusChange}
+                        valueLabelDisplay="auto"
+                        marks={[
+                          { value: 0, label: '0' },
+                          { value: 8, label: '8' },
+                          { value: 16, label: '16' },
+                          { value: 24, label: '24' },
+                        ]}
+                        sx={{
+                          '& .MuiSlider-markLabel': {
+                            color: theme.palette.text.secondary,
+                          },
+                        }}
+                      />
+                    </Stack>
+                  </Stack>
+                </SettingsCard>
+              </Stack>
+            </Stack>
+
+            {/* Typography */}
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" color="text.primary" fontWeight={500}>
+                Typography
+              </Typography>
+              <SettingsCard>
+                <Stack spacing={3}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                    <Stack spacing={2} sx={{ flex: 1 }}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <TextIcon color="primary" />
+                        <Typography variant="body2" color="text.secondary">
+                          Primary Font
+                        </Typography>
+                      </Stack>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={themeSettings.fontFamily.primary}
+                        onChange={(e) => handleFontFamilyChange('primary', e.target.value)}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'background.paper',
+                          },
+                        }}
+                      />
+                    </Stack>
+                    <Stack spacing={2} sx={{ flex: 1 }}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <TextIcon color="primary" />
+                        <Typography variant="body2" color="text.secondary">
+                          Secondary Font
+                        </Typography>
+                      </Stack>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={themeSettings.fontFamily.secondary}
+                        onChange={(e) => handleFontFamilyChange('secondary', e.target.value)}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'background.paper',
+                          },
+                        }}
+                      />
+                    </Stack>
+                  </Stack>
+                </Stack>
+              </SettingsCard>
+            </Stack>
+
+            {/* Colors */}
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" color="text.primary" fontWeight={500}>
+                Colors
+              </Typography>
+              <SettingsCard>
+                <Stack spacing={3}>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: {
+                        xs: '1fr',
+                        sm: 'repeat(2, 1fr)',
+                        md: 'repeat(3, 1fr)',
+                      },
+                      gap: 3,
+                    }}
+                  >
+                    {(Object.keys(colorLabels) as (keyof typeof colorLabels)[]).map((colorType) => (
+                      <Box key={colorType}>
+                        {renderColorPicker(colorType)}
+                      </Box>
+                    ))}
+                  </Box>
+                </Stack>
+              </SettingsCard>
+            </Stack>
+          </Stack>
 
           {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFaviconSelect}
-              accept="image/x-icon,image/png,image/jpeg,image/gif"
-              style={{ display: 'none' }}
-            />
-            <Button
-              variant="outlined"
-              onClick={() => fileInputRef.current?.click()}
-              startIcon={<UploadIcon />}
-            >
-              Select Favicon
-            </Button>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              mt: 4,
+              pt: 3,
+              borderTop: `1px solid ${theme.palette.divider}`,
+            }}
+          >
             <Button
               variant="contained"
-              onClick={handleFaviconUpdate}
-              disabled={!selectedFile || !previewFavicon}
+              onClick={handleSave}
+              disabled={JSON.stringify(tempColors) === JSON.stringify(themeSettings.colors)}
+              startIcon={<SaveIcon />}
+              sx={{
+                borderRadius: theme.shape.borderRadius,
+                background: theme.palette.mode === 'dark'
+                  ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
+                  : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+                '&:hover': {
+                  background: theme.palette.mode === 'dark'
+                    ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
+                    : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
+                },
+              }}
             >
-              Update
+              Save Changes
             </Button>
             <Button
               variant="outlined"
-              onClick={handleRemoveFavicon}
-              color="error"
-              disabled={!themeSettings.favicon && !previewFavicon}
+              onClick={handleReset}
+              startIcon={<ResetIcon />}
+              sx={{
+                borderRadius: theme.shape.borderRadius,
+              }}
             >
-              Reset
+              Reset to Default
             </Button>
-          </Box>
+          </Stack>
         </Box>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-          • Recommended size: 32x32 or 16x16 pixels
-          <br />
-          • Maximum file size: 1MB
-          <br />
-          • Supported formats: ICO, PNG, JPEG, GIF
-        </Typography>
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* Logo Section */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Logo
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Preview Section */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                Preview
-              </Typography>
-              <Box
-                sx={{
-                  width: 200,
-                  height: 200,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  backgroundColor: '#fff',
-                  p: 2,
-                }}
-              >
-                {(previewLogo || themeSettings.logo) ? (
-                  <img
-                    src={previewLogo || themeSettings.logo}
-                    alt="Logo"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                ) : (
-                  <Typography variant="caption" color="text.secondary">
-                    No logo
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                Large Preview
-              </Typography>
-              <Box
-                sx={{
-                  width: 400,
-                  height: 400,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  backgroundColor: '#fff',
-                  p: 2,
-                }}
-              >
-                {(previewLogo || themeSettings.logo) ? (
-                  <img
-                    src={previewLogo || themeSettings.logo}
-                    alt="Logo"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                ) : (
-                  <Typography variant="caption" color="text.secondary">
-                    No logo
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <input
-              type="file"
-              ref={logoFileInputRef}
-              onChange={handleLogoSelect}
-              accept="image/png,image/jpeg,image/gif,image/svg+xml"
-              style={{ display: 'none' }}
-            />
-            <Button
-              variant="outlined"
-              onClick={() => logoFileInputRef.current?.click()}
-              startIcon={<UploadIcon />}
-            >
-              Select Logo
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleLogoUpdate}
-              disabled={!selectedLogoFile || !previewLogo}
-            >
-              Update
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={handleRemoveLogo}
-              color="error"
-              disabled={!themeSettings.logo && !previewLogo}
-            >
-              Reset
-            </Button>
-          </Box>
-        </Box>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-          • Maximum dimensions: 800x800 pixels
-          <br />
-          • Maximum file size: 2MB
-          <br />
-          • Supported formats: PNG, JPEG, GIF, SVG
-          <br />
-          • Recommended format: SVG or PNG with transparency
-        </Typography>
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
-      <Box sx={{ mt: 3 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={themeSettings.isDarkMode}
-              onChange={() => dispatch(toggleDarkMode())}
-            />
-          }
-          label="Dark Mode"
-        />
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
-      <Typography variant="subtitle1" gutterBottom>
-        Border Radius
-      </Typography>
-      <Box sx={{ px: 2, mb: 3 }}>
-        <Slider
-          value={themeSettings.borderRadius}
-          min={0}
-          max={24}
-          step={1}
-          onChange={handleBorderRadiusChange}
-          valueLabelDisplay="auto"
-          marks={[
-            { value: 0, label: '0' },
-            { value: 8, label: '8' },
-            { value: 16, label: '16' },
-            { value: 24, label: '24' },
-          ]}
-        />
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
-      <Typography variant="subtitle1" gutterBottom>
-        Font Family
-      </Typography>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, mb: 3 }}>
-        <Box>
-          <TextField
-            fullWidth
-            label="Primary Font"
-            value={themeSettings.fontFamily.primary}
-            onChange={(e) => handleFontFamilyChange('primary', e.target.value)}
-            size="small"
-          />
-        </Box>
-        <Box>
-          <TextField
-            fullWidth
-            label="Secondary Font"
-            value={themeSettings.fontFamily.secondary}
-            onChange={(e) => handleFontFamilyChange('secondary', e.target.value)}
-            size="small"
-          />
-        </Box>
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
-      <Typography variant="subtitle1" gutterBottom>
-        Colors
-      </Typography>
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: { 
-          xs: '1fr', 
-          sm: 'repeat(2, 1fr)', 
-          md: 'repeat(3, 1fr)' 
-        }, 
-        gap: 3, 
-        mb: 3 
-      }}>
-        {(Object.keys(colorLabels) as (keyof typeof colorLabels)[]).map((colorType) => (
-          <Box key={colorType}>
-            {renderColorPicker(colorType)}
-          </Box>
-        ))}
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={JSON.stringify(tempColors) === JSON.stringify(themeSettings.colors)}
-        >
-          Save Changes
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={handleReset}
-        >
-          Reset to Default
-        </Button>
-      </Box>
-    </Paper>
+      </Paper>
+    </Stack>
   );
 } 
