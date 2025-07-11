@@ -18,7 +18,7 @@ export const updateThemeSettings = createAsyncThunk(
   async ({ settings, save = true }: { settings: Partial<ThemeSettings>; save?: boolean }) => {
     if (save) {
       const response = await axios.put('/settings/theme', settings);
-      return response.data;
+      return { ...response.data, hasUnsavedChanges: false };
     }
     return { ...settings, hasUnsavedChanges: true };
   }
@@ -128,6 +128,7 @@ const themeSlice = createSlice({
       })
       .addCase(fetchThemeSettings.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.settings.hasUnsavedChanges = false;
         state.settings = action.payload;
       })
       .addCase(fetchThemeSettings.rejected, (state, action) => {

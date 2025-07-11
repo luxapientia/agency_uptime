@@ -27,6 +27,7 @@ import {
   Refresh as ResetIcon,
   Save as SaveIcon,
   Image as ImageIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import type { RootState, AppDispatch } from '../../store';
 import {
@@ -35,7 +36,8 @@ import {
   uploadFavicon,
   uploadLogo,
   resetLogo,
-  resetFavicon
+  resetFavicon,
+  fetchThemeSettings
 } from '../../store/slices/themeSlice';
 import type { ThemeColors } from '../../types/theme.types';
 
@@ -161,6 +163,12 @@ export default function ThemeSettings() {
       settings: themeSettings,
       save: true 
     }));  
+    handleClose();
+  };
+
+  const handleCancelChanges = () => {
+    // Fetch current settings from backend
+    dispatch(fetchThemeSettings());
     handleClose();
   };
 
@@ -802,6 +810,24 @@ export default function ThemeSettings() {
             >
               Save Changes
             </Button>
+            {themeSettings.hasUnsavedChanges && (
+              <Button
+                variant="outlined"
+                onClick={handleCancelChanges}
+                startIcon={<CancelIcon />}
+                sx={{
+                  borderRadius: theme.shape.borderRadius,
+                  borderColor: theme.palette.error.main,
+                  color: theme.palette.error.main,
+                  '&:hover': {
+                    borderColor: theme.palette.error.dark,
+                    backgroundColor: alpha(theme.palette.error.main, 0.1),
+                  },
+                }}
+              >
+                Cancel Changes
+              </Button>
+            )}
             <Button
               variant="outlined"
               onClick={handleReset}

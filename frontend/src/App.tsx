@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { store, persistor } from './store';
@@ -13,12 +13,13 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import type { RootState } from './store';
+import type { AppDispatch, RootState } from './store';
+import { fetchThemeSettings } from './store/slices/themeSlice';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
   let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-  
+
   // If no favicon link exists, create one
   if (!link) {
     link = document.createElement('link');
@@ -32,13 +33,14 @@ const updateFavicon = (faviconUrl: string) => {
 
 function AppContent() {
   const rootUrl = import.meta.env.VITE_ROOT_URL;
+  const dispatch = useDispatch<AppDispatch>();
   const themeSettings = useSelector((state: RootState) => state.theme.settings);
   const theme = createAppTheme(themeSettings);
-
   // Update favicon when theme settings change
   useEffect(() => {
     updateFavicon(themeSettings.favicon);
-  }, [themeSettings.favicon]);
+    dispatch(fetchThemeSettings());
+  }, [themeSettings.favicon, dispatch]);
 
   return (
     <ThemeProvider theme={theme}>
