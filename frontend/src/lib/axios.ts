@@ -1,5 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
-
+import { redirect } from 'react-router-dom';
 
 
 const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api';
@@ -30,7 +30,7 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Token expired or invalid, redirect to login
       localStorage.removeItem('token');
-      window.location.href = `/${rootUrl}/login`;
+      redirect(`/${rootUrl}/login`);
     }
     return Promise.reject(error);
   }
