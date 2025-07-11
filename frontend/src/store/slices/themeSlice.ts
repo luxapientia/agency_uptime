@@ -51,6 +51,9 @@ const themeSlice = createSlice({
     updateFavicon(state, action: PayloadAction<string>) {
       state.settings.favicon = action.payload;
     },
+    updateLogo(state, action: PayloadAction<string>) {
+      state.settings.logo = action.payload;
+    },
     updateThemeSettings(state, action: PayloadAction<Partial<ThemeSettings>>) {
       state.settings = {
         ...state.settings,
@@ -69,6 +72,7 @@ export const {
   updateBorderRadius,
   updateFontFamily,
   updateFavicon,
+  updateLogo,
   updateThemeSettings,
   resetTheme
 } = themeSlice.actions;

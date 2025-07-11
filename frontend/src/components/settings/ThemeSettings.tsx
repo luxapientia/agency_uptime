@@ -22,6 +22,7 @@ import {
   updateBorderRadius,
   updateFontFamily,
   updateFavicon,
+  updateLogo,
   resetTheme,
 } from '../../store/slices/themeSlice';
 import type { ThemeColors } from '../../types/theme.types';
@@ -76,8 +77,11 @@ export default function ThemeSettings() {
   const dispatch = useDispatch<AppDispatch>();
   const themeSettings = useSelector((state: RootState) => state.theme.settings);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
   const [previewFavicon, setPreviewFavicon] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewLogo, setPreviewLogo] = useState<string | null>(null);
+  const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
 
   const [displayColorPicker, setDisplayColorPicker] = useState<ColorPickerType>(null);
   const [tempColors, setTempColors] = useState<ThemeColors>(() => {
@@ -229,6 +233,59 @@ export default function ThemeSettings() {
     dispatch(updateFavicon('favicon.png'));
     setPreviewFavicon(null);
     setSelectedFile(null);
+  };
+
+  const handleLogoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check if file is an image and not too large
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      alert('File size should be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      
+      // Create a new image to get dimensions
+      const img = new Image();
+      img.onload = () => {
+        // Check dimensions (max 800px)
+        if (img.width > 800 || img.height > 800) {
+          alert('Image dimensions should be 800x800 pixels or smaller');
+          return;
+        }
+
+        // Only update preview
+        setPreviewLogo(dataUrl);
+        setSelectedLogoFile(file);
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoUpdate = () => {
+    if (selectedLogoFile && previewLogo) {
+      // Update logo in the store
+      dispatch(updateLogo(previewLogo));
+      // Clear preview state
+      setPreviewLogo(null);
+      setSelectedLogoFile(null);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    dispatch(updateLogo('logo.png'));
+    setPreviewLogo(null);
+    setSelectedLogoFile(null);
   };
 
   const renderColorPicker = (colorType: ColorPickerType) => {
@@ -418,6 +475,126 @@ export default function ThemeSettings() {
           • Maximum file size: 1MB
           <br />
           • Supported formats: ICO, PNG, JPEG, GIF
+        </Typography>
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* Logo Section */}
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Logo
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Preview Section */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Preview
+              </Typography>
+              <Box
+                sx={{
+                  width: 200,
+                  height: 200,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#fff',
+                  p: 2,
+                }}
+              >
+                {(previewLogo || themeSettings.logo) ? (
+                  <img
+                    src={previewLogo || themeSettings.logo}
+                    alt="Logo"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    No logo
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Large Preview
+              </Typography>
+              <Box
+                sx={{
+                  width: 400,
+                  height: 400,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#fff',
+                  p: 2,
+                }}
+              >
+                {(previewLogo || themeSettings.logo) ? (
+                  <img
+                    src={previewLogo || themeSettings.logo}
+                    alt="Logo"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    No logo
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <input
+              type="file"
+              ref={logoFileInputRef}
+              onChange={handleLogoSelect}
+              accept="image/png,image/jpeg,image/gif,image/svg+xml"
+              style={{ display: 'none' }}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => logoFileInputRef.current?.click()}
+              startIcon={<UploadIcon />}
+            >
+              Select Logo
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleLogoUpdate}
+              disabled={!selectedLogoFile || !previewLogo}
+            >
+              Update
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleRemoveLogo}
+              color="error"
+              disabled={!themeSettings.logo && !previewLogo}
+            >
+              Reset
+            </Button>
+          </Box>
+        </Box>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+          • Maximum dimensions: 800x800 pixels
+          <br />
+          • Maximum file size: 2MB
+          <br />
+          • Supported formats: PNG, JPEG, GIF, SVG
+          <br />
+          • Recommended format: SVG or PNG with transparency
         </Typography>
       </Box>
 

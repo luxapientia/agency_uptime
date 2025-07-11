@@ -252,7 +252,7 @@ export default function Header() {
                   backgroundPosition: 'center',
                   width: 'auto',
                   height: { xs: '48px', sm: '56px', md: '64px' },
-                  aspectRatio: '2',
+                  aspectRatio: '1',
                   backgroundColor: 'transparent',
                   transition: 'all 0.3s ease-in-out',
                   transform: 'perspective(1000px) rotateY(0deg)',
