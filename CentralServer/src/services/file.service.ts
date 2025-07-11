@@ -1,116 +1,71 @@
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
-import { promisify } from 'util';
-import logger from '../utils/logger';
-
-const writeFileAsync = promisify(fs.writeFile);
-const unlinkAsync = promisify(fs.unlink);
-const mkdirAsync = promisify(fs.mkdir);
+import { v4 as uuidv4 } from 'uuid';
 
 class FileService {
-  private staticPath: string;
+  private uploadDir: string;
 
   constructor() {
-    this.staticPath = path.join(__dirname, '../../public');
+    this.uploadDir = path.join(__dirname, '../../public/uploads/theme');
+    this.ensureUploadDirectory();
   }
 
-  /**
-   * Generates a unique filename with the original extension
-   */
-  private generateUniqueFilename(originalFilename: string): string {
-    const ext = path.extname(originalFilename);
-    const hash = crypto.randomBytes(8).toString('hex');
-    const timestamp = Date.now();
-    return `${timestamp}-${hash}${ext}`;
-  }
-
-  /**
-   * Ensures the target directory exists
-   */
-  private async ensureDirectory(dirPath: string): Promise<void> {
-    try {
-      await mkdirAsync(dirPath, { recursive: true });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-        throw error;
-      }
+  private ensureUploadDirectory() {
+    if (!fs.existsSync(this.uploadDir)) {
+      fs.mkdirSync(this.uploadDir, { recursive: true });
     }
   }
 
-  /**
-   * Saves a file to the static directory
-   * @param fileBuffer - The file buffer to save
-   * @param originalFilename - The original filename
-   * @param subdirectory - Optional subdirectory within the static folder
-   * @returns The public URL of the saved file
-   */
-  async saveFile(
-    fileBuffer: Buffer,
-    originalFilename: string,
-    subdirectory: string = ''
-  ): Promise<string> {
+  async saveFile(file: Express.Multer.File, fileDir: string): Promise<string> {
     try {
-      const targetDir = path.join(this.staticPath, subdirectory);
-      await this.ensureDirectory(targetDir);
+      const ext = path.extname(file.originalname);
+      const filename = `${file.fieldname}-${uuidv4()}${ext}`;
+      const filePath = path.join(fileDir, filename);
 
-      const filename = this.generateUniqueFilename(originalFilename);
-      const filePath = path.join(targetDir, filename);
-      
-      await writeFileAsync(filePath, fileBuffer);
-      
-      // Return the public URL (relative to /static)
-      const publicPath = path.join('/static', subdirectory, filename);
-      logger.info(`File saved successfully: ${publicPath}`);
-      
-      return publicPath;
+      // Write buffer to file
+      fs.writeFileSync(filePath, file.buffer);
+
+      return filename;
     } catch (error) {
-      logger.error('Error saving file:', error);
+      console.error('Error saving file:', error);
       throw new Error('Failed to save file');
     }
   }
 
-  /**
-   * Deletes a file from the static directory
-   * @param publicUrl - The public URL of the file to delete
-   */
-  async deleteFile(publicUrl: string): Promise<void> {
+  async deleteFile(filePath: string): Promise<void> {
     try {
-      // Remove '/static' prefix and convert to filesystem path
-      const relativePath = publicUrl.replace('/static', '');
-      const filePath = path.join(this.staticPath, relativePath);
-
-      // Ensure the file is within the static directory
-      if (!filePath.startsWith(this.staticPath)) {
-        throw new Error('Invalid file path');
+      console.log(filePath);
+      // Don't delete default files
+      if (filePath.includes('favicon.png') || filePath.includes('logo.png')) {
+        return;
       }
-
-      await unlinkAsync(filePath);
-      logger.info(`File deleted successfully: ${publicUrl}`);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      } else {
+        console.log('File not found');
+      }
     } catch (error) {
-      logger.error('Error deleting file:', error);
+      console.error('Error deleting file:', error);
       throw new Error('Failed to delete file');
     }
   }
 
-  /**
-   * Validates file type based on allowed extensions
-   * @param filename - The filename to validate
-   * @param allowedExtensions - Array of allowed file extensions (e.g., ['.jpg', '.png'])
-   */
-  validateFileType(filename: string, allowedExtensions: string[]): boolean {
-    const ext = path.extname(filename).toLowerCase();
-    return allowedExtensions.includes(ext);
+  async saveFavicon(file: Express.Multer.File): Promise<string> {
+    const filename = await this.saveFile(file, path.join(__dirname, '../../public/uploads/theme'));
+    return `uploads/theme/${filename}`;
   }
 
-  /**
-   * Gets the absolute path of a file from its public URL
-   * @param publicUrl - The public URL of the file
-   * @returns The absolute file path
-   */
-  getAbsolutePath(publicUrl: string): string {
-    const relativePath = publicUrl.replace('/static', '');
-    return path.join(this.staticPath, relativePath);
+  async saveLogo(file: Express.Multer.File): Promise<string> {
+    const filename = await this.saveFile(file, path.join(__dirname, '../../public/uploads/theme'));
+    return `uploads/theme/${filename}`;
+  }
+
+  async deleteFavicon(filePath: string): Promise<void> {
+    await this.deleteFile(path.join(__dirname, '../../public', filePath));
+  }
+
+  async deleteLogo(filePath: string): Promise<void> {
+    await this.deleteFile(path.join(__dirname, '../../public', filePath));
   }
 }
 
