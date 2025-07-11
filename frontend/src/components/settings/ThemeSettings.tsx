@@ -76,6 +76,8 @@ export default function ThemeSettings() {
   const dispatch = useDispatch<AppDispatch>();
   const themeSettings = useSelector((state: RootState) => state.theme.settings);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewFavicon, setPreviewFavicon] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [displayColorPicker, setDisplayColorPicker] = useState<ColorPickerType>(null);
   const [tempColors, setTempColors] = useState<ThemeColors>(() => {
@@ -176,7 +178,7 @@ export default function ThemeSettings() {
     dispatch(updateFontFamily({ [type]: value }));
   };
 
-  const handleFaviconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFaviconSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -204,19 +206,29 @@ export default function ThemeSettings() {
           return;
         }
 
-        // Update favicon in the store
-        dispatch(updateFavicon({
-          url: dataUrl,
-          type: file.type
-        }));
+        // Only update preview
+        setPreviewFavicon(dataUrl);
+        setSelectedFile(file);
       };
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
   };
 
+  const handleFaviconUpdate = () => {
+    if (selectedFile && previewFavicon) {
+      // Update favicon in the store
+      dispatch(updateFavicon(previewFavicon));
+      // Clear preview state
+      setPreviewFavicon(null);
+      setSelectedFile(null);
+    }
+  };
+
   const handleRemoveFavicon = () => {
-    dispatch(updateFavicon(null));
+    dispatch(updateFavicon('favicon.png'));
+    setPreviewFavicon(null);
+    setSelectedFile(null);
   };
 
   const renderColorPicker = (colorType: ColorPickerType) => {
@@ -300,41 +312,79 @@ export default function ThemeSettings() {
         <Typography variant="subtitle1" gutterBottom>
           Favicon
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* Favicon Preview */}
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              backgroundColor: '#fff',
-            }}
-          >
-            {themeSettings.favicon ? (
-              <img
-                src={themeSettings.favicon.url}
-                alt="Favicon"
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
-            ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Preview Section */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                No favicon
+                Actual Size
               </Typography>
-            )}
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#fff',
+                }}
+              >
+                {(previewFavicon || themeSettings.favicon) ? (
+                  <img
+                    src={previewFavicon || themeSettings.favicon}
+                    alt="Favicon"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    No favicon
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Preview
+              </Typography>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#fff',
+                }}
+              >
+                {(previewFavicon || themeSettings.favicon) ? (
+                  <img
+                    src={previewFavicon || themeSettings.favicon}
+                    alt="Favicon"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    No favicon
+                  </Typography>
+                )}
+              </Box>
+            </Box>
           </Box>
 
-          {/* Upload and Remove Buttons */}
-          <Box>
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <input
               type="file"
               ref={fileInputRef}
-              onChange={handleFaviconUpload}
+              onChange={handleFaviconSelect}
               accept="image/x-icon,image/png,image/jpeg,image/gif"
               style={{ display: 'none' }}
             />
@@ -342,23 +392,32 @@ export default function ThemeSettings() {
               variant="outlined"
               onClick={() => fileInputRef.current?.click()}
               startIcon={<UploadIcon />}
-              sx={{ mr: 1 }}
             >
-              Upload Favicon
+              Select Favicon
             </Button>
-            {themeSettings.favicon && (
-              <IconButton
-                onClick={handleRemoveFavicon}
-                color="error"
-                size="small"
-              >
-                <DeleteIcon />
-              </IconButton>
-            )}
+            <Button
+              variant="contained"
+              onClick={handleFaviconUpdate}
+              disabled={!selectedFile || !previewFavicon}
+            >
+              Update
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleRemoveFavicon}
+              color="error"
+              disabled={!themeSettings.favicon && !previewFavicon}
+            >
+              Reset
+            </Button>
           </Box>
         </Box>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          Recommended size: 32x32 or 16x16 pixels. Supported formats: ICO, PNG, JPEG, GIF
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+          • Recommended size: 32x32 or 16x16 pixels
+          <br />
+          • Maximum file size: 1MB
+          <br />
+          • Supported formats: ICO, PNG, JPEG, GIF
         </Typography>
       </Box>
 

@@ -19,13 +19,11 @@ const initialState: ThemeState = {
     isDarkMode: false,
     borderRadius: 4,
     fontFamily: {
-      primary: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-      secondary: '"Roboto", "Helvetica", "Arial", sans-serif'
+      primary: 'Inter',
+      secondary: 'Roboto'
     },
-    favicon: {
-      url: '/cropped-agency-uptime-Icon-32x32.png',
-      type: 'image/png'
-    }
+    favicon: 'favicon.png',
+    logo: 'logo.png'
   },
   isLoading: false,
   error: null
@@ -50,7 +48,7 @@ const themeSlice = createSlice({
         ...action.payload
       };
     },
-    updateFavicon(state, action: PayloadAction<{ url: string; type: string } | null>) {
+    updateFavicon(state, action: PayloadAction<string>) {
       state.settings.favicon = action.payload;
     },
     updateThemeSettings(state, action: PayloadAction<Partial<ThemeSettings>>) {

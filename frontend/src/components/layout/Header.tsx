@@ -46,6 +46,7 @@ export default function Header() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const logo = useSelector((state: RootState) => state.theme.settings.logo);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -245,7 +246,7 @@ export default function Header() {
                   position: 'relative',
                   display: 'flex',
                   alignItems: 'center',
-                  backgroundImage: `url(${rootUrl}/agency-uptime-iii.png)`,
+                  backgroundImage: `url(${rootUrl}/${logo})`,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center',

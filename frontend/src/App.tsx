@@ -16,7 +16,7 @@ import { useEffect } from 'react';
 import type { RootState } from './store';
 
 // Helper function to update favicon
-const updateFavicon = (faviconUrl: string | null) => {
+const updateFavicon = (faviconUrl: string) => {
   let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
   
   // If no favicon link exists, create one
@@ -27,7 +27,7 @@ const updateFavicon = (faviconUrl: string | null) => {
   }
 
   // Update favicon URL
-  link.href = faviconUrl || '/favicon.ico';
+  link.href = faviconUrl;
 };
 
 function AppContent() {
@@ -37,11 +37,7 @@ function AppContent() {
 
   // Update favicon when theme settings change
   useEffect(() => {
-    if (themeSettings.favicon) {
-      updateFavicon(themeSettings.favicon.url);
-    } else {
-      updateFavicon(null); // Will use default favicon
-    }
+    updateFavicon(themeSettings.favicon);
   }, [themeSettings.favicon]);
 
   return (
