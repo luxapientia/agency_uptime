@@ -57,6 +57,7 @@ import { alpha } from '@mui/material/styles';
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
   const { sites, isLoading, selectedSite } = useSelector((state: RootState) => state.sites);
+  const siteStatuses = useSelector((state: RootState) => state.siteStatus.statuses);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
@@ -298,17 +299,34 @@ export default function Sites() {
               >
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                    <Tooltip title={`${site.isActive ? 'Active' : 'Inactive'} Monitoring`}>
-                      <Switch
-                        checked={site.isActive}
-                        onChange={() => {
-                          dispatch(updateSite({
-                            id: site.id,
-                            data: { ...site, isActive: !site.isActive }
-                          }));
-                        }}
-                        color="success"
-                      />
+                    <Tooltip title="Site Status">
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        gap: 1
+                      }}>
+                        {siteStatuses[site.id]?.isUp ? (
+                          <>
+                            <Box sx={{ 
+                              width: 10, 
+                              height: 10, 
+                              borderRadius: '50%', 
+                              bgcolor: 'success.main' 
+                            }} />
+                            <Typography color="success.main">Up</Typography>
+                          </>
+                        ) : (
+                          <>
+                            <Box sx={{ 
+                              width: 10, 
+                              height: 10, 
+                              borderRadius: '50%', 
+                              bgcolor: 'error.main' 
+                            }} />
+                            <Typography color="error.main">Down</Typography>
+                          </>
+                        )}
+                      </Box>
                     </Tooltip>
                   </Box>
                 </TableCell>
