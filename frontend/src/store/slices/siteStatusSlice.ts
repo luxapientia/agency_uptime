@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { SiteStatus } from '../../types/site.types';
 import axiosInstance from '../../lib/axios';
+import type { SiteStatusUpdate } from '../../types/socket.types';
 
 interface SiteStatusState {
-  statuses: Record<string, SiteStatus[]>;
+  statuses: Record<string, SiteStatus>;
   isLoading: boolean;
   error: string | null;
 }
@@ -20,10 +21,11 @@ export const fetchAllSiteStatuses = createAsyncThunk(
     try {
       const response = await axiosInstance.get('/sites/statuses');
       const sites = response.data;
-      const result: Record<string, SiteStatus[]> = {};
+        const result: Record<string, SiteStatus> = {};
       sites.forEach((site: any) => {
-        result[site.id] = site.statuses;
+        result[site.id] = site.statuses[0];
       });
+      console.log(result);
       return result;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch site statuses');
@@ -31,10 +33,28 @@ export const fetchAllSiteStatuses = createAsyncThunk(
   }
 );
 
+export const fetchSiteStatus = createAsyncThunk(
+  'siteStatus/fetch',
+  async (siteId: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/sites/${siteId}/status`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch site status');
+    }
+  }
+);
+
 const siteStatusSlice = createSlice({
   name: 'siteStatus',
   initialState,
-  reducers: {},
+  reducers: {
+    updateSiteStatus: (state: SiteStatusState, action: { payload: SiteStatusUpdate }) => {
+      const newStatus = action.payload.status;
+      const siteId = action.payload.siteId;
+      state.statuses[siteId] = newStatus;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAllSiteStatuses.pending, (state) => {
@@ -48,8 +68,21 @@ const siteStatusSlice = createSlice({
       .addCase(fetchAllSiteStatuses.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(fetchSiteStatus.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSiteStatus.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.statuses[action.payload.siteId] = action.payload;
+      })
+      .addCase(fetchSiteStatus.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   }
 });
 
+export const { updateSiteStatus } = siteStatusSlice.actions;
 export default siteStatusSlice.reducer; 
