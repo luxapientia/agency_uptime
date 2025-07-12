@@ -4,6 +4,7 @@ import cron, { ScheduledTask } from 'node-cron';
 import logger from '../utils/logger';
 import { config } from '../config';
 import notificationService from './notification.service';
+import socketService from './socket.service';
 
 export class MonitorService {
   private readonly redis: Redis;
@@ -208,7 +209,27 @@ export class MonitorService {
 
       if (previousStatus) {
         if(previousStatus.isUp !== isUp) {
+          // Send notification through notification service
           notificationService.sendNotification(site.id);
+
+          // Send real-time update through socket
+          const statusUpdate = {
+            isUp,
+            pingIsUp,
+            httpIsUp,
+            pingResponseTime,
+            httpResponseTime,
+            overallUptime,
+            pingUptime,
+            httpUptime,
+            checkedAt,
+            hasSsl: !!ssl,
+            sslValidTo: ssl?.validTo,
+            sslDaysUntilExpiry: ssl?.daysUntilExpiry
+          };
+
+          socketService.sendToUser(site.userId, 'site_status_update', {siteId: site.id, status: statusUpdate});
+          logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
         }
       }
     } catch (error) {
