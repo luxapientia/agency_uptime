@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -41,7 +41,6 @@ import {
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../store';
 import {
-  fetchSites,
   createSite,
   updateSite,
   deleteSite,
