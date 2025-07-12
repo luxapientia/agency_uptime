@@ -12,6 +12,24 @@ const initialState: AuthState = {
   error: null,
 };
 
+export const verifyToken = createAsyncThunk(
+  'auth/verifyToken',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return rejectWithValue('No token found');
+      }
+      const response = await axiosInstance.get('/auth/me');
+      localStorage.setItem('token', response.data.token);
+      return { user: response.data.user, token: response.data.token };
+    } catch (error: any) {
+      localStorage.removeItem('token');
+      return rejectWithValue(error.response?.data?.message || 'Token verification failed');
+    }
+  }
+);
+
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
@@ -69,6 +87,24 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Verify Token
+      .addCase(verifyToken.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyToken.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+      })
+      .addCase(verifyToken.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
+        state.error = action.payload as string;
+      })
       // Login
       .addCase(login.pending, (state) => {
         state.isLoading = true;
