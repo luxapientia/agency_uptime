@@ -199,7 +199,7 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
       }
     },
     orderBy: {
-      checkedAt: 'asc'
+      checkedAt: 'desc'
     }
   });
 
@@ -221,10 +221,19 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
 
   const latestStatus = site.statuses[0];
   res.status(200).json({
-    isUp: latestStatus?.isUp ?? null,
-    lastChecked: latestStatus?.checkedAt ?? null,
-    pingUp: latestStatus?.pingIsUp ?? null,
-    httpUp: latestStatus?.httpIsUp ?? null,
+    currentStatus: {
+      isUp: latestStatus?.isUp ?? null,
+      lastChecked: latestStatus?.checkedAt ?? null,
+      pingUp: latestStatus?.pingIsUp ?? null,
+      httpUp: latestStatus?.httpIsUp ?? null,
+      ssl: latestStatus ? {
+        enabled: latestStatus.hasSsl,
+        validFrom: latestStatus.sslValidFrom,
+        validTo: latestStatus.sslValidTo,
+        issuer: latestStatus.sslIssuer,
+        daysUntilExpiry: latestStatus.sslDaysUntilExpiry
+      } : null,
+    },
     uptime: {
       last24Hours: {
         overall: Math.round(uptimePercentage * 100) / 100,
@@ -233,13 +242,12 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
         totalChecks: statusHistory.length
       }
     },
-    ssl: latestStatus ? {
-      enabled: latestStatus.hasSsl,
-      validFrom: latestStatus.sslValidFrom,
-      validTo: latestStatus.sslValidTo,
-      issuer: latestStatus.sslIssuer,
-      daysUntilExpiry: latestStatus.sslDaysUntilExpiry
-    } : null,
+    // history: statusHistory.slice(0, 100).map(status => ({
+    //   timestamp: status.checkedAt,
+    //   isUp: status.isUp,
+    //   httpUp: status.httpIsUp,
+    //   pingUp: status.pingIsUp
+    // })),
     message: latestStatus ? undefined : 'No status checks available yet'
   });
 };

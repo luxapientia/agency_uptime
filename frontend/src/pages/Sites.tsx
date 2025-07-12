@@ -23,9 +23,7 @@ import {
   useTheme,
   useMediaQuery,
   TablePagination,
-  Chip,
   Stack,
-  LinearProgress,
   Divider,
   Avatar,
 } from '@mui/material';
@@ -36,13 +34,8 @@ import {
   LanguageOutlined as LanguageIcon,
   UpdateOutlined as UpdateIcon,
   BarChartOutlined as StatsIcon,
-  ErrorOutline as ErrorIcon,
   SpeedOutlined as SpeedIcon,
-  ShieldOutlined as SecurityIcon,
   CloseOutlined as CloseIcon,
-  SignalCellularAlt as SignalIcon,
-  NetworkCheck as NetworkIcon,
-  DnsOutlined as ServerIcon,
   PictureAsPdf as PdfIcon,
   NotificationsOutlined as NotificationIcon,
 } from '@mui/icons-material';
@@ -57,31 +50,10 @@ import {
 import type { Site, CreateSiteData, UpdateSiteData } from '../types/site.types';
 import SiteForm from '../components/sites/SiteForm';
 import NotificationSettings from '../components/sites/NotificationSettings';
+import SiteStatistics from '../components/sites/SiteStatistics';
 import axios from '../lib/axios';
 import { showToast } from '../utils/toast';
 import { alpha } from '@mui/material/styles';
-
-interface SiteStatus {
-  isUp: boolean | null;
-  lastChecked: string | null;
-  pingUp: boolean | null;
-  httpUp: boolean | null;
-  uptime: {
-    last24Hours: {
-      overall: number;
-      http: number;
-      ping: number;
-      totalChecks: number;
-    };
-  };
-  ssl: {
-    enabled: boolean;
-    validFrom: string;
-    validTo: string;
-    issuer: string;
-    daysUntilExpiry: number;
-  } | null;
-}
 
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
@@ -97,8 +69,7 @@ export default function Sites() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [selectedSiteStatus, setSelectedSiteStatus] = useState<SiteStatus | null>(null);
-  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
+  const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
 
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
@@ -164,20 +135,8 @@ export default function Sites() {
   };
 
   const handleStatusClick = async (site: Site) => {
-    setIsLoadingStatus(true);
-    try {
-      const response = await axios.get<SiteStatus>(`/sites/${site.id}/status`);
-      setSelectedSiteStatus(response.data);
-      setStatusDialogOpen(true);
-    } catch (error) {
-      console.error('Failed to fetch site status:', error);
-    } finally {
-      setIsLoadingStatus(false);
-    }
-  };
-
-  const formatUptime = (percentage: number) => {
-    return `${percentage.toFixed(2)}%`;
+    setSelectedSiteId(site.id);
+    setStatusDialogOpen(true);
   };
 
   const handleGenerateReport = async () => {
@@ -557,216 +516,11 @@ export default function Sites() {
         </DialogActions>
       </Dialog>
 
-      <Dialog
+      <SiteStatistics
         open={statusDialogOpen}
         onClose={() => setStatusDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: theme.shape.borderRadius,
-            overflow: 'hidden',
-          }
-        }}
-      >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: theme.palette.mode === 'dark'
-              ? alpha(theme.palette.primary.main, 0.1)
-              : alpha(theme.palette.primary.main, 0.1),
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            py: 2,
-          }}
-        >
-          <Stack direction="row" spacing={2} alignItems="center">
-            <StatsIcon color="primary" />
-            <Typography variant="h6" color={theme.palette.text.primary}>Site Statistics</Typography>
-          </Stack>
-          <IconButton
-            onClick={() => setStatusDialogOpen(false)}
-            size="small"
-            sx={{
-              color: theme.palette.text.secondary,
-              '&:hover': {
-                background: alpha(theme.palette.text.secondary, 0.1)
-              }
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          {isLoadingStatus ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-              <CircularProgress />
-            </Box>
-          ) : selectedSiteStatus ? (
-            <Stack spacing={3}>
-              <Box>
-                <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom>
-                  Current Status
-                </Typography>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  {selectedSiteStatus.isUp ? (
-                    <Chip
-                      icon={<SignalIcon />}
-                      label="Online"
-                      color="success"
-                      sx={{
-                        '& .MuiChip-icon': { fontSize: 20 }
-                      }}
-                    />
-                  ) : (
-                    <Chip
-                      icon={<ErrorIcon />}
-                      label="Offline"
-                      color="error"
-                      sx={{
-                        '& .MuiChip-icon': { fontSize: 20 }
-                      }}
-                    />
-                  )}
-                  <Typography variant="body2" color={theme.palette.text.secondary}>
-                    Last checked: {selectedSiteStatus.lastChecked ?
-                      new Date(selectedSiteStatus.lastChecked).toLocaleString() :
-                      'Never'}
-                  </Typography>
-                </Stack>
-              </Box>
-
-              <Divider />
-
-              <Box>
-                <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom sx={{ mb: 2 }}>
-                  24-Hour Uptime
-                </Typography>
-                <Stack spacing={2.5}>
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <SignalIcon color="success" fontSize="small" />
-                        <Typography variant="body2" color={theme.palette.text.primary}>Overall</Typography>
-                      </Stack>
-                      <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
-                        {formatUptime(selectedSiteStatus.uptime.last24Hours.overall)}
-                      </Typography>
-                    </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={selectedSiteStatus.uptime.last24Hours.overall}
-                      color="success"
-                      sx={{ height: 8, borderRadius: 2 }}
-                    />
-                  </Box>
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <NetworkIcon color="info" fontSize="small" />
-                        <Typography variant="body2" color={theme.palette.text.primary}>HTTP</Typography>
-                      </Stack>
-                      <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
-                        {formatUptime(selectedSiteStatus.uptime.last24Hours.http)}
-                      </Typography>
-                    </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={selectedSiteStatus.uptime.last24Hours.http}
-                      color="info"
-                      sx={{ height: 8, borderRadius: 2 }}
-                    />
-                  </Box>
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <ServerIcon color="primary" fontSize="small" />
-                        <Typography variant="body2" color={theme.palette.text.primary}>Ping</Typography>
-                      </Stack>
-                      <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
-                        {formatUptime(selectedSiteStatus.uptime.last24Hours.ping)}
-                      </Typography>
-                    </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={selectedSiteStatus.uptime.last24Hours.ping}
-                      color="primary"
-                      sx={{ height: 8, borderRadius: 2 }}
-                    />
-                  </Box>
-                </Stack>
-              </Box>
-
-              {selectedSiteStatus.ssl && (
-                <>
-                  <Divider />
-                  <Box>
-                    <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom sx={{ mb: 1 }}>
-                      SSL Certificate
-                    </Typography>
-                    <Stack spacing={2}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <SecurityIcon color="success" fontSize="small" />
-                        <Typography variant="body2" color={theme.palette.text.primary}>
-                          Valid until {new Date(selectedSiteStatus.ssl.validTo).toLocaleDateString()}
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Box component="span" sx={{ color: theme.palette.text.secondary }}>
-                          Issuer:
-                        </Box>
-                        <Typography variant="body2" sx={{ flex: 1, color: theme.palette.text.primary }}>
-                          {selectedSiteStatus.ssl.issuer}
-                        </Typography>
-                      </Stack>
-                      <Chip
-                        icon={<SecurityIcon />}
-                        label={`${selectedSiteStatus.ssl.daysUntilExpiry} days until expiry`}
-                        color={selectedSiteStatus.ssl.daysUntilExpiry > 30 ? "success" : "warning"}
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          borderRadius: 2
-                        }}
-                      />
-                    </Stack>
-                  </Box>
-                </>
-              )}
-
-              <Typography variant="caption" color={theme.palette.text.secondary} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <UpdateIcon fontSize="small" />
-                Based on {selectedSiteStatus.uptime.last24Hours.totalChecks} checks in the last 24 hours
-              </Typography>
-            </Stack>
-          ) : (
-            <Typography color={theme.palette.text.secondary}>
-              No status information available
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
-          <Button
-            onClick={() => setStatusDialogOpen(false)}
-            variant="contained"
-            sx={{
-              borderRadius: theme.shape.borderRadius,
-              px: 3,
-              background: theme.palette.mode === 'dark'
-                ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
-                : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-              '&:hover': {
-                background: theme.palette.mode === 'dark'
-                  ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
-                  : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
-              }
-            }}
-          >
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+        siteId={selectedSiteId || ''}
+      />
 
       <Dialog
         open={notificationDialogOpen}
