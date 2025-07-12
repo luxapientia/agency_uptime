@@ -9,37 +9,21 @@ export interface Site {
   notifications: Notification[];
 }
 
-interface StatusData {
-  isUp: boolean | null;
-  lastChecked: string | null;
-  pingUp: boolean | null;
-  httpUp: boolean | null;
-  ssl: {
-    enabled: boolean;
-    validFrom: string;
-    validTo: string;
-    issuer: string;
-    daysUntilExpiry: number;
-  } | null;
-}
-
 export interface SiteStatus {
-  currentStatus: StatusData;
-  uptime: {
-    last24Hours: {
-      overall: number;
-      http: number;
-      ping: number;
-      totalChecks: number;
-    };
-  };
-  history: Array<{
-    timestamp: string;
-    isUp: boolean;
-    httpUp: boolean;
-    pingUp: boolean;
-  }>;
-  message?: string;
+  isUp: boolean;
+  checkedAt: string;
+  pingUp: boolean;
+  httpUp: boolean;
+  pingResponseTime?: number;
+  httpResponseTime?: number;
+  overallUptime?: number;
+  pingUptime?: number;
+  httpUptime?: number;
+  hasSsl: boolean;
+  sslValidFrom?: string;
+  sslValidTo?: string;
+  sslIssuer?: string;
+  sslDaysUntilExpiry?: number;
 }
 
 export interface Notification {
