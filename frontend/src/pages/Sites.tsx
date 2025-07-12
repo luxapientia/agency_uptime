@@ -76,10 +76,6 @@ export default function Sites() {
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [selectedSiteForNotification, setSelectedSiteForNotification] = useState<Site | null>(null);
 
-  useEffect(() => {
-    dispatch(fetchSites());
-  }, [dispatch]);
-
   const handleAddClick = () => {
     dispatch(setSelectedSite(null));
     setIsFormOpen(true);
