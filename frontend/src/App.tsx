@@ -15,6 +15,9 @@ import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import type { AppDispatch, RootState } from './store';
 import { fetchSettings } from './store/slices/settingSlice';
+import { fetchSites } from './store/slices/siteSlice';
+import { verifyToken } from './store/slices/authSlice';
+import { fetchAllSiteStatuses } from './store/slices/siteStatusSlice';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -35,12 +38,29 @@ function AppContent() {
   const rootUrl = import.meta.env.VITE_ROOT_URL;
   const dispatch = useDispatch<AppDispatch>();
   const themeSettings = useSelector((state: RootState) => state.settings.settings);
+  const { user, token } = useSelector((state: RootState) => state.auth);
   const theme = createAppTheme(themeSettings);
-  // Update favicon when theme settings change
+
+  // Verify token on startup
+  useEffect(() => {
+    if (token && !user) {
+      dispatch(verifyToken());
+    }
+  }, [dispatch, token, user]);
+
+  // Update favicon and fetch initial data
   useEffect(() => {
     updateFavicon(themeSettings.favicon);
-    dispatch(fetchSettings());
-  }, [themeSettings.favicon, dispatch]);
+
+  }, [themeSettings.favicon]);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchSettings());
+      dispatch(fetchSites());
+      dispatch(fetchAllSiteStatuses());
+    }
+  }, [dispatch, user]);
 
   return (
     <ThemeProvider theme={theme}>
