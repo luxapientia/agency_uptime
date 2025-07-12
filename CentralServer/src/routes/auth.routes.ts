@@ -4,6 +4,8 @@ import { z } from 'zod';
 import authService from '../services/auth.service';
 import { BadRequestError, UnauthorizedError } from '../utils/errors';
 import mailgunService from '../services/mailgun.service';
+import { authenticate } from '../middleware/auth.middleware';
+import type { AuthenticatedRequest } from '../types/express';
 
 const router = Router();
 
@@ -80,6 +82,24 @@ router.post('/verify-code', async (req, res, next) => {
   } catch (error) {
     if (error instanceof BadRequestError) {
       res.status(400).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
+router.get('/me', authenticate, async (req, res, next) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    // Generate new token
+    const token = await authService.refreshToken(authReq.user.id);
+    res.json({
+      token,
+      user: authReq.user
+    });
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      res.status(401).json({ message: error.message });
       return;
     }
     next(error);
