@@ -17,6 +17,9 @@ import type { AppDispatch, RootState } from './store';
 import { fetchSettings } from './store/slices/settingSlice';
 import { fetchSites } from './store/slices/siteSlice';
 import { verifyToken } from './store/slices/authSlice';
+import { SocketProvider } from './contexts/SocketContext';
+import { SocketEventHandler } from './components/socket/SocketEventHandler';
+import { fetchAllSiteStatuses } from './store/slices/siteStatusSlice';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -50,52 +53,55 @@ function AppContent() {
   // Update favicon and fetch initial data
   useEffect(() => {
     updateFavicon(themeSettings.favicon);
-
   }, [themeSettings.favicon]);
 
   useEffect(() => {
     if (user) {
       dispatch(fetchSettings());
       dispatch(fetchSites());
+      dispatch(fetchAllSiteStatuses());
     }
   }, [dispatch, user]);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router basename={rootUrl}>
-        <Layout>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sites"
-              element={
-                <ProtectedRoute>
-                  <Sites />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Layout>
-      </Router>
+      <SocketProvider autoConnect={!!user}>
+        <SocketEventHandler />
+        <Router basename={rootUrl}>
+          <Layout>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sites"
+                element={
+                  <ProtectedRoute>
+                    <Sites />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </SocketProvider>
     </ThemeProvider>
   );
 }
