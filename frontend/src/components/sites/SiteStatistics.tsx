@@ -23,12 +23,13 @@ import {
   ShieldOutlined as SecurityIcon,
   UpdateOutlined as UpdateIcon,
   ErrorOutline as ErrorIcon,
-//   TimelineOutlined as TimelineIcon,
+  TimelineOutlined as TimelineIcon,
 } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
-import type { SiteStatus } from '../../types/site.types';
-import axios from '../../lib/axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSiteStatus } from '../../store/slices/siteStatusSlice';
+import type { RootState } from '../../store';
 
 interface SiteStatisticsProps {
   open: boolean;
@@ -42,8 +43,9 @@ const formatUptime = (percentage: number) => {
 
 export default function SiteStatistics({ open, onClose, siteId }: SiteStatisticsProps) {
   const theme = useTheme();
-  const [status, setStatus] = useState<SiteStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  const statuses = useSelector((state: RootState) => state.siteStatus.statuses);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -51,9 +53,7 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
       
       setIsLoading(true);
       try {
-        const response = await axios.get<SiteStatus>(`/sites/${siteId}/status`);
-        console.log(response.data);
-        setStatus(response.data);
+        dispatch(fetchSiteStatus(siteId) as any);
       } catch (error) {
         console.error('Failed to fetch site status:', error);
       } finally {
@@ -111,14 +111,14 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
             <CircularProgress />
           </Box>
-        ) : status ? (
+        ) : statuses[siteId] ? (
           <Stack spacing={3}>
             <Box>
               <Typography variant="subtitle2" color={theme.palette.text.secondary} gutterBottom>
                 Current Status
               </Typography>
               <Stack direction="row" spacing={2} alignItems="center">
-                {status.isUp ? (
+                {statuses[siteId].isUp ? (
                   <Chip
                     icon={<SignalIcon />}
                     label="Online"
@@ -138,8 +138,8 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
                   />
                 )}
                 <Typography variant="body2" color={theme.palette.text.secondary}>
-                  Last checked: {status.checkedAt ?
-                    new Date(status.checkedAt).toLocaleString() :
+                  Last checked: {statuses[siteId].checkedAt ?
+                    new Date(statuses[siteId].checkedAt).toLocaleString() :
                     'Never'}
                 </Typography>
               </Stack>
@@ -159,12 +159,12 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
                       <Typography variant="body2" color={theme.palette.text.primary}>Overall</Typography>
                     </Stack>
                     <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
-                      {formatUptime(status.overallUptime ?? 0)}
+                      {formatUptime(statuses[siteId].overallUptime ?? 0)}
                     </Typography>
                   </Stack>
                   <LinearProgress
                     variant="determinate"
-                    value={status.overallUptime}
+                    value={statuses[siteId].overallUptime}
                     color="success"
                     sx={{ height: 8, borderRadius: 2 }}
                   />
@@ -176,12 +176,12 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
                       <Typography variant="body2" color={theme.palette.text.primary}>HTTP</Typography>
                     </Stack>
                     <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
-                      {formatUptime(status.httpUptime ?? 0)}
+                      {formatUptime(statuses[siteId].httpUptime ?? 0)}
                     </Typography>
                   </Stack>
                   <LinearProgress
                     variant="determinate"
-                    value={status.httpUptime ?? 0}
+                    value={statuses[siteId].httpUptime ?? 0}
                     color="info"
                     sx={{ height: 8, borderRadius: 2 }}
                   />
@@ -193,12 +193,12 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
                       <Typography variant="body2" color={theme.palette.text.primary}>Ping</Typography>
                     </Stack>
                     <Typography variant="body2" fontWeight="medium" color={theme.palette.text.primary}>
-                      {formatUptime(status.pingUptime ?? 0)}
+                      {formatUptime(statuses[siteId].pingUptime ?? 0)}
                     </Typography>
                   </Stack>
                   <LinearProgress
                     variant="determinate"
-                    value={status.pingUptime ?? 0}
+                    value={statuses[siteId].pingUptime ?? 0}
                     color="primary"
                     sx={{ height: 8, borderRadius: 2 }}
                   />
@@ -231,7 +231,7 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
               </Box>
             </Box> */}
 
-            {status.hasSsl && (
+            {statuses[siteId].hasSsl && (
               <>
                 <Divider />
                 <Box>
@@ -242,7 +242,7 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
                     <Stack direction="row" spacing={1} alignItems="center">
                       <SecurityIcon color="success" fontSize="small" />
                       <Typography variant="body2" color={theme.palette.text.primary}>
-                        Valid until {new Date(status.sslValidTo ?? '').toLocaleDateString()}
+                        Valid until {new Date(statuses[siteId].sslValidTo ?? '').toLocaleDateString()}
                       </Typography>
                     </Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -250,13 +250,13 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
                         Issuer:
                       </Box>
                       <Typography variant="body2" sx={{ flex: 1, color: theme.palette.text.primary }}>
-                        {status.sslIssuer}
+                        {statuses[siteId].sslIssuer}
                       </Typography>
                     </Stack>
                     <Chip
                       icon={<SecurityIcon />}
-                      label={`${status.sslDaysUntilExpiry} days until expiry`}
-                      color={status.sslDaysUntilExpiry && status.sslDaysUntilExpiry > 30 ? "success" : "warning"}
+                      label={`${statuses[siteId].sslDaysUntilExpiry} days until expiry`}
+                      color={statuses[siteId].sslDaysUntilExpiry && statuses[siteId].sslDaysUntilExpiry > 30 ? "success" : "warning"}
                       variant="outlined"
                       size="small"
                       sx={{
@@ -270,7 +270,7 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
 
             <Typography variant="caption" color={theme.palette.text.secondary} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <UpdateIcon fontSize="small" />
-              Based on {status.overallUptime} checks in the last 24 hours
+              Based on {statuses[siteId].overallUptime} checks in the last 24 hours
             </Typography>
           </Stack>
         ) : (
