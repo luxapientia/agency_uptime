@@ -131,10 +131,47 @@ export class MonitorService {
       const httpIsUpCount = checks.filter(check => check.getCheck.isUp).length;
       const httpIsUp = workerKeys.length >= 2 ? httpIsUpCount >= Math.ceil(checks.length / 2) : httpIsUpCount > 0;
 
+      // Calculate response times
+      const pingResponseTimes = checks
+        .filter(check => check.pingCheck?.isUp && check.pingCheck?.responseTime)
+        .map(check => check.pingCheck.responseTime);
+
+      const httpResponseTimes = checks
+        .filter(check => check.getCheck?.isUp && check.getCheck?.responseTime)
+        .map(check => check.getCheck.responseTime);
+
+      const pingResponseTime = pingResponseTimes.length > 0
+        ? pingResponseTimes.reduce((a, b) => a + b, 0) / pingResponseTimes.length
+        : null;
+
+      const httpResponseTime = httpResponseTimes.length > 0
+        ? httpResponseTimes.reduce((a, b) => a + b, 0) / httpResponseTimes.length
+        : null;
+
       const ssl = checks[0].getCheck.ssl;
 
       const checkedAt = checks.reduce((latest, check) => new Date(check.checkedAt) > latest ? new Date(check.checkedAt) : latest, new Date(0));
 
+      // Calculate uptime percentage for last 24 hours
+      const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const statusHistory = await this.prisma.siteStatus.findMany({
+        where: {
+          siteId: site.id,
+          checkedAt: {
+            gte: last24Hours
+          }
+        },
+        orderBy: {
+          checkedAt: 'desc'
+        }
+      });
+
+      // Include current status in calculation
+      const totalChecks = statusHistory.length + 1;
+      const upChecks = statusHistory.filter(status => status.isUp).length + (isUp ? 1 : 0);
+      const uptimePercentage = (upChecks / totalChecks) * 100;
+
+      // Delete old records
       await this.prisma.siteStatus.deleteMany({
         where: {
           checkedAt: {
@@ -150,6 +187,9 @@ export class MonitorService {
           pingIsUp,
           httpIsUp,
           isUp,
+          pingResponseTime,
+          httpResponseTime,
+          uptimePercentage,
           hasSsl: !!ssl,
           sslValidFrom: ssl?.validFrom ? new Date(ssl.validFrom) : undefined,
           sslValidTo: ssl?.validTo ? new Date(ssl.validTo) : undefined,
@@ -176,7 +216,10 @@ export class MonitorService {
           pingIsUp: false,
           httpIsUp: false,
           checkedAt: new Date(),
-          hasSsl: false
+          hasSsl: false,
+          pingResponseTime: null,
+          httpResponseTime: null,
+          uptimePercentage: 0
         }
       });
     }

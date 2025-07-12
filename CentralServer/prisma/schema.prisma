@@ -73,6 +73,11 @@ model SiteStatus {
   httpIsUp  Boolean
   checkedAt DateTime @default(now())
 
+  // Response Times
+  pingResponseTime Float?
+  httpResponseTime Float?
+  uptimePercentage Float?
+
   // SSL Information
   hasSsl             Boolean   @default(false)
   sslValidFrom       DateTime?
