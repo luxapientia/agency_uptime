@@ -55,7 +55,7 @@ model Notification {
   id          String           @id @default(uuid())
   siteId      String
   site        Site             @relation(fields: [siteId], references: [id])
-  enabled     Boolean          @default(false)
+  enabled     Boolean          @default(true)
   type        NotificationType
   contactInfo String?
   createdAt   DateTime         @default(now())
