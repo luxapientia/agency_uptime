@@ -149,11 +149,10 @@ const settingsSlice = createSlice({
       .addCase(fetchSettings.fulfilled, (state, action) => {
         state.isLoading = false;
         state.settings.hasUnsavedChanges = false;
-        state.settings = action.payload;
+        state.settings = { ...state.settings, ...action.payload };
       })
       .addCase(fetchSettings.rejected, (state, action) => {
         state.isLoading = false;
-        showToast.error('Failed to fetch theme settings');
         state.error = action.error.message || 'Failed to fetch theme settings';
       });
 
