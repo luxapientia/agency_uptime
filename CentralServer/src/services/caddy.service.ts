@@ -1,98 +1,61 @@
-import axios, { AxiosInstance } from 'axios';
+import fs from 'fs-extra';
+import { exec } from 'child_process';
+import util from 'util';
+import { config } from '../config/index';
 
-interface Upstream {
-  dial: string;
-}
+const execAsync = util.promisify(exec);
 
-interface ReverseProxyHandler {
-  handler: 'reverse_proxy';
-  upstreams: Upstream[];
-}
+class CaddyManager {
+  private caddyfilePath = '/etc/caddy/Caddyfile';
+  private target = `http://127.0.0.1:${config.port}`;
 
-interface MatchRule {
-  host: string[];
-}
+  constructor(private readonly baseTemplatePath = './base.Caddyfile') { }
 
-interface CaddyRoute {
-  '@id': string;
-  match: MatchRule[];
-  handle: ReverseProxyHandler[];
-  terminal: boolean;
-}
-
-export class CaddyService {
-  private api: AxiosInstance;
-
-  constructor(baseUrl: string = 'http://localhost:2019') {
-    this.api = axios.create({ baseURL: baseUrl });
+  async domainExists(domain: string): Promise<boolean> {
+    const caddyfile = await fs.readFile(this.caddyfilePath, 'utf8');
+    const domainPattern = new RegExp(`^\\s*${domain.replace(/\./g, '\\.')}\\s*{`, 'm');
+    return domainPattern.test(caddyfile);
   }
 
-  /**
-   * Add a new route for a domain (HTTPS enabled)
-   */
-  async addDomain(domain: string, target: string): Promise<void> {
-    const routeId = this.domainToRouteId(domain);
-
+  private async reloadCaddy(): Promise<void> {
     try {
-      const existingRoute = await this.api.get(`/id/${routeId}`);
-      if (existingRoute.data) {
-        console.log(`[-] Domain already exists: ${domain}`);
-        return;
-      }
+      await execAsync('sudo systemctl reload caddy');
     } catch (error: any) {
-    }
-
-    const routeConfig = {
-      '@id': routeId,
-      match: [{ host: [domain] }],
-      handle: [
-        {
-          handler: 'subroute',
-          routes: [{ handle: [{ handler: 'reverse_proxy', upstreams: [{ dial: target }] }] }],
-        },
-      ],
-      terminal: true,
-    };
-
-    try {
-      await this.api.post('/config/apps/http/servers/srv0/routes', routeConfig);
-      console.log(`[+] Domain added: ${domain} → ${target}`);
-    } catch (error: any) {
-      console.error(`[!] Failed to add domain ${domain}:`, error.response?.data || error.message);
+      throw new Error(`Failed to reload Caddy: ${error.stderr || error.message}`);
     }
   }
 
-  /**
-   * Remove a domain route by domain name
-   */
+  private generateBlock(domain: string): string {
+    return `
+${domain} {
+  reverse_proxy ${this.target}
+}`;
+  }
+
+  async addDomain(domain: string): Promise<void> {
+    if (await this.domainExists(domain)) {
+      throw new Error(`Domain ${domain} already exists in Caddyfile.`);
+    }
+
+    const block = this.generateBlock(domain);
+    const current = await fs.readFile(this.caddyfilePath, 'utf8');
+
+    const updated = `${current.trim()}\n\n${block.trim()}\n`;
+    await fs.writeFile(this.caddyfilePath, updated, 'utf8');
+
+    await this.reloadCaddy();
+    console.log(`[+] Added ${domain} → ${this.target}`);
+  }
+
   async removeDomain(domain: string): Promise<void> {
-    const routeId = this.domainToRouteId(domain);
+    const current = await fs.readFile(this.caddyfilePath, 'utf8');
+    const domainBlockRegex = new RegExp(`${domain.replace(/\./g, '\\.')}\\s*{[^}]*}`, 'gs');
+    const updated = current.replace(domainBlockRegex, '').trim();
 
-    try {
-      await this.api.delete(`/id/${routeId}`);
-      console.log(`[-] Domain removed: ${domain}`);
-    } catch (error: any) {
-      console.error(`[!] Failed to remove domain ${domain}:`, error.response?.data || error.message);
-    }
-  }
-
-  /**
-   * Get full Caddy configuration
-   */
-  async getConfig(): Promise<any> {
-    try {
-      const response = await this.api.get('/config/');
-      return response.data;
-    } catch (error: any) {
-      console.error(`[!] Failed to fetch config:`, error.response?.data || error.message);
-      return null;
-    }
-  }
-
-  /**
-   * Utility to generate consistent route ID
-   */
-  private domainToRouteId(domain: string): string {
-    return `route-${domain.replace(/\./g, '-')}`;
+    await fs.writeFile(this.caddyfilePath, updated + '\n', 'utf8');
+    await this.reloadCaddy();
+    console.log(`[-] Removed ${domain}`);
   }
 }
+
+export default new CaddyManager();

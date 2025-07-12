@@ -4,6 +4,7 @@ import fileService from '../services/file.service';
 import prisma from '../lib/prisma';
 import { authenticate } from '../middleware/auth.middleware';
 import { z } from 'zod';
+import caddyManager from '../services/caddy.service';
 
 interface AuthRequest extends Request {
   user: {
@@ -41,6 +42,20 @@ const themeSettingsSchema = z.object({
   borderRadius: z.number().min(0).max(24),
   fontFamily: fontFamilySchema,
   save: z.boolean().optional()
+});
+
+// Add domain validation schema
+const domainSchema = z.object({
+  customDomain: z.string()
+    .nullable()
+    .refine(val => {
+      if (!val) return true; // Allow null
+      // Basic domain validation regex
+      const domainRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+      return domainRegex.test(val);
+    }, {
+      message: "Please enter a valid domain (e.g., example.com)"
+    })
 });
 
 const router = Router();
@@ -333,6 +348,80 @@ router.delete('/logo', authenticate, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error resetting logo:', error);
     res.status(500).json({ error: 'Failed to reset logo' });
+  }
+});
+
+// Get custom domain
+router.get('/domain', authenticate, async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthRequest;
+    const user = await prisma.user.findUnique({
+      where: { id: authReq.user.id },
+      select: { customDomain: true }
+    });
+
+    res.json({ customDomain: user?.customDomain || null });
+  } catch (error) {
+    console.error('Error fetching custom domain:', error);
+    res.status(500).json({ error: 'Failed to fetch custom domain' });
+  }
+});
+
+// Update custom domain
+router.put('/domain', authenticate, async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthRequest;
+    const { customDomain } = domainSchema.parse(req.body);
+
+    const user = await prisma.user.findUnique({
+      where: { id: authReq.user.id },
+    });
+
+    // If domain is provided, check if it's already in use by another user
+    if (customDomain) {
+      // const existingUser = await prisma.user.findFirst({
+      //   where: {
+      //     customDomain,
+      //     id: { not: authReq.user.id }
+      //   }
+      // });
+
+      // if (existingUser) {
+      //   return res.status(400).json({ 
+      //     error: 'Domain already in use',
+      //     message: 'This domain is already being used by another account.'
+      //   });
+      // }
+      if (await caddyManager.domainExists(customDomain)) {
+        return res.status(400).json({ 
+          error: 'Domain already in use',
+          message: 'This domain is already being used by another account.'
+        });
+      }
+      await caddyManager.addDomain(customDomain);
+    } else {
+      if (user?.customDomain) {
+        await caddyManager.removeDomain(user.customDomain);
+      }
+    }
+
+    // Update user's custom domain
+    const updatedUser = await prisma.user.update({
+      where: { id: authReq.user.id },
+      data: { customDomain },
+      select: { customDomain: true }
+    });
+
+    res.json({ customDomain: updatedUser.customDomain || null });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        error: 'Invalid domain format',
+        details: error.errors 
+      });
+    }
+    console.error('Error updating custom domain:', error);
+    res.status(500).json({ error: 'Failed to update custom domain' });
   }
 });
 
