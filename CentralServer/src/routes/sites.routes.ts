@@ -182,74 +182,82 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
   });
 
   if (!site) {
-    throw new NotFoundError('Site not found');
+    res.status(404).json({ error: 'Site not found' });
+    return;
   }
 
   if (site.userId !== req.user.id) {
-    throw new BadRequestError('You do not have permission to access this site');
+    res.status(403).json({ error: 'You do not have permission to access this site' });
+    return;
   }
 
   // Get all status checks from last 24 hours for uptime calculation
-  const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const statusHistory = await prisma.siteStatus.findMany({
-    where: {
-      siteId: id,
-      checkedAt: {
-        gte: last24Hours
-      }
-    },
-    orderBy: {
-      checkedAt: 'desc'
-    }
-  });
+  // const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  // const statusHistory = await prisma.siteStatus.findMany({
+  //   where: {
+  //     siteId: id,
+  //     checkedAt: {
+  //       gte: last24Hours
+  //     }
+  //   },
+  //   orderBy: {
+  //     checkedAt: 'desc'
+  //   }
+  // });
 
-  // Calculate uptime percentages
-  let uptimePercentage = 0;
-  let httpUptimePercentage = 0;
-  let pingUptimePercentage = 0;
+  // // Calculate uptime percentages
+  // let uptimePercentage = 0;
+  // let httpUptimePercentage = 0;
+  // let pingUptimePercentage = 0;
 
-  if (statusHistory.length > 0) {
-    const totalChecks = statusHistory.length;
-    const upChecks = statusHistory.filter(status => status.isUp).length;
-    const httpUpChecks = statusHistory.filter(status => status.httpIsUp).length;
-    const pingUpChecks = statusHistory.filter(status => status.pingIsUp).length;
+  // if (statusHistory.length > 0) {
+  //   const totalChecks = statusHistory.length;
+  //   const upChecks = statusHistory.filter(status => status.isUp).length;
+  //   const httpUpChecks = statusHistory.filter(status => status.httpIsUp).length;
+  //   const pingUpChecks = statusHistory.filter(status => status.pingIsUp).length;
 
-    uptimePercentage = (upChecks / totalChecks) * 100;
-    httpUptimePercentage = (httpUpChecks / totalChecks) * 100;
-    pingUptimePercentage = (pingUpChecks / totalChecks) * 100;
+  //   uptimePercentage = (upChecks / totalChecks) * 100;
+  //   httpUptimePercentage = (httpUpChecks / totalChecks) * 100;
+  //   pingUptimePercentage = (pingUpChecks / totalChecks) * 100;
+  // }
+
+  // const latestStatus = site.statuses[0];
+  // res.status(200).json({
+  //   currentStatus: {
+  //     isUp: latestStatus?.isUp ?? null,
+  //     lastChecked: latestStatus?.checkedAt ?? null,
+  //     pingUp: latestStatus?.pingIsUp ?? null,
+  //     httpUp: latestStatus?.httpIsUp ?? null,
+  //     ssl: latestStatus ? {
+  //       enabled: latestStatus.hasSsl,
+  //       validFrom: latestStatus.sslValidFrom,
+  //       validTo: latestStatus.sslValidTo,
+  //       issuer: latestStatus.sslIssuer,
+  //       daysUntilExpiry: latestStatus.sslDaysUntilExpiry
+  //     } : null,
+  //   },
+  //   uptime: {
+  //     last24Hours: {
+  //       overall: Math.round(uptimePercentage * 100) / 100,
+  //       http: Math.round(httpUptimePercentage * 100) / 100,
+  //       ping: Math.round(pingUptimePercentage * 100) / 100,
+  //       totalChecks: statusHistory.length
+  //     }
+  //   },
+  //   // history: statusHistory.slice(0, 100).map(status => ({
+  //   //   timestamp: status.checkedAt,
+  //   //   isUp: status.isUp,
+  //   //   httpUp: status.httpIsUp,
+  //   //   pingUp: status.pingIsUp
+  //   // })),
+  //   message: latestStatus ? undefined : 'No status checks available yet'
+  // });
+  if(site.statuses.length > 0) {
+    res.status(200).json(site.statuses[0]);
+  } else {
+    res.status(404).json({ error: 'No status checks available yet' });
+    return;
   }
-
-  const latestStatus = site.statuses[0];
-  res.status(200).json({
-    currentStatus: {
-      isUp: latestStatus?.isUp ?? null,
-      lastChecked: latestStatus?.checkedAt ?? null,
-      pingUp: latestStatus?.pingIsUp ?? null,
-      httpUp: latestStatus?.httpIsUp ?? null,
-      ssl: latestStatus ? {
-        enabled: latestStatus.hasSsl,
-        validFrom: latestStatus.sslValidFrom,
-        validTo: latestStatus.sslValidTo,
-        issuer: latestStatus.sslIssuer,
-        daysUntilExpiry: latestStatus.sslDaysUntilExpiry
-      } : null,
-    },
-    uptime: {
-      last24Hours: {
-        overall: Math.round(uptimePercentage * 100) / 100,
-        http: Math.round(httpUptimePercentage * 100) / 100,
-        ping: Math.round(pingUptimePercentage * 100) / 100,
-        totalChecks: statusHistory.length
-      }
-    },
-    // history: statusHistory.slice(0, 100).map(status => ({
-    //   timestamp: status.checkedAt,
-    //   isUp: status.isUp,
-    //   httpUp: status.httpIsUp,
-    //   pingUp: status.pingIsUp
-    // })),
-    message: latestStatus ? undefined : 'No status checks available yet'
-  });
 };
 
 // Generate PDF report for all sites
@@ -497,7 +505,66 @@ const getNotificationChannels = async (req: AuthenticatedRequest, res: Response)
   }
 };
 
+// Get statistics for all sites of the authenticated user
+const getStatistics = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Get all sites for the user
+    const sites = await prisma.site.findMany({
+      where: {
+        userId: req.user.id,
+      },
+      include: {
+        notifications: true,
+        statuses: {
+          orderBy: {
+            checkedAt: 'desc'
+          },
+          take: 1
+        }
+      }
+    });
+
+    // Calculate statistics
+    const totalSites = sites.length;
+    const onlineSites = sites.filter(site => site.statuses[0]?.isUp).length;
+    const sitesWithSsl = sites.filter(site => site.statuses[0]?.hasSsl).length;
+    const sitesWithNotifications = sites.filter(site => site.notifications.length > 0).length;
+
+    // Calculate average uptime
+    let totalUptime = 0;
+    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Get all status checks from last 24 hours for all sites
+    const statusHistory = await prisma.siteStatus.findMany({
+      where: {
+        userId: req.user.id,
+        checkedAt: {
+          gte: last24Hours
+        }
+      }
+    });
+
+    if (statusHistory.length > 0) {
+      const totalChecks = statusHistory.length;
+      const upChecks = statusHistory.filter(status => status.isUp).length;
+      totalUptime = (upChecks / totalChecks) * 100;
+    }
+
+    res.json({
+      totalSites,
+      onlineSites,
+      sitesWithSsl,
+      sitesWithNotifications,
+      averageUptime: totalUptime.toFixed(2)
+    });
+  } catch (error) {
+    logger.error('Failed to get site statistics:', error);
+    throw error;
+  }
+};
+
 router.get('/', getSites as any);
+router.get('/statistics', getStatistics as any);
 router.get('/:id/status', getSiteStatus as any);
 router.get('/report', generatePDFReport as any);
 router.get('/notification-channels', getNotificationChannels as any);

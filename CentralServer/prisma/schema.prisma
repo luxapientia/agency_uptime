@@ -76,7 +76,9 @@ model SiteStatus {
   // Response Times
   pingResponseTime Float?
   httpResponseTime Float?
-  uptimePercentage Float?
+  pingUptime       Float?
+  httpUptime       Float?
+  overallUptime    Float?
 
   // SSL Information
   hasSsl             Boolean   @default(false)

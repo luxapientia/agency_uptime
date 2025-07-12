@@ -169,7 +169,12 @@ export class MonitorService {
       // Include current status in calculation
       const totalChecks = statusHistory.length + 1;
       const upChecks = statusHistory.filter(status => status.isUp).length + (isUp ? 1 : 0);
-      const uptimePercentage = (upChecks / totalChecks) * 100;
+      const overallUptime = (upChecks / totalChecks) * 100;
+
+      const pingUpChecks = statusHistory.filter(status => status.pingIsUp).length + (pingIsUp ? 1 : 0);
+      const pingUptime = (pingUpChecks / totalChecks) * 100;
+      const httpUpChecks = statusHistory.filter(status => status.httpIsUp).length + (httpIsUp ? 1 : 0);
+      const httpUptime = (httpUpChecks / totalChecks) * 100;
 
       // Delete old records
       await this.prisma.siteStatus.deleteMany({
@@ -189,7 +194,9 @@ export class MonitorService {
           isUp,
           pingResponseTime,
           httpResponseTime,
-          uptimePercentage,
+          overallUptime,
+          pingUptime,
+          httpUptime,
           hasSsl: !!ssl,
           sslValidFrom: ssl?.validFrom ? new Date(ssl.validFrom) : undefined,
           sslValidTo: ssl?.validTo ? new Date(ssl.validTo) : undefined,
@@ -207,21 +214,23 @@ export class MonitorService {
     } catch (error) {
       logger.error(`Error checking site ${site.url}:`, error);
       
-      // Save error status
-      await this.prisma.siteStatus.create({
-        data: {
-          siteId: site.id,
-          userId: site.userId,
-          isUp: false,
-          pingIsUp: false,
-          httpIsUp: false,
-          checkedAt: new Date(),
-          hasSsl: false,
-          pingResponseTime: null,
-          httpResponseTime: null,
-          uptimePercentage: 0
-        }
-      });
+      // // Save error status
+      // await this.prisma.siteStatus.create({
+      //   data: {
+      //     siteId: site.id,
+      //     userId: site.userId,
+      //     isUp: false,
+      //     pingIsUp: false,
+      //     httpIsUp: false,
+      //     checkedAt: new Date(),
+      //     hasSsl: false,
+      //     pingResponseTime: null,
+      //     httpResponseTime: null,
+      //     overallUptime: 0,
+      //     pingUptime: 0,
+      //     httpUptime: 0
+      //   }
+      // });
     }
   }
 } 
