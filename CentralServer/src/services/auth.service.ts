@@ -113,6 +113,10 @@ class AuthService {
       throw new UnauthorizedError('Invalid token');
     }
   }
+
+  async refreshToken(userId: string): Promise<string> {
+    return this.generateToken(userId);
+  }
 }
 
 export default new AuthService(); 
