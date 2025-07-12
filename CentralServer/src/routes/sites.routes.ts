@@ -165,100 +165,7 @@ const deleteSite = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-// Get site status
-const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params;
 
-  const site = await prisma.site.findUnique({
-    where: { id },
-    include: {
-      statuses: {
-        orderBy: {
-          checkedAt: 'desc'
-        },
-        take: 1
-      }
-    }
-  });
-
-  if (!site) {
-    res.status(404).json({ error: 'Site not found' });
-    return;
-  }
-
-  if (site.userId !== req.user.id) {
-    res.status(403).json({ error: 'You do not have permission to access this site' });
-    return;
-  }
-
-  // Get all status checks from last 24 hours for uptime calculation
-  // const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  // const statusHistory = await prisma.siteStatus.findMany({
-  //   where: {
-  //     siteId: id,
-  //     checkedAt: {
-  //       gte: last24Hours
-  //     }
-  //   },
-  //   orderBy: {
-  //     checkedAt: 'desc'
-  //   }
-  // });
-
-  // // Calculate uptime percentages
-  // let uptimePercentage = 0;
-  // let httpUptimePercentage = 0;
-  // let pingUptimePercentage = 0;
-
-  // if (statusHistory.length > 0) {
-  //   const totalChecks = statusHistory.length;
-  //   const upChecks = statusHistory.filter(status => status.isUp).length;
-  //   const httpUpChecks = statusHistory.filter(status => status.httpIsUp).length;
-  //   const pingUpChecks = statusHistory.filter(status => status.pingIsUp).length;
-
-  //   uptimePercentage = (upChecks / totalChecks) * 100;
-  //   httpUptimePercentage = (httpUpChecks / totalChecks) * 100;
-  //   pingUptimePercentage = (pingUpChecks / totalChecks) * 100;
-  // }
-
-  // const latestStatus = site.statuses[0];
-  // res.status(200).json({
-  //   currentStatus: {
-  //     isUp: latestStatus?.isUp ?? null,
-  //     lastChecked: latestStatus?.checkedAt ?? null,
-  //     pingUp: latestStatus?.pingIsUp ?? null,
-  //     httpUp: latestStatus?.httpIsUp ?? null,
-  //     ssl: latestStatus ? {
-  //       enabled: latestStatus.hasSsl,
-  //       validFrom: latestStatus.sslValidFrom,
-  //       validTo: latestStatus.sslValidTo,
-  //       issuer: latestStatus.sslIssuer,
-  //       daysUntilExpiry: latestStatus.sslDaysUntilExpiry
-  //     } : null,
-  //   },
-  //   uptime: {
-  //     last24Hours: {
-  //       overall: Math.round(uptimePercentage * 100) / 100,
-  //       http: Math.round(httpUptimePercentage * 100) / 100,
-  //       ping: Math.round(pingUptimePercentage * 100) / 100,
-  //       totalChecks: statusHistory.length
-  //     }
-  //   },
-  //   // history: statusHistory.slice(0, 100).map(status => ({
-  //   //   timestamp: status.checkedAt,
-  //   //   isUp: status.isUp,
-  //   //   httpUp: status.httpIsUp,
-  //   //   pingUp: status.pingIsUp
-  //   // })),
-  //   message: latestStatus ? undefined : 'No status checks available yet'
-  // });
-  if(site.statuses.length > 0) {
-    res.status(200).json(site.statuses[0]);
-  } else {
-    res.status(404).json({ error: 'No status checks available yet' });
-    return;
-  }
-};
 
 // Generate PDF report for all sites
 const generatePDFReport = async (req: AuthenticatedRequest, res: Response) => {
@@ -563,9 +470,68 @@ const getStatistics = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+// Get site status
+const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+
+  const site = await prisma.site.findUnique({
+    where: { id },
+    include: {
+      statuses: {
+        orderBy: {
+          checkedAt: 'desc'
+        },
+        take: 1
+      }
+    }
+  });
+
+  if (!site) {
+    res.status(404).json({ error: 'Site not found' });
+    return;
+  }
+
+  if (site.userId !== req.user.id) {
+    res.status(403).json({ error: 'You do not have permission to access this site' });
+    return;
+  }
+
+  if(site.statuses.length > 0) {
+    res.status(200).json(site.statuses[0]);
+  } else {
+    res.status(404).json({ error: 'No status checks available yet' });
+    return;
+  }
+};
+
+const getSiteStatuses = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+  const user = req.user;
+  const sites = await prisma.site.findMany({
+    where: {
+      userId: user.id,
+    },
+    include: {
+      statuses: {
+        orderBy: {
+          checkedAt: 'desc'
+        },
+      }
+    }
+    });
+
+    res.status(200).json(sites);
+  } catch (error) {
+    logger.error('Failed to get site statuses:', error);
+    res.status(500).json({ error: 'Failed to get site statuses' });
+  }
+};
+
 router.get('/', getSites as any);
 router.get('/statistics', getStatistics as any);
 router.get('/:id/status', getSiteStatus as any);
+router.get('/statuses', getSiteStatuses as any);
+
 router.get('/report', generatePDFReport as any);
 router.get('/notification-channels', getNotificationChannels as any);
 router.post('/', validateRequest(createSiteSchema), createSite as any);
