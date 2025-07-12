@@ -437,32 +437,11 @@ const getStatistics = async (req: AuthenticatedRequest, res: Response) => {
     const sitesWithSsl = sites.filter(site => site.statuses[0]?.hasSsl).length;
     const sitesWithNotifications = sites.filter(site => site.notifications.length > 0).length;
 
-    // Calculate average uptime
-    let totalUptime = 0;
-    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-    // Get all status checks from last 24 hours for all sites
-    const statusHistory = await prisma.siteStatus.findMany({
-      where: {
-        userId: req.user.id,
-        checkedAt: {
-          gte: last24Hours
-        }
-      }
-    });
-
-    if (statusHistory.length > 0) {
-      const totalChecks = statusHistory.length;
-      const upChecks = statusHistory.filter(status => status.isUp).length;
-      totalUptime = (upChecks / totalChecks) * 100;
-    }
-
     res.json({
       totalSites,
       onlineSites,
       sitesWithSsl,
       sitesWithNotifications,
-      averageUptime: totalUptime.toFixed(2)
     });
   } catch (error) {
     logger.error('Failed to get site statistics:', error);
