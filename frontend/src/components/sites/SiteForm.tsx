@@ -48,8 +48,6 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  console.log(formData)
-
   useEffect(() => {
     if (site) {
       setFormData({
