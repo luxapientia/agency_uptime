@@ -495,6 +495,7 @@ const getSiteStatuses = async (req: AuthenticatedRequest, res: Response) => {
         orderBy: {
           checkedAt: 'desc'
         },
+        take: 1
       }
     }
     });
