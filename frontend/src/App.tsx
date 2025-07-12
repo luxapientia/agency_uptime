@@ -17,7 +17,6 @@ import type { AppDispatch, RootState } from './store';
 import { fetchSettings } from './store/slices/settingSlice';
 import { fetchSites } from './store/slices/siteSlice';
 import { verifyToken } from './store/slices/authSlice';
-import { fetchAllSiteStatuses } from './store/slices/siteStatusSlice';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -58,7 +57,6 @@ function AppContent() {
     if (user) {
       dispatch(fetchSettings());
       dispatch(fetchSites());
-      dispatch(fetchAllSiteStatuses());
     }
   }, [dispatch, user]);
 
