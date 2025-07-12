@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SiteStatus } from '../../types/site.types';
 import axiosInstance from '../../lib/axios';
 
