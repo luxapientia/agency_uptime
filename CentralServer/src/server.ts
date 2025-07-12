@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import { createServer } from 'http';
 import { errorHandler } from './middleware/errorHandler';
 import router from './routes';
 import { PrismaClient } from '@prisma/client';
@@ -9,9 +10,11 @@ import logger from './utils/logger';
 import monitorService from './services/monitor.service';
 import telegramService from './services/telegram.service';
 import discordService from './services/discord.service';
+import socketService from './services/socket.service';
 import { config } from './config';
 
 const app = express();
+const httpServer = createServer(app);
 const port = process.env.PORT || 3000;
 const prisma = new PrismaClient();
 
@@ -25,6 +28,9 @@ app.use(`${config.root.url}/`, express.static(staticPath));
 
 // API routes
 app.use(`${config.root.url}/api`, router);
+
+// Initialize WebSocket
+socketService.initialize(httpServer);
 
 app.get(`${config.root.url}/*`, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
@@ -88,9 +94,11 @@ async function startServer() {
     monitorService.start();
     telegramService.start();
     discordService.start();
-    app.listen(port, () => {
+    
+    // Use httpServer instead of app.listen
+    httpServer.listen(port, () => {
       logger.info(`Server is running on port ${port}`);
-      logger.info(`Static files are being served from ${staticPath}`);
+      logger.info(`WebSocket server is initialized`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
