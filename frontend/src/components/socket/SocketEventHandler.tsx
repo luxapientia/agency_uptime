@@ -1,12 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useSocketEvent } from '../../contexts/SocketContext';
 import { updateSiteStatus } from '../../store/slices/siteStatusSlice';
-import type { SiteStatus } from '../../types/site.types';
 import type { RootState } from '../../store';
-
-interface SiteStatusUpdate extends SiteStatus {
-  siteId: string;
-}
+import type { SiteStatusUpdate } from '../../types/socket.types';
 
 export const SocketEventHandler = () => {
   const dispatch = useDispatch();
@@ -21,7 +17,7 @@ export const SocketEventHandler = () => {
     if (!site) return;
 
     // Show notification based on status change
-    const message = data.isUp
+    const message = data.status.isUp
       ? `🟢 ${site.url} is now UP`
       : `🔴 ${site.url} is DOWN`;
     
