@@ -36,9 +36,9 @@ import {
   uploadLogo,
   resetLogo,
   resetFavicon,
-  fetchThemeSettings
-} from '../../store/slices/themeSlice';
-import type { ThemeColors } from '../../types/theme.types';
+  fetchSettings
+} from '../../store/slices/settingSlice';
+import type { ThemeColors } from '../../types/setting.types';
 
 type ColorPickerType = keyof ThemeColors | 'text.primary' | 'text.secondary' | null;
 
@@ -89,7 +89,7 @@ const rgbaToHexAndAlpha = (rgba: string): { hex: string; alpha: number } => {
 export default function ThemeSettings() {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
-  const themeSettings = useSelector((state: RootState) => state.theme.settings);
+  const themeSettings = useSelector((state: RootState) => state.settings.settings);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoFileInputRef = useRef<HTMLInputElement>(null);
   const [previewFavicon, setPreviewFavicon] = useState<string | null>(null);
@@ -167,7 +167,7 @@ export default function ThemeSettings() {
 
   const handleCancelChanges = () => {
     // Fetch current settings from backend
-    dispatch(fetchThemeSettings());
+    dispatch(fetchSettings());
     handleClose();
   };
 

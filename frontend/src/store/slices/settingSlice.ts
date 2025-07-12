@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { ThemeState, ThemeSettings } from '../../types/theme.types';
+import type { SettingState, AgencySettings } from '../../types/setting.types';
 import axios from '../../lib/axios';
+import { showToast } from '../../utils/toast';
 
 // Fetch theme settings
-export const fetchThemeSettings = createAsyncThunk(
-  'theme/fetchSettings',
+export const fetchSettings = createAsyncThunk(
+  'settings/fetchSettings',
   async () => {
     const response = await axios.get('/settings');
     return response.data;
@@ -14,8 +15,8 @@ export const fetchThemeSettings = createAsyncThunk(
 
 // Update theme settings
 export const updateThemeSettings = createAsyncThunk(
-  'theme/updateSettings',
-  async ({ settings, save = true }: { settings: Partial<ThemeSettings>; save?: boolean }) => {
+  'settings/updateThemeSettings',
+  async ({ settings, save = true }: { settings: Partial<AgencySettings>; save?: boolean }) => {
     if (save) {
       const response = await axios.put('/settings/theme', settings);
       return { ...response.data, hasUnsavedChanges: false };
@@ -26,7 +27,7 @@ export const updateThemeSettings = createAsyncThunk(
 
 // Upload favicon
 export const uploadFavicon = createAsyncThunk(
-  'theme/uploadFavicon',
+  'settings/uploadFavicon',
   async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -41,7 +42,7 @@ export const uploadFavicon = createAsyncThunk(
 
 // Upload logo
 export const uploadLogo = createAsyncThunk(
-  'theme/uploadLogo',
+  'settings/uploadLogo',
   async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -56,7 +57,7 @@ export const uploadLogo = createAsyncThunk(
 
 // Reset favicon to default
 export const resetFavicon = createAsyncThunk(
-  'theme/resetFavicon',
+  'settings/resetFavicon',
   async () => {
     await axios.delete('/settings/favicon');
     return 'favicon.png';
@@ -65,14 +66,32 @@ export const resetFavicon = createAsyncThunk(
 
 // Reset logo to default
 export const resetLogo = createAsyncThunk(
-  'theme/resetLogo',
+  'settings/resetLogo',
   async () => {
     await axios.delete('/settings/logo');
     return 'logo.png';
   }
 );
 
-const initialState: ThemeState = {
+// Fetch domain settings
+export const fetchDomainSettings = createAsyncThunk(
+  'settings/fetchDomainSettings',
+  async () => {
+    const response = await axios.get('/settings/domain');
+    return response.data;
+  }
+);
+
+// Update domain settings
+export const updateDomainSettings = createAsyncThunk(
+  'settings/updateDomainSettings',
+  async (customDomain: string | null) => {
+    const response = await axios.put('/settings/domain', { customDomain });
+    return response.data;
+  }
+);
+
+const initialState: SettingState = {
   settings: {
     colors: {
       primary: '#2563eb',
@@ -94,17 +113,18 @@ const initialState: ThemeState = {
     },
     hasUnsavedChanges: false,
     favicon: 'favicon.png',
-    logo: 'logo.png'
+    logo: 'logo.png',
+    customDomain: null
   },
   isLoading: false,
   error: null
 };
 
-const themeSlice = createSlice({
-  name: 'theme',
+const settingsSlice = createSlice({
+  name: 'settings',
   initialState,
   reducers: {
-    setThemeSettings(state, action: PayloadAction<Partial<ThemeSettings>>) {
+    setThemeSettings(state, action: PayloadAction<Partial<AgencySettings>>) {
       state.settings = {
         ...state.settings,
         ...action.payload
@@ -122,17 +142,18 @@ const themeSlice = createSlice({
   extraReducers: (builder) => {
     // Fetch settings
     builder
-      .addCase(fetchThemeSettings.pending, (state) => {
+      .addCase(fetchSettings.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchThemeSettings.fulfilled, (state, action) => {
+      .addCase(fetchSettings.fulfilled, (state, action) => {
         state.isLoading = false;
         state.settings.hasUnsavedChanges = false;
         state.settings = action.payload;
       })
-      .addCase(fetchThemeSettings.rejected, (state, action) => {
+      .addCase(fetchSettings.rejected, (state, action) => {
         state.isLoading = false;
+        showToast.error('Failed to fetch theme settings');
         state.error = action.error.message || 'Failed to fetch theme settings';
       });
 
@@ -148,9 +169,11 @@ const themeSlice = createSlice({
           ...state.settings,
           ...action.payload
         };
+        showToast.success('Theme settings updated successfully');
       })
       .addCase(updateThemeSettings.rejected, (state, action) => {
         state.isLoading = false;
+        showToast.error('Failed to update theme settings');
         state.error = action.error.message || 'Failed to update theme settings';
       });
 
@@ -163,9 +186,11 @@ const themeSlice = createSlice({
       .addCase(uploadFavicon.fulfilled, (state, action) => {
         state.isLoading = false;
         state.settings.favicon = action.payload;
+        showToast.success('Favicon uploaded successfully');
       })
       .addCase(uploadFavicon.rejected, (state, action) => {
         state.isLoading = false;
+        showToast.error('Failed to upload favicon');
         state.error = action.error.message || 'Failed to upload favicon';
       });
 
@@ -178,9 +203,11 @@ const themeSlice = createSlice({
       .addCase(uploadLogo.fulfilled, (state, action) => {
         state.isLoading = false;
         state.settings.logo = action.payload;
+        showToast.success('Logo uploaded successfully');
       })
       .addCase(uploadLogo.rejected, (state, action) => {
         state.isLoading = false;
+        showToast.error('Failed to upload logo');
         state.error = action.error.message || 'Failed to upload logo';
       });
 
@@ -193,9 +220,11 @@ const themeSlice = createSlice({
       .addCase(resetFavicon.fulfilled, (state, action) => {
         state.isLoading = false;
         state.settings.favicon = action.payload;
+        showToast.success('Favicon reset successfully');
       })
       .addCase(resetFavicon.rejected, (state, action) => {
         state.isLoading = false;
+        showToast.error('Failed to reset favicon');
         state.error = action.error.message || 'Failed to reset favicon';
       });
 
@@ -208,10 +237,46 @@ const themeSlice = createSlice({
       .addCase(resetLogo.fulfilled, (state, action) => {
         state.isLoading = false;
         state.settings.logo = action.payload;
+        showToast.success('Logo reset successfully');
       })
       .addCase(resetLogo.rejected, (state, action) => {
         state.isLoading = false;
+        showToast.error('Failed to reset logo');
         state.error = action.error.message || 'Failed to reset logo';
+      });
+
+    // Fetch domain settings
+    builder
+      .addCase(fetchDomainSettings.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDomainSettings.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.settings.customDomain = action.payload.customDomain;
+      })
+      .addCase(fetchDomainSettings.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to fetch domain settings';
+        showToast.error('Failed to fetch domain settings');
+      });
+
+    // Update domain settings
+    builder
+      .addCase(updateDomainSettings.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateDomainSettings.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.settings.customDomain = action.payload.customDomain;
+        showToast.success('Domain settings updated successfully');
+        state.settings.hasUnsavedChanges = false;
+      })
+      .addCase(updateDomainSettings.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to update domain settings';
+        showToast.error('Failed to update domain settings');
       });
   }
 });
@@ -219,6 +284,6 @@ const themeSlice = createSlice({
 export const {
   setThemeSettings,
   resetTheme
-} = themeSlice.actions;
+} = settingsSlice.actions;
 
-export default themeSlice.reducer; 
+export default settingsSlice.reducer; 

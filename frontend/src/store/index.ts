@@ -5,16 +5,16 @@ import authReducer from './slices/authSlice';
 import siteReducer from './slices/siteSlice';
 import notificationReducer from './slices/notificationSlice';
 import notificationChannelReducer from './slices/notificationChannelSlice';
-import themeReducer from './slices/themeSlice';
+import settingsReducer from './slices/settingSlice';
 
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'theme'] // Add theme to persisted reducers
+  whitelist: ['auth', 'settings']
 };
 
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
-const persistedThemeReducer = persistReducer(persistConfig, themeReducer);
+const persistedSettingsReducer = persistReducer(persistConfig, settingsReducer);
 
 export const store = configureStore({
   reducer: {
@@ -22,7 +22,7 @@ export const store = configureStore({
     sites: siteReducer,
     notifications: notificationReducer,
     notificationChannels: notificationChannelReducer,
-    theme: persistedThemeReducer
+    settings: persistedSettingsReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

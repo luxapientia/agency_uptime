@@ -20,6 +20,7 @@ model User {
   sites         Site[]
   statuses      SiteStatus[]
   themeSettings ThemeSettings?
+  customDomain  String?
 
   @@map("users")
 }

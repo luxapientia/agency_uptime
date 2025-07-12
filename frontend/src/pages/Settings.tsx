@@ -1,5 +1,6 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Stack } from '@mui/material';
 import ThemeSettings from '../components/settings/ThemeSettings';
+import DomainSettings from '../components/settings/DomainSettings';
 
 export default function Settings() {
   return (
@@ -8,7 +9,10 @@ export default function Settings() {
         Settings
       </Typography>
       
-      <ThemeSettings />
+      <Stack spacing={4}>
+        <DomainSettings />
+        <ThemeSettings />
+      </Stack>
     </Box>
   );
 } 

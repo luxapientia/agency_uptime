@@ -11,7 +11,7 @@ export interface ThemeColors {
   };
 }
 
-export interface ThemeSettings {
+export interface AgencySettings {
   colors: ThemeColors;
   isDarkMode: boolean;
   borderRadius: number;
@@ -21,11 +21,12 @@ export interface ThemeSettings {
   };
   favicon: string;
   logo: string;
+  customDomain: string | null;
   hasUnsavedChanges: boolean;
 }
 
-export interface ThemeState {
-  settings: ThemeSettings;
+export interface SettingState {
+  settings: AgencySettings;
   isLoading: boolean;
   error: string | null;
 } 

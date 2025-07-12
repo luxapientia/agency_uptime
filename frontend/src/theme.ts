@@ -1,8 +1,8 @@
 import { createTheme } from '@mui/material';
 import type { Theme, PaletteMode } from '@mui/material';
-import type { ThemeSettings } from './types/theme.types';
+import type { AgencySettings } from './types/setting.types';
 
-export const createAppTheme = (settings: ThemeSettings): Theme => {
+export const createAppTheme = (settings: AgencySettings): Theme => {
   const mode: PaletteMode = settings.isDarkMode ? 'dark' : 'light';
 
   return createTheme({

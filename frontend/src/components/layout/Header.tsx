@@ -46,7 +46,7 @@ export default function Header() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const logo = useSelector((state: RootState) => state.theme.settings.logo);
+  const logo = useSelector((state: RootState) => state.settings.settings.logo);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

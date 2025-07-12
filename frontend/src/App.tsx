@@ -14,7 +14,7 @@ import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import type { AppDispatch, RootState } from './store';
-import { fetchThemeSettings } from './store/slices/themeSlice';
+import { fetchSettings } from './store/slices/settingSlice';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -34,12 +34,12 @@ const updateFavicon = (faviconUrl: string) => {
 function AppContent() {
   const rootUrl = import.meta.env.VITE_ROOT_URL;
   const dispatch = useDispatch<AppDispatch>();
-  const themeSettings = useSelector((state: RootState) => state.theme.settings);
+  const themeSettings = useSelector((state: RootState) => state.settings.settings);
   const theme = createAppTheme(themeSettings);
   // Update favicon when theme settings change
   useEffect(() => {
     updateFavicon(themeSettings.favicon);
-    dispatch(fetchThemeSettings());
+    dispatch(fetchSettings());
   }, [themeSettings.favicon, dispatch]);
 
   return (
