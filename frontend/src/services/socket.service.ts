@@ -3,7 +3,7 @@ import type { SiteStatusUpdate, SiteConfigUpdate } from '../types/socket.types';
 
 class SocketService {
   private socket: typeof Socket | null = null;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 10000000;
   private messageQueue: { event: string; data: any }[] = [];
   private listeners: Map<string, Set<(data: any) => void>> = new Map();
 
@@ -15,7 +15,7 @@ class SocketService {
     const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3001', {
       reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
-      reconnectionDelay: 1000,
+      reconnectionDelay: 5000,
       transports: ['websocket'],
       auth: {
         token: localStorage.getItem('token')
