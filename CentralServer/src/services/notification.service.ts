@@ -51,9 +51,8 @@ class NotificationService {
         }
       });
 
-      socketService.sendToUser(site.userId, 'notification', {notificationId: notification.id, message: message, type: type});
+      socketService.sendToUser(site.userId, 'notification', notification);
       
-
       for (const notificationSetting of notificationSettings) {
         if (notificationSetting.type === 'EMAIL' && notificationSetting.contactInfo && notificationSetting.enabled) {
           await mailgunService.sendEmail({
