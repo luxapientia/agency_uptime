@@ -26,7 +26,7 @@ import {
     Notifications as PushIcon,
     Http as WebhookIcon,
 } from '@mui/icons-material';
-import type { Notification } from '../../types/site.types';
+import type { NotificationSetting } from '../../types/site.types';
 import { NotificationType } from '../../types/site.types';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch } from '../../store';
@@ -41,9 +41,9 @@ import {
     addNotification,
     toggleNotificationSetting,
     deleteNotificationSetting,
-    selectNotifications,
-    selectNotificationsLoading,
-    selectNotificationsError,
+    selectNotificationSettings,
+    selectNotificationSettingsLoading,
+    selectNotificationSettingsError,
 } from '../../store/slices/notificationSlice';
 import { showToast } from '../../utils/toast';
 import axios from '../../lib/axios';
@@ -65,9 +65,9 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     const channelsError = useSelector(selectNotificationChannelsError);
 
     // Notifications state
-    const notifications = useSelector(selectNotifications);
-    const notificationsLoading = useSelector(selectNotificationsLoading);
-    const notificationsError = useSelector(selectNotificationsError);
+    const notificationSettings = useSelector(selectNotificationSettings);
+    const notificationSettingsLoading = useSelector(selectNotificationSettingsLoading);
+    const notificationSettingsError = useSelector(selectNotificationSettingsError);
 
     const [notificationType, setNotificationType] = React.useState<NotificationType>(NotificationType.EMAIL);
     const [contactInfo, setContactInfo] = React.useState('');
@@ -144,23 +144,23 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         }
     };
 
-    const handleToggle = async (notification: Notification) => {
+    const handleToggle = async (notificationSetting: NotificationSetting) => {
         try {
             await dispatch(toggleNotificationSetting({
                 siteId,
-                notificationId: notification.id,
-                enabled: !notification.enabled
+                notificationId: notificationSetting.id,
+                enabled: !notificationSetting.enabled
             })).unwrap();
         } catch (error) {
             console.error('Failed to toggle notification:', error);
         }
     };
 
-    const handleDelete = async (notification: Notification) => {
+    const handleDelete = async (notificationSetting: NotificationSetting) => {
         try {
             await dispatch(deleteNotificationSetting({
                 siteId,
-                notificationId: notification.id
+                notificationId: notificationSetting.id
             })).unwrap();
         } catch (error) {
             console.error('Failed to delete notification:', error);
@@ -371,7 +371,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         );
     };
 
-    if (channelsLoading || notificationsLoading) {
+    if (channelsLoading || notificationSettingsLoading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                 <CircularProgress />
@@ -379,15 +379,15 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         );
     }
 
-    if (channelsError || notificationsError) {
+    if (channelsError || notificationSettingsError) {
         return (
             <Alert severity="error" sx={{ mb: 2 }}>
-                {channelsError || notificationsError}
+                {channelsError || notificationSettingsError}
             </Alert>
         );
     }
 
-    const notificationsList = Array.isArray(notifications) ? notifications : [];
+    const notificationSettingsList = Array.isArray(notificationSettings) ? notificationSettings : [];
 
     return (
         <Stack spacing={3}>
@@ -397,9 +397,9 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                     Active Notifications
                 </Typography>
                 <Stack spacing={1}>
-                    {notificationsList.map((notification) => (
+                    {notificationSettingsList.map((notificationSetting) => (
                         <Box
-                            key={notification.id}
+                            key={notificationSetting.id}
                             sx={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -418,21 +418,21 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                         >
                             <Stack direction="row" spacing={2} alignItems="center">
                                 <Box sx={{ color: theme.palette.primary.main }}>
-                                    {getNotificationIcon(notification.type)}
+                                    {getNotificationIcon(notificationSetting.type)}
                                 </Box>
                                 <Box>
                                     <Typography variant="body2">
-                                        {getNotificationLabel(notification.type)}
+                                        {getNotificationLabel(notificationSetting.type)}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary">
-                                        {notification.contactInfo}
+                                        {notificationSetting.contactInfo}
                                     </Typography>
                                 </Box>
                             </Stack>
                             <Stack direction="row" spacing={1} alignItems="center">
                                 <Switch
-                                    checked={notification.enabled}
-                                    onChange={() => handleToggle(notification)}
+                                    checked={notificationSetting.enabled}
+                                    onChange={() => handleToggle(notificationSetting)}
                                     color="primary"
                                     size="small"
                                 />
@@ -444,14 +444,14 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                                             bgcolor: alpha(theme.palette.error.main, 0.08),
                                         },
                                     }}
-                                    onClick={() => handleDelete(notification)}
+                                    onClick={() => handleDelete(notificationSetting)}
                                 >
                                     <DeleteIcon fontSize="small" />
                                 </IconButton>
                             </Stack>
                         </Box>
                     ))}
-                    {notificationsList.length === 0 && (
+                    {notificationSettingsList.length === 0 && (
                         <Typography 
                             variant="body2" 
                             color="text.secondary" 

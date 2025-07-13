@@ -1,16 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import axios from '../../lib/axios';
-import type { Notification } from '../../types/site.types';
+import type { NotificationSetting } from '../../types/site.types';
 
 export interface NotificationState {
-  notifications: Notification[];
+  notificationSettings: NotificationSetting[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: NotificationState = {
-  notifications: [],
+  notificationSettings: [],
   loading: false,
   error: null,
 };
@@ -85,7 +85,7 @@ const notificationSlice = createSlice({
       state.error = null;
     },
     resetState: (state) => {
-      state.notifications = [];
+      state.notificationSettings = [];
       state.loading = false;
       state.error = null;
     },
@@ -97,9 +97,9 @@ const notificationSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchNotificationSettings.fulfilled, (state, action: PayloadAction<Notification[]>) => {
+      .addCase(fetchNotificationSettings.fulfilled, (state, action: PayloadAction<NotificationSetting[]>) => {
         state.loading = false;
-        state.notifications = action.payload;
+        state.notificationSettings = action.payload;
         state.error = null;
       })
       .addCase(fetchNotificationSettings.rejected, (state, action) => {
@@ -107,19 +107,19 @@ const notificationSlice = createSlice({
         state.error = action.payload as string;
       })
       // Add notification
-      .addCase(addNotification.fulfilled, (state, action: PayloadAction<Notification>) => {
-        state.notifications.push(action.payload);
+      .addCase(addNotification.fulfilled, (state, action: PayloadAction<NotificationSetting>) => {
+        state.notificationSettings.push(action.payload);
       })
       // Toggle notification
-      .addCase(toggleNotificationSetting.fulfilled, (state, action: PayloadAction<Notification>) => {
-        const index = state.notifications.findIndex(n => n.id === action.payload.id);
+      .addCase(toggleNotificationSetting.fulfilled, (state, action: PayloadAction<NotificationSetting>) => {
+        const index = state.notificationSettings.findIndex(n => n.id === action.payload.id);
         if (index !== -1) {
-          state.notifications[index] = action.payload;
+          state.notificationSettings[index] = action.payload;
         }
       })
       // Delete notification
       .addCase(deleteNotificationSetting.fulfilled, (state, action: PayloadAction<string>) => {
-        state.notifications = state.notifications.filter(n => n.id !== action.payload);
+        state.notificationSettings = state.notificationSettings.filter(n => n.id !== action.payload);
       });
   },
 });
@@ -128,12 +128,12 @@ const notificationSlice = createSlice({
 export const { clearError, resetState } = notificationSlice.actions;
 
 // Selectors
-export const selectNotifications = (state: { notifications: NotificationState }) =>
-  state.notifications.notifications;
-export const selectNotificationsLoading = (state: { notifications: NotificationState }) =>
-  state.notifications.loading;
-export const selectNotificationsError = (state: { notifications: NotificationState }) =>
-  state.notifications.error;
+export const selectNotificationSettings = (state: { notificationSettings: NotificationState }) =>
+  state.notificationSettings.notificationSettings;
+export const selectNotificationSettingsLoading = (state: { notificationSettings: NotificationState }) =>
+  state.notificationSettings.loading;
+export const selectNotificationSettingsError = (state: { notificationSettings: NotificationState }) =>
+  state.notificationSettings.error;
 
 // Reducer
 export default notificationSlice.reducer; 

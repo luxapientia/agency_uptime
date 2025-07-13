@@ -6,7 +6,7 @@ export interface Site {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  notifications: Notification[];
+  notificationSettings: NotificationSetting[];
 }
 
 export interface SiteStatus {
@@ -26,7 +26,7 @@ export interface SiteStatus {
   sslDaysUntilExpiry?: number;
 }
 
-export interface Notification {
+export interface NotificationSetting {
   id: string;
   siteId: string;
   enabled: boolean;
