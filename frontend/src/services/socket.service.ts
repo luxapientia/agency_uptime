@@ -55,7 +55,6 @@ class SocketService {
 
     // Handle notifications
     this.socket.on('notification', (data: Notification) => {
-      console.log('Received notification:', data);
       this.notifyListeners('notification', data);
     });
   }
