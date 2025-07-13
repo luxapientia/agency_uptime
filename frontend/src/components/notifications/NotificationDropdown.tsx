@@ -101,8 +101,10 @@ export default function NotificationDropdown() {
         newSet.add(notification.id);
         return newSet;
       });
+      // Dispatch immediately when notification is viewed
+      dispatch(markNotificationsAsSeen([notification.id]));
     }
-  }, [viewedIds]);
+  }, [viewedIds, dispatch]);
 
   // Load more notifications
   const loadMoreNotifications = () => {
@@ -119,11 +121,8 @@ export default function NotificationDropdown() {
     }, 500); // Simulate loading delay
   };
 
-  // Mark notifications as seen when closing dropdown
+  // Reset state when closing dropdown
   const handleClose = () => {
-    if (viewedIds.size > 0) {
-      dispatch(markNotificationsAsSeen(Array.from(viewedIds)));
-    }
     setAnchorEl(null);
     setLocalNotifications([]);
     setViewedIds(new Set());

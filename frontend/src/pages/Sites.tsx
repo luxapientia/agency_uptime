@@ -17,7 +17,6 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
-  Switch,
   Tooltip,
   Link,
   useTheme,

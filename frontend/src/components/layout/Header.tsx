@@ -26,7 +26,6 @@ import {
 import {
   Menu as MenuIcon,
   Settings,
-  Person,
   ExitToApp,
   Business,
   DashboardOutlined,
