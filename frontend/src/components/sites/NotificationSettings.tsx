@@ -37,10 +37,10 @@ import {
     selectNotificationChannelsError,
 } from '../../store/slices/notificationChannelSlice';
 import {
-    fetchNotifications,
+    fetchNotificationSettings,
     addNotification,
-    toggleNotification,
-    deleteNotification,
+    toggleNotificationSetting,
+    deleteNotificationSetting,
     selectNotifications,
     selectNotificationsLoading,
     selectNotificationsError,
@@ -79,7 +79,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     React.useEffect(() => {
         // Fetch both channel info and notifications
         dispatch(fetchNotificationChannels());
-        dispatch(fetchNotifications(siteId));
+        dispatch(fetchNotificationSettings(siteId));
     }, [dispatch, siteId]);
 
     const handleSendVerificationCode = async () => {
@@ -146,7 +146,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
 
     const handleToggle = async (notification: Notification) => {
         try {
-            await dispatch(toggleNotification({
+            await dispatch(toggleNotificationSetting({
                 siteId,
                 notificationId: notification.id,
                 enabled: !notification.enabled
@@ -158,7 +158,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
 
     const handleDelete = async (notification: Notification) => {
         try {
-            await dispatch(deleteNotification({
+            await dispatch(deleteNotificationSetting({
                 siteId,
                 notificationId: notification.id
             })).unwrap();
