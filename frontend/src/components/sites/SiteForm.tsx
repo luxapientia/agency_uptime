@@ -69,11 +69,11 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name?.trim()) {
       newErrors.name = 'Site name is required';
     }
-    
+
     if (!formData.url?.trim()) {
       newErrors.url = 'URL is required';
     } else {
@@ -230,16 +230,14 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                 ))}
               </Select>
               <FormHelperText>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <InfoIcon fontSize="small" sx={{ color: theme.palette.info.main }} />
-                  Choose how often the site should be checked
-                </Box>
+                <InfoIcon fontSize="small" sx={{ color: theme.palette.info.main }} />
+                Choose how often the site should be checked
               </FormHelperText>
             </FormControl>
 
-            <Alert 
-              severity="info" 
-              sx={{ 
+            <Alert
+              severity="info"
+              sx={{
                 borderRadius: '12px',
                 backgroundColor: alpha(theme.palette.info.main, 0.08),
                 '& .MuiAlert-icon': {
