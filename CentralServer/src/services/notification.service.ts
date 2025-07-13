@@ -38,31 +38,31 @@ class NotificationService {
 
       const message = `Your site ${site.name} (${site.url}) is ${siteStatus.isUp ? 'up' : 'down'} at ${siteStatus.checkedAt.toISOString()}`;
 
-      const notifications = await prisma.notification.findMany({
+      const notificationSettings = await prisma.notificationSettings.findMany({
         where: {
           siteId,
         },
       });
 
-      for (const notification of notifications) {
-        if (notification.type === 'EMAIL' && notification.contactInfo && notification.enabled) {
+      for (const notificationSetting of notificationSettings) {
+        if (notificationSetting.type === 'EMAIL' && notificationSetting.contactInfo && notificationSetting.enabled) {
           await mailgunService.sendEmail({
-            to: notification.contactInfo as string,
+            to: notificationSetting.contactInfo as string,
             subject: `Your site ${site.name} is ${siteStatus.isUp ? 'up' : 'down'}`,
             text: message,
             html: `<p>${message}</p>`,
           });
-        } else if (notification.type === 'SLACK' && notification.contactInfo && notification.enabled) {
-          await slackService.sendMessageToUserByEmail(notification.contactInfo as string, message);
-        } else if (notification.type === 'DISCORD' && notification.contactInfo && notification.enabled) {
-          await discordService.sendDirectMessage(notification.contactInfo as string, message);
-        } else if (notification.type === 'TELEGRAM' && notification.contactInfo && notification.enabled) {
-          await telegramService.sendMessageToChat(notification.contactInfo as string, message);
-        } else if (notification.type === 'PUSH_NOTIFICATION' && notification.contactInfo && notification.enabled) {
-          await leadConnectorService.sendPushNotification(notification.contactInfo as string, "Agency Uptime Notification", message);
-        } else if (notification.type === 'WEB_HOOK' && notification.contactInfo && notification.enabled) {
-          // await webhookService.sendWebhook(notification.contactInfo as string, message);
-          await axios.post(notification.contactInfo as string, {
+        } else if (notificationSetting.type === 'SLACK' && notificationSetting.contactInfo && notificationSetting.enabled) {
+          await slackService.sendMessageToUserByEmail(notificationSetting.contactInfo as string, message);
+        } else if (notificationSetting.type === 'DISCORD' && notificationSetting.contactInfo && notificationSetting.enabled) {
+          await discordService.sendDirectMessage(notificationSetting.contactInfo as string, message);
+        } else if (notificationSetting.type === 'TELEGRAM' && notificationSetting.contactInfo && notificationSetting.enabled) {
+          await telegramService.sendMessageToChat(notificationSetting.contactInfo as string, message);
+        } else if (notificationSetting.type === 'PUSH_NOTIFICATION' && notificationSetting.contactInfo && notificationSetting.enabled) {
+          await leadConnectorService.sendPushNotification(notificationSetting.contactInfo as string, "Agency Uptime Notification", message);
+        } else if (notificationSetting.type === 'WEB_HOOK' && notificationSetting.contactInfo && notificationSetting.enabled) {
+          // await webhookService.sendWebhook(notificationSetting.contactInfo as string, message);
+          await axios.post(notificationSetting.contactInfo as string, {
             message: message,
           });
         }

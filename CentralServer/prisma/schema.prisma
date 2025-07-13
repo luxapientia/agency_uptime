@@ -36,7 +36,7 @@ model Site {
   userId        String
   user          User           @relation(fields: [userId], references: [id])
   statuses      SiteStatus[]
-  notifications  Notification[]
+  notificationSettings  NotificationSettings[]
 
   @@index([userId])
   @@map("sites")
@@ -51,7 +51,7 @@ enum NotificationType {
   WEB_HOOK
 }
 
-model Notification {
+model NotificationSettings {
   id          String           @id @default(uuid())
   siteId      String
   site        Site             @relation(fields: [siteId], references: [id])
@@ -61,7 +61,7 @@ model Notification {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  @@map("notifications")
+  @@map("notification_settings")
 }
 
 model SiteStatus {
