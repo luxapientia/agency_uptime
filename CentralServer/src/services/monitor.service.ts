@@ -209,8 +209,7 @@ export class MonitorService {
 
         if(!previousStatus || previousStatus.isUp !== isUp) {
           // Send notification through notification service
-          notificationService.sendNotification(site.id);
-
+          
           // Send real-time update through socket
           const statusUpdate = {
             isUp,
@@ -226,7 +225,8 @@ export class MonitorService {
             sslValidTo: ssl?.validTo,
             sslDaysUntilExpiry: ssl?.daysUntilExpiry
           };
-
+          
+          await notificationService.sendNotification(site.id, `Your site ${site.name} (${site.url}) is ${isUp ? 'up' : 'down'} at ${checkedAt.toISOString()}`, 'SITE_STATUS_UPDATE');
           socketService.sendToUser(site.userId, 'site_status_update', {siteId: site.id, status: statusUpdate});
           logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
         }

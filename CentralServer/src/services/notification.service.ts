@@ -5,13 +5,14 @@ import telegramService from "./telegram.service";
 import prisma from "../lib/prisma";
 import { leadConnectorService } from "./leadconnector.service";
 import axios from "axios";
+import socketService from "./socket.service";
 
 class NotificationService {
 
   constructor() {
   }
 
-  async sendNotification(siteId: string) {
+  async sendNotification(siteId: string, message: string, type: string) {
     try {
       const site = await prisma.site.findUnique({
         where: {
@@ -36,13 +37,22 @@ class NotificationService {
         return;
       }
 
-      const message = `Your site ${site.name} (${site.url}) is ${siteStatus.isUp ? 'up' : 'down'} at ${siteStatus.checkedAt.toISOString()}`;
-
       const notificationSettings = await prisma.notificationSettings.findMany({
         where: {
           siteId,
         },
       });
+
+      const notification = await prisma.notification.create({
+        data: {
+          userId: site.userId,
+          message: message,
+          type: type,
+        }
+      });
+
+      socketService.sendToUser(site.userId, 'notification', {notificationId: notification.id, message: message, type: type});
+      
 
       for (const notificationSetting of notificationSettings) {
         if (notificationSetting.type === 'EMAIL' && notificationSetting.contactInfo && notificationSetting.enabled) {
