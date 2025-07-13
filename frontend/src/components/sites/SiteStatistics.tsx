@@ -23,7 +23,6 @@ import {
   ShieldOutlined as SecurityIcon,
   UpdateOutlined as UpdateIcon,
   ErrorOutline as ErrorIcon,
-  TimelineOutlined as TimelineIcon,
   DataUsageOutlined as NoDataIcon,
 } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';

@@ -483,6 +483,46 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+// Get site status history
+const getSiteStatusHistory = async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { hours = 24 } = req.query; // Default to 24 hours
+
+  try {
+    const site = await prisma.site.findUnique({
+      where: { id },
+    });
+
+    if (!site) {
+      res.status(404).json({ error: 'Site not found' });
+      return;
+    }
+
+    if (site.userId !== req.user.id) {
+      res.status(403).json({ error: 'You do not have permission to access this site' });
+      return;
+    }
+
+    const startTime = new Date(Date.now() - Number(hours) * 60 * 60 * 1000);
+    const statusHistory = await prisma.siteStatus.findMany({
+      where: {
+        siteId: id,
+        checkedAt: {
+          gte: startTime
+        }
+      },
+      orderBy: {
+        checkedAt: 'asc'
+      }
+    });
+
+    res.json(statusHistory);
+  } catch (error) {
+    logger.error('Failed to get site status history:', error);
+    res.status(500).json({ error: 'Failed to get site status history' });
+  }
+};
+
 const getSiteStatuses = async (req: AuthenticatedRequest, res: Response) => {
   try {
   const user = req.user;
@@ -510,6 +550,7 @@ const getSiteStatuses = async (req: AuthenticatedRequest, res: Response) => {
 router.get('/', getSites as any);
 router.get('/statistics', getStatistics as any);
 router.get('/:id/status', getSiteStatus as any);
+router.get('/:id/status/history', getSiteStatusHistory as any);
 router.get('/statuses', getSiteStatuses as any);
 
 router.get('/report', generatePDFReport as any);
