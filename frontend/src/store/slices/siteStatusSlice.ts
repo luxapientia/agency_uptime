@@ -25,7 +25,6 @@ export const fetchAllSiteStatuses = createAsyncThunk(
       sites.forEach((site: any) => {
         result[site.id] = site.statuses[0];
       });
-      console.log(result);
       return result;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch site statuses');
