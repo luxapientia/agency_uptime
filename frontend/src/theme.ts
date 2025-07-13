@@ -39,12 +39,21 @@ export const createAppTheme = (settings: AgencySettings): Theme => {
         dark: adjustColor(settings.colors.success, -20),
       },
       text: {
-        primary: settings.colors.text.primary,
-        secondary: settings.colors.text.secondary,
+        primary: settings.isDarkMode ? '#ffffff' : settings.colors.text.primary,
+        secondary: settings.isDarkMode ? '#e0e0e0' : settings.colors.text.secondary,
+        disabled: settings.isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.38)',
       },
       background: {
         default: settings.isDarkMode ? '#121212' : '#f9fafb',
         paper: settings.isDarkMode ? '#1e1e1e' : '#ffffff',
+      },
+      divider: settings.isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+      action: {
+        active: settings.isDarkMode ? '#ffffff' : 'rgba(0, 0, 0, 0.54)',
+        hover: settings.isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+        selected: settings.isDarkMode ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.08)',
+        disabled: settings.isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.26)',
+        disabledBackground: settings.isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
       },
     },
     typography: {
