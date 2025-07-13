@@ -40,7 +40,6 @@ export default function Header() {
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -233,51 +232,23 @@ export default function Header() {
               <Box
                 sx={{
                   position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
+                  display: 'block',
                   backgroundImage: `url(${rootUrl}/${logo})`,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'center',
-                  width: 'auto',
-                  height: { xs: '48px', sm: '56px', md: '64px' },
-                  aspectRatio: '1',
+                  backgroundPosition: 'left center',
+                  height: '50px',
+                  width: '200px', // Give more space for the logo to breathe
                   backgroundColor: 'transparent',
                   transition: 'all 0.3s ease-in-out',
                   transform: 'perspective(1000px) rotateY(0deg)',
-                  transformOrigin: 'center center',
+                  transformOrigin: 'left center',
                   '&:hover': {
                     transform: 'perspective(1000px) rotateY(10deg) scale(1.05)',
                   },
                 }}
               />
-              {!isSmall && (
-                <Box
-                  sx={{
-                    ml: { sm: 1, md: 2 },
-                    opacity: 0.9,
-                    transition: 'all 0.3s ease-in-out',
-                    transform: 'translateX(0)',
-                    '&:hover': {
-                      opacity: 1,
-                      transform: 'translateX(5px)',
-                    },
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontSize: { sm: '1.1rem', md: '1.25rem' },
-                      fontWeight: 600,
-                      color: 'inherit',
-                      textShadow: `0 2px 4px ${alpha('#000', 0.15)}`,
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    Agency Uptime
-                  </Typography>
-                </Box>
-              )}
+              
             </Box>
           </Box>
 
