@@ -8,6 +8,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
 import Sites from './pages/Sites';
+import SiteDetails from './pages/SiteDetails';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { createAppTheme } from './theme';
@@ -74,41 +75,34 @@ function AppContent() {
         <Router basename={rootUrl}>
           <Layout>
             <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/sites" element={
+                <ProtectedRoute>
+                  <Sites />
+                </ProtectedRoute>
+              } />
+              <Route path="/sites/:id" element={
+                <ProtectedRoute>
+                  <SiteDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/notifications" element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              } />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/sites"
-                element={
-                  <ProtectedRoute>
-                    <Sites />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Layout>
         </Router>
