@@ -207,8 +207,7 @@ export class MonitorService {
         }
       });
 
-      if (previousStatus) {
-        if(previousStatus.isUp !== isUp) {
+        if(!previousStatus || previousStatus.isUp !== isUp) {
           // Send notification through notification service
           notificationService.sendNotification(site.id);
 
@@ -231,7 +230,6 @@ export class MonitorService {
           socketService.sendToUser(site.userId, 'site_status_update', {siteId: site.id, status: statusUpdate});
           logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
         }
-      }
     } catch (error) {
       logger.error(`Error checking site ${site.url}:`, error);
       
