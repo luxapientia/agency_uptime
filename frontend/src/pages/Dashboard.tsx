@@ -23,6 +23,7 @@ import {
 import axios from '../lib/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { useNavigate } from 'react-router-dom';
 
 interface Statistics {
   totalSites: number;
@@ -42,6 +43,7 @@ interface StatsCardProps {
 
 const StatsCard = ({ title, value, icon, color, delay, subtitle }: StatsCardProps) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -87,6 +89,7 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle }: StatsCardProp
             transition: 'opacity 0.3s ease',
           },
         }}
+        onClick={() => navigate(`/sites`)}
       >
         <CardContent sx={{ height: '100%', position: 'relative' }}>
           <Stack spacing={2.5}>
