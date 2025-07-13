@@ -24,6 +24,7 @@ import {
   UpdateOutlined as UpdateIcon,
   ErrorOutline as ErrorIcon,
   TimelineOutlined as TimelineIcon,
+  DataUsageOutlined as NoDataIcon,
 } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
@@ -274,9 +275,45 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
             </Typography>
           </Stack>
         ) : (
-          <Typography color={theme.palette.text.secondary}>
-            No status information available
-          </Typography>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              py: 4,
+              px: 2,
+              background: theme.palette.mode === 'dark' 
+                ? alpha(theme.palette.primary.main, 0.05)
+                : alpha(theme.palette.primary.main, 0.05),
+              borderRadius: 2,
+            }}
+          >
+            <NoDataIcon 
+              sx={{ 
+                fontSize: 64, 
+                color: theme.palette.mode === 'dark'
+                  ? alpha(theme.palette.primary.main, 0.5)
+                  : alpha(theme.palette.primary.main, 0.5),
+                mb: 2 
+              }} 
+            />
+            <Typography 
+              variant="h6" 
+              color={theme.palette.text.primary}
+              gutterBottom
+            >
+              No Status Data Available
+            </Typography>
+            <Typography 
+              variant="body2" 
+              color={theme.palette.text.secondary}
+              sx={{ maxWidth: 300 }}
+            >
+              We haven't collected any monitoring data for this site yet. Data will appear here after the first check is completed.
+            </Typography>
+          </Box>
         )}
       </DialogContent>
       <DialogActions sx={{ p: 2.5, pt: 1.5 }}>

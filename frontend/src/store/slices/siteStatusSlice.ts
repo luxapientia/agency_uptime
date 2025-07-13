@@ -5,12 +5,14 @@ import type { SiteStatusUpdate } from '../../types/socket.types';
 
 interface SiteStatusState {
   statuses: Record<string, SiteStatus>;
+  statusHistory: Record<string, SiteStatus[]>;
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: SiteStatusState = {
   statuses: {},
+  statusHistory: {},
   isLoading: false,
   error: null,
 };
@@ -40,6 +42,19 @@ export const fetchSiteStatus = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch site status');
+    }
+  }
+);
+
+export const fetchSiteStatusHistory = createAsyncThunk(
+  'siteStatus/fetchHistory',
+  async ({ siteId, hours = 24 }: { siteId: string; hours?: number }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/sites/${siteId}/status/history?hours=${hours}`);
+      console.log(response.data);
+      return { siteId, history: response.data };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch site status history');
     }
   }
 );
@@ -77,6 +92,18 @@ const siteStatusSlice = createSlice({
         state.statuses[action.payload.siteId] = action.payload;
       })
       .addCase(fetchSiteStatus.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchSiteStatusHistory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSiteStatusHistory.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.statusHistory[action.payload.siteId] = action.payload.history;
+      })
+      .addCase(fetchSiteStatusHistory.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

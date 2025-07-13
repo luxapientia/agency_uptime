@@ -20,13 +20,10 @@ export const createSite = createAsyncThunk(
   'sites/create',
   async (data: CreateSiteData, { rejectWithValue }) => {
     try {
-      showToast.loading('Creating site...');
       const response = await axiosInstance.post('/sites', data);
-      showToast.dismiss('Creating site...');
       showToast.success('Site created successfully');
       return response.data;
     } catch (error: any) {
-      showToast.dismiss('Creating site...');
       showToast.error(error.response?.data?.message || 'Failed to create site');
       return rejectWithValue(error.response?.data?.message || 'Failed to create site');
     }
@@ -39,11 +36,9 @@ export const updateSite = createAsyncThunk(
     try {
       showToast.loading('Updating site...');
       const response = await axiosInstance.patch(`/sites/${id}`, data);
-      showToast.dismiss('Updating site...');
       showToast.success('Site updated successfully');
       return response.data;
     } catch (error: any) {
-      showToast.dismiss('Updating site...');
       showToast.error(error.response?.data?.message || 'Failed to update site');
       return rejectWithValue(error.response?.data?.message || 'Failed to update site');
     }
@@ -56,11 +51,9 @@ export const deleteSite = createAsyncThunk(
     try {
       showToast.loading('Deleting site...');
       await axiosInstance.delete(`/sites/${id}`);
-      showToast.dismiss('Deleting site...');
       showToast.success('Site deleted successfully');
       return id;
     } catch (error: any) {
-      showToast.dismiss('Deleting site...');
       showToast.error(error.response?.data?.message || 'Failed to delete site');
       return rejectWithValue(error.response?.data?.message || 'Failed to delete site');
     }

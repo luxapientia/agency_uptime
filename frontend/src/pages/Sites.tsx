@@ -52,6 +52,7 @@ import SiteStatistics from '../components/sites/SiteStatistics';
 import axios from '../lib/axios';
 import { alpha } from '@mui/material/styles';
 import { showToast } from '../utils/toast';
+import { useNavigate } from 'react-router-dom';
 
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
@@ -62,6 +63,7 @@ export default function Sites() {
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
 
   // Pagination state
   const [page, setPage] = useState(0);
@@ -291,9 +293,11 @@ export default function Sites() {
                   '&:hover': {
                     backgroundColor: theme.palette.mode === 'dark'
                       ? alpha(theme.palette.primary.main, 0.05)
-                      : alpha(theme.palette.primary.main, 0.05)
+                      : alpha(theme.palette.primary.main, 0.05),
+                    cursor: 'pointer'
                   }
                 }}
+                onClick={() => navigate(`/sites/${site.id}`)}
               >
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
@@ -392,7 +396,10 @@ export default function Sites() {
                 <TableCell align="center">
                   <Tooltip title="View Statistics">
                     <IconButton
-                      onClick={() => handleStatusClick(site)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusClick(site);
+                      }}
                       size="small"
                       sx={{
                         mr: 1,
@@ -407,7 +414,10 @@ export default function Sites() {
                   </Tooltip>
                   <Tooltip title="Notification Settings">
                     <IconButton
-                      onClick={() => handleNotificationClick(site)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNotificationClick(site);
+                      }}
                       size="small"
                       sx={{
                         mr: 1,
@@ -420,7 +430,10 @@ export default function Sites() {
                   </Tooltip>
                   <Tooltip title="Edit Site">
                     <IconButton
-                      onClick={() => handleEditClick(site)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(site);
+                      }}
                       size="small"
                       sx={{
                         color: theme.palette.primary.main,
@@ -434,7 +447,10 @@ export default function Sites() {
                   </Tooltip>
                   <Tooltip title="Delete Site">
                     <IconButton
-                      onClick={() => handleDeleteClick(site)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(site);
+                      }}
                       size="small"
                       sx={{
                         ml: 1,
