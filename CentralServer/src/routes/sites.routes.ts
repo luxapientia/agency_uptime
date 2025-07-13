@@ -127,7 +127,7 @@ const deleteSite = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const site = await prisma.site.findUnique({
       where: { id },
-      include: { notifications: true }
+      include: { notificationSettings: true }
     });
 
     if (!site) {
@@ -139,7 +139,7 @@ const deleteSite = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // First delete all notifications
-    await prisma.notification.deleteMany({
+    await prisma.notificationSettings.deleteMany({
       where: { siteId: id }
     });
 
@@ -190,7 +190,7 @@ const getSiteNotifications = async (req: AuthenticatedRequest, res: Response) =>
 
   const site = await prisma.site.findUnique({
     where: { id: siteId },
-    include: { notifications: true },
+    include: { notificationSettings: true },
   });
 
   if (!site) {
@@ -203,7 +203,7 @@ const getSiteNotifications = async (req: AuthenticatedRequest, res: Response) =>
     return;
   }
 
-  res.json(site.notifications);
+  res.json(site.notificationSettings);
 };
 
 // Create a notification for a site
@@ -253,7 +253,7 @@ const createNotification = async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    const existingNotification = await prisma.notification.findFirst({
+    const existingNotification = await prisma.notificationSettings.findFirst({
       where: {
         siteId,
         type: req.body.type,
@@ -266,7 +266,7 @@ const createNotification = async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    const notification = await prisma.notification.create({
+    const notification = await prisma.notificationSettings.create({
       data: {
         ...req.body,
         siteId,
@@ -276,7 +276,7 @@ const createNotification = async (req: AuthenticatedRequest, res: Response) => {
     await prisma.site.update({
       where: { id: siteId },
       data: {
-        notifications: {
+        notificationSettings: {
           connect: { id: notification.id }
         }
       }
@@ -294,7 +294,7 @@ const createNotification = async (req: AuthenticatedRequest, res: Response) => {
 const updateNotification = async (req: AuthenticatedRequest, res: Response) => {
   const { id: siteId, notificationId } = req.params;
 
-  const notification = await prisma.notification.findUnique({
+  const notification = await prisma.notificationSettings.findUnique({
     where: { id: notificationId },
     include: { site: true },
   });
@@ -315,7 +315,7 @@ const updateNotification = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   try {
-    const updatedNotification = await prisma.notification.update({
+    const updatedNotification = await prisma.notificationSettings.update({
       where: { id: notificationId },
       data: req.body,
     });
@@ -332,7 +332,7 @@ const updateNotification = async (req: AuthenticatedRequest, res: Response) => {
 const deleteNotification = async (req: AuthenticatedRequest, res: Response) => {
   const { id: siteId, notificationId } = req.params;
 
-  const notification = await prisma.notification.findUnique({
+  const notification = await prisma.notificationSettings.findUnique({
     where: { id: notificationId },
     include: { site: true },
   });
@@ -353,7 +353,7 @@ const deleteNotification = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   try {
-    await prisma.notification.delete({
+    await prisma.notificationSettings.delete({
       where: { id: notificationId },
     });
 
@@ -421,7 +421,7 @@ const getStatistics = async (req: AuthenticatedRequest, res: Response) => {
         userId: req.user.id,
       },
       include: {
-        notifications: true,
+        notificationSettings: true,
         statuses: {
           orderBy: {
             checkedAt: 'desc'
@@ -435,7 +435,7 @@ const getStatistics = async (req: AuthenticatedRequest, res: Response) => {
     const totalSites = sites.length;
     const onlineSites = sites.filter(site => site.statuses[0]?.isUp).length;
     const sitesWithSsl = sites.filter(site => site.statuses[0]?.hasSsl).length;
-    const sitesWithNotifications = sites.filter(site => site.notifications.length > 0).length;
+    const sitesWithNotifications = sites.filter(site => site.notificationSettings.length > 0).length;
 
     res.json({
       totalSites,
