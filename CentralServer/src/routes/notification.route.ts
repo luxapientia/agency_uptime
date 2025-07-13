@@ -81,6 +81,6 @@ const markAsSeen = async (req: AuthenticatedRequest, res: any) => {
 // Register routes
 router.get('/', getAllNotifications);
 router.get('/unseen', getUnseenNotifications);
-router.post('/seen', validateRequest(markAsSeenSchema), markAsSeen);
+router.post('/seen', markAsSeen);
 
 export default router;

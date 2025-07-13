@@ -5,7 +5,6 @@ import type { RootState } from '../../store';
 import type { SiteStatusUpdate } from '../../types/socket.types';
 import type { Notification } from '../../types/notification.types';
 import { receiveNotification } from '../../store/slices/notificationSlice';
-import { showToast } from '../../utils/toast';
 
 export const SocketEventHandler = () => {
   const dispatch = useDispatch();
@@ -23,8 +22,7 @@ export const SocketEventHandler = () => {
     const message = data.status.isUp
       ? `🟢 ${site.url} is now UP`
       : `🔴 ${site.url} is DOWN`;
-    
-    showToast.success(message);
+    console.log(message);
   });
 
   useSocketEvent<Notification>('notification', (notification) => {

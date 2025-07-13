@@ -7,6 +7,7 @@ export enum SocketEvent {
   AUTHENTICATE = 'authenticate',
   SITE_STATUS_UPDATE = 'site_status_update',
   SITE_CONFIG_UPDATE = 'site-config-updates',
+  NOTIFICATION = 'notification',
   ERROR = 'error'
 }
 

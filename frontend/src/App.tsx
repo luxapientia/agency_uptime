@@ -21,6 +21,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import { SocketEventHandler } from './components/socket/SocketEventHandler';
 import { fetchAllSiteStatuses } from './store/slices/siteStatusSlice';
 import { fetchAllNotifications } from './store/slices/notificationSlice';
+import Notifications from './pages/Notifications';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -88,6 +89,14 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <Sites />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
                   </ProtectedRoute>
                 }
               />

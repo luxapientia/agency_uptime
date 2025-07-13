@@ -1,5 +1,6 @@
 import io, { type Socket } from 'socket.io-client';
 import type { SiteStatusUpdate, SiteConfigUpdate } from '../types/socket.types';
+import type { Notification } from '../types/notification.types';
 
 class SocketService {
   private socket: typeof Socket | null = null;
@@ -50,6 +51,12 @@ class SocketService {
     // Handle site configuration updates
     this.socket.on('site_config_update', (data: SiteConfigUpdate) => {
       this.notifyListeners('site_config_update', data);
+    });
+
+    // Handle notifications
+    this.socket.on('notification', (data: Notification) => {
+      console.log('Received notification:', data);
+      this.notifyListeners('notification', data);
     });
   }
 

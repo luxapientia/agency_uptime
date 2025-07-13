@@ -36,6 +36,10 @@ export const useSiteConfig = (callback: (data: SiteConfigUpdate) => void) => {
   useSocketEvent<SiteConfigUpdate>('site_config_update', callback);
 };
 
+export const useNotification = (callback: (data: Notification) => void) => {
+  useSocketEvent<Notification>('notification', callback);
+};  
+
 type SocketProviderProps = {
   children: ReactNode;
   autoConnect?: boolean;
