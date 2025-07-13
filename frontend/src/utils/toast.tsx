@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import toast from 'react-hot-toast';
-import type { Toast } from 'react-hot-toast';
 import { CheckCircle, Error, Info, Warning, Close } from '@mui/icons-material';
 
 interface ToastStyle {
@@ -77,7 +76,7 @@ const toastStyles: ToastStyles = {
 };
 
 // Close button component
-const CloseButton = ({ toast, onClose }: { toast: Toast; onClose: () => void }): ReactNode => (
+const CloseButton = ({ onClose }: { onClose: () => void }): ReactNode => (
   <button
     onClick={onClose}
     style={{
@@ -129,7 +128,7 @@ export const showToast = {
         <div style={{ ...toastStyles.base.style, ...toastStyles.success.style }}>
           {toastStyles.success.icon?.()}
           <span style={{ flex: 1, paddingRight: '24px' }}>{message}</span>
-          <CloseButton toast={t} onClose={() => toast.dismiss(t.id)} />
+          <CloseButton onClose={() => toast.dismiss(t.id)} />
         </div>
       ),
       {
@@ -145,7 +144,7 @@ export const showToast = {
         <div style={{ ...toastStyles.base.style, ...toastStyles.error.style }}>
           {toastStyles.error.icon?.()}
           <span style={{ flex: 1, paddingRight: '24px' }}>{message}</span>
-          <CloseButton toast={t} onClose={() => toast.dismiss(t.id)} />
+          <CloseButton onClose={() => toast.dismiss(t.id)} />
         </div>
       ),
       {
@@ -161,7 +160,7 @@ export const showToast = {
         <div style={{ ...toastStyles.base.style, ...toastStyles.warning.style }}>
           {toastStyles.warning.icon?.()}
           <span style={{ flex: 1, paddingRight: '24px' }}>{message}</span>
-          <CloseButton toast={t} onClose={() => toast.dismiss(t.id)} />
+          <CloseButton onClose={() => toast.dismiss(t.id)} />
         </div>
       ),
       {
@@ -177,7 +176,7 @@ export const showToast = {
         <div style={{ ...toastStyles.base.style, ...toastStyles.info.style }}>
           {toastStyles.info.icon?.()}
           <span style={{ flex: 1, paddingRight: '24px' }}>{message}</span>
-          <CloseButton toast={t} onClose={() => toast.dismiss(t.id)} />
+          <CloseButton onClose={() => toast.dismiss(t.id)} />
         </div>
       ),
       {
@@ -202,7 +201,7 @@ export const showToast = {
             }}
           />
           <span style={{ flex: 1, paddingRight: '24px' }}>{message}</span>
-          <CloseButton toast={t} onClose={() => toast.dismiss(t.id)} />
+          <CloseButton onClose={() => toast.dismiss(t.id)} />
         </div>
       ),
       {

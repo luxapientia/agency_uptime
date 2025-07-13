@@ -35,8 +35,6 @@ import {
 import { alpha } from '@mui/material/styles';
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
