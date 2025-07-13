@@ -86,6 +86,21 @@ function AppContent() {
                   <Sites />
                 </ProtectedRoute>
               } />
+              <Route path="/sites/online" element={
+                <ProtectedRoute>
+                  <Sites />
+                </ProtectedRoute>
+              } />
+              <Route path="/sites/ssl-protected" element={
+                <ProtectedRoute>
+                  <Sites />
+                </ProtectedRoute>
+              } />
+              <Route path="/sites/with-notifications" element={
+                <ProtectedRoute>
+                  <Sites />
+                </ProtectedRoute>
+              } />
               <Route path="/sites/:id" element={
                 <ProtectedRoute>
                   <SiteDetails />

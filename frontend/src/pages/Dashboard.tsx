@@ -39,9 +39,10 @@ interface StatsCardProps {
   color: string;
   delay: number;
   subtitle?: string;
+  path: string; // Add path prop
 }
 
-const StatsCard = ({ title, value, icon, color, delay, subtitle }: StatsCardProps) => {
+const StatsCard = ({ title, value, icon, color, delay, subtitle, path }: StatsCardProps) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [ref, inView] = useInView({
@@ -77,6 +78,7 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle }: StatsCardProp
             : `0 4px 12px -2px ${alpha(color, 0.1)}`,
           position: 'relative',
           overflow: 'hidden',
+          cursor: 'pointer',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -89,7 +91,7 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle }: StatsCardProp
             transition: 'opacity 0.3s ease',
           },
         }}
-        onClick={() => navigate(`/sites`)}
+        onClick={() => navigate(path)}
       >
         <CardContent sx={{ height: '100%', position: 'relative' }}>
           <Stack spacing={2.5}>
@@ -276,6 +278,7 @@ export default function Dashboard() {
       color: theme.palette.primary.main,
       delay: 0,
       subtitle: 'All monitored websites',
+      path: '/sites'
     },
     {
       title: 'Online Sites',
@@ -284,6 +287,7 @@ export default function Dashboard() {
       color: theme.palette.success.main,
       delay: 0.1,
       subtitle: 'Currently operational',
+      path: '/sites/online'
     },
     {
       title: 'SSL Protected',
@@ -292,6 +296,7 @@ export default function Dashboard() {
       color: theme.palette.info.main,
       delay: 0.2,
       subtitle: 'Secure connections',
+      path: '/sites/ssl-protected'
     },
     {
       title: 'With Notifications',
@@ -300,6 +305,7 @@ export default function Dashboard() {
       color: theme.palette.warning.main,
       delay: 0.3,
       subtitle: 'Alert system enabled',
+      path: '/sites/with-notifications'
     },
   ];
 

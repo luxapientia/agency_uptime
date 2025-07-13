@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -25,6 +25,8 @@ import {
   Stack,
   Divider,
   Avatar,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -37,6 +39,8 @@ import {
   CloseOutlined as CloseIcon,
   PictureAsPdf as PdfIcon,
   NotificationsOutlined as NotificationIcon,
+  HttpsOutlined as HttpsIcon,
+  SignalWifiStatusbar4Bar as OnlineIcon,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../store';
 import {
@@ -52,7 +56,7 @@ import SiteStatistics from '../components/sites/SiteStatistics';
 import axios from '../lib/axios';
 import { alpha } from '@mui/material/styles';
 import { showToast } from '../utils/toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
@@ -64,6 +68,31 @@ export default function Sites() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get current filter from URL path
+  const currentPath = location.pathname.split('/').pop() || '';
+  const currentFilter = ['online', 'ssl-protected', 'with-notifications'].includes(currentPath) 
+    ? currentPath 
+    : '';
+
+  // Filter sites based on current path
+  const filteredSites = useMemo(() => {
+    if (!currentFilter) return sites;
+
+    return sites.filter(site => {
+      switch (currentFilter) {
+        case 'online':
+          return siteStatuses[site.id]?.isUp;
+        case 'ssl-protected':
+          return site.url.startsWith('https://');
+        case 'with-notifications':
+          return site.notificationSettings && site.notificationSettings.length > 0;
+        default:
+          return true;
+      }
+    });
+  }, [sites, currentFilter, siteStatuses]);
 
   // Pagination state
   const [page, setPage] = useState(0);
@@ -175,6 +204,24 @@ export default function Sites() {
     setNotificationDialogOpen(true);
   };
 
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    setPage(0); // Reset pagination when changing filters
+    if (newValue === '') {
+      navigate('/sites');
+    } else {
+      navigate(`/sites/${newValue}`);
+    }
+  };
+
+  // Calculate counts for each filter
+  const filterCounts = useMemo(() => {
+    return {
+      online: sites.filter(site => siteStatuses[site.id]?.isUp).length,
+      sslProtected: sites.filter(site => site.url.startsWith('https://')).length,
+      withNotifications: sites.filter(site => site.notificationSettings && site.notificationSettings.length > 0).length
+    };
+  }, [sites, siteStatuses]);
+
   if (isLoading && sites.length === 0) {
     return (
       <Box sx={{
@@ -254,6 +301,59 @@ export default function Sites() {
         </Stack>
       </Box>
 
+      <Box sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs 
+          value={currentFilter || ''} 
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            '& .MuiTab-root': {
+              minHeight: 48,
+              textTransform: 'none',
+              fontSize: '0.875rem',
+            }
+          }}
+        >
+          <Tab 
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <LanguageIcon fontSize="small" />
+                <span>All Sites ({sites.length})</span>
+              </Stack>
+            } 
+            value="" 
+          />
+          <Tab 
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <OnlineIcon fontSize="small" />
+                <span>Online Sites ({filterCounts.online})</span>
+              </Stack>
+            } 
+            value="online" 
+          />
+          <Tab 
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <HttpsIcon fontSize="small" />
+                <span>SSL Protected ({filterCounts.sslProtected})</span>
+              </Stack>
+            } 
+            value="ssl-protected" 
+          />
+          <Tab 
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <NotificationIcon fontSize="small" />
+                <span>With Notifications ({filterCounts.withNotifications})</span>
+              </Stack>
+            } 
+            value="with-notifications" 
+          />
+        </Tabs>
+      </Box>
+
       <TableContainer
         component={Paper}
         elevation={2}
@@ -284,8 +384,8 @@ export default function Sites() {
           </TableHead>
           <TableBody>
             {(rowsPerPage > 0
-              ? sites.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              : sites
+              ? filteredSites.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              : filteredSites
             ).map((site) => (
               <TableRow
                 key={site.id}
@@ -471,7 +571,7 @@ export default function Sites() {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={sites.length}
+          count={filteredSites.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
