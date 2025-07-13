@@ -42,8 +42,8 @@ import {
     toggleNotificationSetting,
     deleteNotificationSetting,
     selectNotificationSettings,
-    selectNotificationSettingsLoading,
-    selectNotificationSettingsError,
+    selectNotificationLoading,
+    selectNotificationError,
 } from '../../store/slices/notificationSlice';
 import { showToast } from '../../utils/toast';
 import axios from '../../lib/axios';
@@ -66,8 +66,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
 
     // Notifications state
     const notificationSettings = useSelector(selectNotificationSettings);
-    const notificationSettingsLoading = useSelector(selectNotificationSettingsLoading);
-    const notificationSettingsError = useSelector(selectNotificationSettingsError);
+    const notificationLoading = useSelector(selectNotificationLoading);
+    const notificationError = useSelector(selectNotificationError);
 
     const [notificationType, setNotificationType] = React.useState<NotificationType>(NotificationType.EMAIL);
     const [contactInfo, setContactInfo] = React.useState('');
@@ -371,7 +371,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         );
     };
 
-    if (channelsLoading || notificationSettingsLoading) {
+
+    if (channelsLoading || notificationLoading.settings) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                 <CircularProgress />
@@ -379,10 +380,10 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         );
     }
 
-    if (channelsError || notificationSettingsError) {
+    if (channelsError || notificationError) {
         return (
             <Alert severity="error" sx={{ mb: 2 }}>
-                {channelsError || notificationSettingsError}
+                {channelsError || notificationError}
             </Alert>
         );
     }

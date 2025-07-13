@@ -3,6 +3,9 @@ import { useSocketEvent } from '../../contexts/SocketContext';
 import { updateSiteStatus } from '../../store/slices/siteStatusSlice';
 import type { RootState } from '../../store';
 import type { SiteStatusUpdate } from '../../types/socket.types';
+import type { Notification } from '../../types/notification.types';
+import { receiveNotification } from '../../store/slices/notificationSlice';
+import { showToast } from '../../utils/toast';
 
 export const SocketEventHandler = () => {
   const dispatch = useDispatch();
@@ -21,8 +24,11 @@ export const SocketEventHandler = () => {
       ? `🟢 ${site.url} is now UP`
       : `🔴 ${site.url} is DOWN`;
     
-    // Use console.log for now, we'll add proper notifications later
-    console.log(message);
+    showToast.success(message);
+  });
+
+  useSocketEvent<Notification>('notification', (notification) => {
+    dispatch(receiveNotification(notification));
   });
 
   return null; // This component doesn't render anything

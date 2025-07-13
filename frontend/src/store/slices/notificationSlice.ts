@@ -2,18 +2,58 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import axios from '../../lib/axios';
 import type { NotificationSetting } from '../../types/site.types';
+import type { Notification } from '../../types/notification.types';
+import type { RootState } from '../../store';
 
 export interface NotificationState {
   notificationSettings: NotificationSetting[];
-  loading: boolean;
+  notifications: Notification[];
+  loading: {
+    settings: boolean;
+    notifications: boolean;
+  };
   error: string | null;
 }
 
 const initialState: NotificationState = {
   notificationSettings: [],
-  loading: false,
+  notifications: [],
+  loading: {
+    settings: false,
+    notifications: false
+  },
   error: null,
 };
+
+// Fetch all notifications
+export const fetchAllNotifications = createAsyncThunk(
+  'notification/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get('/notifications');
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch notifications'
+      );
+    }
+  }
+);
+
+// Mark notifications as seen
+export const markNotificationsAsSeen = createAsyncThunk(
+  'notification/markAsSeen',
+  async (notificationIds: string[], { rejectWithValue }) => {
+    try {
+      await axios.post('/notifications/seen', { notificationIds });
+      return notificationIds;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to mark notifications as seen'
+      );
+    }
+  }
+);
 
 // Async thunks
 export const fetchNotificationSettings = createAsyncThunk(
@@ -86,38 +126,63 @@ const notificationSlice = createSlice({
     },
     resetState: (state) => {
       state.notificationSettings = [];
-      state.loading = false;
+      state.notifications = [];
+      state.loading = {
+        settings: false,
+        notifications: false
+      };
       state.error = null;
+    },
+    receiveNotification: (state, action: PayloadAction<Notification>) => {
+      state.notifications.unshift(action.payload); // Add new notification at the beginning
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch notifications
+      // Fetch all notifications
+      .addCase(fetchAllNotifications.pending, (state) => {
+        state.loading.notifications = true;
+        state.error = null;
+      })
+      .addCase(fetchAllNotifications.fulfilled, (state, action: PayloadAction<Notification[]>) => {
+        state.loading.notifications = false;
+        state.notifications = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchAllNotifications.rejected, (state, action) => {
+        state.loading.notifications = false;
+        state.error = action.payload as string;
+      })
+      // Mark notifications as seen
+      .addCase(markNotificationsAsSeen.fulfilled, (state, action: PayloadAction<string[]>) => {
+        const seenIds = new Set(action.payload);
+        state.notifications = state.notifications.map(notification => 
+          seenIds.has(notification.id) ? { ...notification, seen: true } : notification
+        );
+      })
+      // Notification settings cases
       .addCase(fetchNotificationSettings.pending, (state) => {
-        state.loading = true;
+        state.loading.settings = true;
         state.error = null;
       })
       .addCase(fetchNotificationSettings.fulfilled, (state, action: PayloadAction<NotificationSetting[]>) => {
-        state.loading = false;
+        state.loading.settings = false;
         state.notificationSettings = action.payload;
         state.error = null;
       })
       .addCase(fetchNotificationSettings.rejected, (state, action) => {
-        state.loading = false;
+        state.loading.settings = false;
         state.error = action.payload as string;
       })
-      // Add notification
       .addCase(addNotification.fulfilled, (state, action: PayloadAction<NotificationSetting>) => {
         state.notificationSettings.push(action.payload);
       })
-      // Toggle notification
       .addCase(toggleNotificationSetting.fulfilled, (state, action: PayloadAction<NotificationSetting>) => {
         const index = state.notificationSettings.findIndex(n => n.id === action.payload.id);
         if (index !== -1) {
           state.notificationSettings[index] = action.payload;
         }
       })
-      // Delete notification
       .addCase(deleteNotificationSetting.fulfilled, (state, action: PayloadAction<string>) => {
         state.notificationSettings = state.notificationSettings.filter(n => n.id !== action.payload);
       });
@@ -125,15 +190,19 @@ const notificationSlice = createSlice({
 });
 
 // Actions
-export const { clearError, resetState } = notificationSlice.actions;
+export const { clearError, resetState, receiveNotification } = notificationSlice.actions;
 
 // Selectors
-export const selectNotificationSettings = (state: { notificationSettings: NotificationState }) =>
-  state.notificationSettings.notificationSettings;
-export const selectNotificationSettingsLoading = (state: { notificationSettings: NotificationState }) =>
-  state.notificationSettings.loading;
-export const selectNotificationSettingsError = (state: { notificationSettings: NotificationState }) =>
-  state.notificationSettings.error;
+export const selectNotificationSettings = (state: RootState) =>
+  state.notifications.notificationSettings;
+export const selectAllNotifications = (state: RootState) =>
+  state.notifications.notifications;
+export const selectUnseenNotifications = (state: RootState) =>
+  state.notifications.notifications.filter(notification => !notification.seen);
+export const selectNotificationLoading = (state: RootState) =>
+  state.notifications.loading;
+export const selectNotificationError = (state: RootState) =>
+  state.notifications.error;
 
 // Reducer
 export default notificationSlice.reducer; 
