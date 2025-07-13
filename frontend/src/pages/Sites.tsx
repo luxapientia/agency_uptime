@@ -51,8 +51,8 @@ import SiteForm from '../components/sites/SiteForm';
 import NotificationSettings from '../components/sites/NotificationSettings';
 import SiteStatistics from '../components/sites/SiteStatistics';
 import axios from '../lib/axios';
-import { showToast } from '../utils/toast';
 import { alpha } from '@mui/material/styles';
+import { showToast } from '../utils/toast';
 
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
@@ -163,7 +163,6 @@ export default function Sites() {
 
       showToast.success('Report generated successfully');
     } catch (error) {
-      console.error('Failed to generate report:', error);
       showToast.error('Failed to generate report. Please try again.');
     } finally {
       setIsGeneratingReport(false);
