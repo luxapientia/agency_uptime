@@ -20,6 +20,7 @@ import { verifyToken } from './store/slices/authSlice';
 import { SocketProvider } from './contexts/SocketContext';
 import { SocketEventHandler } from './components/socket/SocketEventHandler';
 import { fetchAllSiteStatuses } from './store/slices/siteStatusSlice';
+import { fetchAllNotifications } from './store/slices/notificationSlice';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -60,6 +61,7 @@ function AppContent() {
       dispatch(fetchSettings());
       dispatch(fetchSites());
       dispatch(fetchAllSiteStatuses());
+      dispatch(fetchAllNotifications());
     }
   }, [dispatch, user]);
 

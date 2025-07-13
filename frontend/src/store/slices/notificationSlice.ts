@@ -70,7 +70,7 @@ export const fetchNotificationSettings = createAsyncThunk(
   }
 );
 
-export const addNotification = createAsyncThunk(
+export const addNotificationSetting = createAsyncThunk(
   'notification/addNotification',
   async ({ siteId, type, contactInfo }: { siteId: string; type: string; contactInfo: string }, { rejectWithValue }) => {
     try {
@@ -174,7 +174,7 @@ const notificationSlice = createSlice({
         state.loading.settings = false;
         state.error = action.payload as string;
       })
-      .addCase(addNotification.fulfilled, (state, action: PayloadAction<NotificationSetting>) => {
+      .addCase(addNotificationSetting.fulfilled, (state, action: PayloadAction<NotificationSetting>) => {
         state.notificationSettings.push(action.payload);
       })
       .addCase(toggleNotificationSetting.fulfilled, (state, action: PayloadAction<NotificationSetting>) => {

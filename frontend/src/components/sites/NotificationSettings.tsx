@@ -38,7 +38,7 @@ import {
 } from '../../store/slices/notificationChannelSlice';
 import {
     fetchNotificationSettings,
-    addNotification,
+    addNotificationSetting,
     toggleNotificationSetting,
     deleteNotificationSetting,
     selectNotificationSettings,
@@ -106,7 +106,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
 
             if (verifyResponse.data.verified) {
                 // If verified, add the notification
-                await dispatch(addNotification({ siteId, type: NotificationType.EMAIL, contactInfo })).unwrap();
+                await dispatch(addNotificationSetting({ siteId, type: NotificationType.EMAIL, contactInfo })).unwrap();
                 setContactInfo('');
                 setVerificationCode('');
                 setIsVerifying(false);
@@ -134,7 +134,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
 
         try {
             setAddingNotification(true);
-            await dispatch(addNotification({ siteId, type, contactInfo })).unwrap();
+            await dispatch(addNotificationSetting({ siteId, type, contactInfo })).unwrap();
             setContactInfo('');
             showToast.success('Notification added successfully');
         } catch (error) {
