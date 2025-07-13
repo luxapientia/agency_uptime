@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import axios from '../../lib/axios';
 import type { NotificationSetting } from '../../types/site.types';
@@ -45,7 +45,11 @@ export const markNotificationsAsSeen = createAsyncThunk(
   'notification/markAsSeen',
   async (notificationIds: string[], { rejectWithValue }) => {
     try {
-      await axios.post('/notifications/seen', { notificationIds });
+      await axios.post('/notifications/seen', {
+        body: {
+          notificationIds
+        }
+      });
       return notificationIds;
     } catch (error: any) {
       return rejectWithValue(
@@ -192,17 +196,34 @@ const notificationSlice = createSlice({
 // Actions
 export const { clearError, resetState, receiveNotification } = notificationSlice.actions;
 
-// Selectors
-export const selectNotificationSettings = (state: RootState) =>
-  state.notifications.notificationSettings;
-export const selectAllNotifications = (state: RootState) =>
-  state.notifications.notifications;
-export const selectUnseenNotifications = (state: RootState) =>
-  state.notifications.notifications.filter(notification => !notification.seen);
-export const selectNotificationLoading = (state: RootState) =>
-  state.notifications.loading;
-export const selectNotificationError = (state: RootState) =>
-  state.notifications.error;
+// Base selectors
+const selectNotificationsState = (state: RootState) => state.notifications;
+
+// Memoized selectors
+export const selectNotificationSettings = createSelector(
+  [selectNotificationsState],
+  (notificationsState) => notificationsState.notificationSettings
+);
+
+export const selectAllNotifications = createSelector(
+  [selectNotificationsState],
+  (notificationsState) => notificationsState.notifications
+);
+
+export const selectUnseenNotifications = createSelector(
+  [selectAllNotifications],
+  (notifications) => notifications.filter(notification => !notification.seen)
+);
+
+export const selectNotificationLoading = createSelector(
+  [selectNotificationsState],
+  (notificationsState) => notificationsState.loading
+);
+
+export const selectNotificationError = createSelector(
+  [selectNotificationsState],
+  (notificationsState) => notificationsState.error
+);
 
 // Reducer
 export default notificationSlice.reducer; 

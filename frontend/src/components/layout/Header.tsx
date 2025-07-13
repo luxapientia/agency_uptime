@@ -22,7 +22,6 @@ import {
   alpha,
   Tooltip,
   Zoom,
-  Badge,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -31,11 +30,11 @@ import {
   ExitToApp,
   Business,
   DashboardOutlined,
-  NotificationsOutlined,
   KeyboardArrowDown,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
+import NotificationDropdown from '../notifications/NotificationDropdown';
 
 export default function Header() {
   const rootUrl = import.meta.env.VITE_ROOT_URL;
@@ -50,7 +49,6 @@ export default function Header() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -69,16 +67,8 @@ export default function Header() {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>) => {
-    setNotificationAnchor(event.currentTarget);
-  };
-
   const handleClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleNotificationClose = () => {
-    setNotificationAnchor(null);
   };
 
   const handleLogout = async () => {
@@ -331,165 +321,64 @@ export default function Header() {
                 </Box>
               )}
 
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                {!isSmall && (
-                  <Tooltip title="Notifications" TransitionComponent={Zoom} arrow>
-                    <IconButton
-                      size="small"
-                      onClick={handleNotificationClick}
-                      sx={{
-                        color: theme.palette.text.primary,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                        },
-                      }}
-                    >
-                      <Badge badgeContent={3} color="error">
-                        <NotificationsOutlined />
-                      </Badge>
-                    </IconButton>
-                  </Tooltip>
-                )}
-
-                <Tooltip title="Account settings" TransitionComponent={Zoom} arrow>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <NotificationDropdown />
+                
+                <Tooltip title="Account settings" TransitionComponent={Zoom}>
                   <IconButton
-                    size="small"
-                    aria-label="account of current user"
-                    aria-controls="menu-appbar"
-                    aria-haspopup="true"
                     onClick={handleMenu}
+                    size="large"
                     sx={{
-                      p: 0.5,
-                      border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                      transition: 'all 0.2s ease-in-out',
+                      color: 'inherit',
                       '&:hover': {
-                        border: `2px solid ${theme.palette.primary.main}`,
-                        transform: 'scale(1.05)',
+                        backgroundColor: alpha('#fff', 0.1),
                       },
                     }}
                   >
                     <Avatar
                       sx={{
-                        width: { xs: 28, sm: 32 },
-                        height: { xs: 28, sm: 32 },
-                        bgcolor: theme.palette.primary.main,
-                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                        width: 32,
+                        height: 32,
+                        bgcolor: theme.palette.primary.dark,
+                        color: theme.palette.primary.contrastText,
+                        fontSize: '0.875rem',
                         fontWeight: 600,
                       }}
                     >
-                      {user?.firstName?.[0]}
+                      {user?.firstName?.charAt(0).toUpperCase() || 'U'}
                     </Avatar>
+                    <KeyboardArrowDown sx={{ ml: 0.5, fontSize: 20 }} />
                   </IconButton>
                 </Tooltip>
-              </Box>
 
-              <Menu
-                id="notification-menu"
-                anchorEl={notificationAnchor}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(notificationAnchor)}
-                onClose={handleNotificationClose}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    width: 320,
-                    maxHeight: 400,
-                    overflow: 'auto',
-                    borderRadius: theme.shape.borderRadius,
-                    mt: 1.5,
-                    border: `1px solid ${theme.palette.divider}`,
-                    backgroundColor: theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.background.paper, 0.8)
-                      : theme.palette.background.paper,
-                    backdropFilter: 'blur(8px)',
-                  },
-                }}
-              >
-                <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    Notifications
-                  </Typography>
-                </Box>
-                {/* Add notification items here */}
-              </Menu>
-
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    width: 220,
-                    borderRadius: theme.shape.borderRadius,
-                    mt: 1.5,
-                    border: `1px solid ${theme.palette.divider}`,
-                    backgroundColor: theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.background.paper, 0.8)
-                      : theme.palette.background.paper,
-                    backdropFilter: 'blur(8px)',
-                    '& .MuiMenuItem-root': {
-                      borderRadius: theme.shape.borderRadius,
-                      mx: 0.5,
-                      my: 0.25,
-                      px: 2,
-                      py: 1,
-                      gap: 1.5,
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                        transform: 'translateX(4px)',
-                      },
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                  onClick={handleClose}
+                  PaperProps={{
+                    sx: {
+                      minWidth: 200,
+                      mt: 1,
                     },
-                  },
-                }}
-              >
-                <Box sx={{ px: 2, py: 1.5 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Welcome back,
-                  </Typography>
-                  <Typography variant="body1" fontWeight={600}>
-                    {user?.firstName} {user?.lastName}
-                  </Typography>
-                </Box>
-                <Divider sx={{ my: 0.5, mx: 0.5 }} />
-                <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>
-                  <ListItemIcon>
-                    <Person fontSize="small" color="primary" />
-                  </ListItemIcon>
-                  <Typography color={theme.palette.text.primary}>Profile</Typography>
-                </MenuItem>
-                <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
-                  <ListItemIcon>
-                    <Settings fontSize="small" color="primary" />
-                  </ListItemIcon>
-                  <Typography color={theme.palette.text.primary}>Settings</Typography>
-                </MenuItem>
-                <Divider sx={{ my: 0.5, mx: 0.5 }} />
-                <MenuItem onClick={handleLogout}>
-                  <ListItemIcon>
-                    <ExitToApp fontSize="small" color="error" />
-                  </ListItemIcon>
-                  <Typography color={theme.palette.error.main}>Logout</Typography>
-                </MenuItem>
-              </Menu>
+                  }}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                >
+                  <MenuItem onClick={() => navigate('/settings')}>
+                    <ListItemIcon>
+                      <Settings fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Settings</ListItemText>
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>
+                    <ListItemIcon>
+                      <ExitToApp fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Logout</ListItemText>
+                  </MenuItem>
+                </Menu>
+              </Box>
             </>
           ) : (
             <Box sx={{ display: 'flex', gap: 2 }}>
