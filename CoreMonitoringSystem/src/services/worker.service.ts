@@ -1,6 +1,5 @@
 import { Redis } from 'ioredis';
-import { v4 as uuidv4 } from 'uuid';
-import { SiteCheckService, SiteMonitorResult } from './site-check.service';
+import { SiteCheckService } from './site-check.service';
 import cron, { ScheduledTask } from 'node-cron';
 import { logger } from '../utils/logger';
 import { config } from '../config';
