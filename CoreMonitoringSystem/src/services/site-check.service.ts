@@ -3,6 +3,9 @@ import http from 'http';
 import { TLSSocket } from 'tls';
 import { URL } from 'url';
 import ping from 'ping';
+import dns from 'dns';
+import { promisify } from 'util';
+import net from 'net';
 
 export interface SiteCheckPingResult {
   isUp: boolean;
@@ -18,6 +21,21 @@ export interface SiteCheckSslResult {
   daysUntilExpiry: number;
 }
 
+export interface SiteCheckDnsResult {
+  isResolved: boolean;
+  addresses: string[];
+  error?: string;
+  nameservers?: string[];
+  responseTime: number;
+}
+
+export interface SiteCheckTcpResult {
+  isConnected: boolean;
+  port: number;
+  responseTime: number;
+  error?: string;
+}
+
 export interface SiteCheckHttpResult {
   isUp: boolean;
   status: number;
@@ -31,18 +49,119 @@ export interface SiteMonitorResult {
   checkedAt: Date;
   workerId: string;
   isUp: boolean;
+  dnsCheck: SiteCheckDnsResult;
+  tcpChecks: SiteCheckTcpResult[];
   pingCheck: SiteCheckPingResult;
-  getCheck: SiteCheckHttpResult;
-  headCheck: SiteCheckHttpResult;
+  httpCheck: SiteCheckHttpResult;
 }
 
 export class SiteCheckService {
   private readonly timeout: number;
   private readonly workerId: string;
+  private readonly dnsResolve4 = promisify(dns.resolve4);
+  private readonly dnsResolveNs = promisify(dns.resolveNs);
+  private readonly defaultPorts = [80, 443]; // Default ports to check
 
   constructor(workerId: string, timeoutMs = 30000) {
     this.timeout = timeoutMs;
     this.workerId = workerId;
+  }
+
+  async performTcpCheck(host: string, port: number): Promise<SiteCheckTcpResult> {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const socket = new net.Socket();
+      let isResolved = false;
+
+      // Set timeout
+      socket.setTimeout(this.timeout);
+
+      socket.on('connect', () => {
+        if (isResolved) return;
+        isResolved = true;
+        socket.destroy();
+        resolve({
+          isConnected: true,
+          port,
+          responseTime: Date.now() - startTime
+        });
+      });
+
+      socket.on('timeout', () => {
+        if (isResolved) return;
+        isResolved = true;
+        socket.destroy();
+        resolve({
+          isConnected: false,
+          port,
+          responseTime: Date.now() - startTime,
+          error: 'Connection timed out'
+        });
+      });
+
+      socket.on('error', (error) => {
+        if (isResolved) return;
+        isResolved = true;
+        socket.destroy();
+        resolve({
+          isConnected: false,
+          port,
+          responseTime: Date.now() - startTime,
+          error: error.message
+        });
+      });
+
+      // Attempt connection
+      socket.connect({
+        host,
+        port
+      });
+    });
+  }
+
+  async performTcpChecks(urlString: string, ports?: number[]): Promise<SiteCheckTcpResult[]> {
+    const url = new URL(urlString);
+    const portsToCheck = ports || this.defaultPorts;
+    
+    try {
+      return await Promise.all(
+        portsToCheck.map(port => this.performTcpCheck(url.hostname, port))
+      );
+    } catch (error) {
+      // This shouldn't happen as performTcpCheck always resolves, but just in case
+      return portsToCheck.map(port => ({
+        isConnected: false,
+        port,
+        responseTime: 0,
+        error: error instanceof Error ? error.message : 'TCP check failed'
+      }));
+    }
+  }
+
+  async performDnsCheck(urlString: string): Promise<SiteCheckDnsResult> {
+    const url = new URL(urlString);
+    const startTime = Date.now();
+    
+    try {
+      const [addresses, nameservers] = await Promise.all([
+        this.dnsResolve4(url.hostname),
+        this.dnsResolveNs(url.hostname).catch(() => [] as string[])
+      ]);
+
+      return {
+        isResolved: addresses.length > 0,
+        addresses,
+        nameservers: nameservers,
+        responseTime: Date.now() - startTime
+      };
+    } catch (error) {
+      return {
+        isResolved: false,
+        addresses: [],
+        error: error instanceof Error ? error.message : 'DNS resolution failed',
+        responseTime: Date.now() - startTime
+      };
+    }
   }
 
   async performPing(urlString: string): Promise<SiteCheckPingResult> {
@@ -140,12 +259,24 @@ export class SiteCheckService {
   }
 
   /**
-   * Perform all checks (PING, GET, HEAD) on a single URL
+   * Perform all checks (DNS, TCP, PING, GET, HEAD) on a single URL
    */
-  async monitorUrl(url: string): Promise<SiteMonitorResult> {
+  async monitorUrl(url: string, tcpPorts?: number[]): Promise<SiteMonitorResult> {
     const checkedAt = new Date();
     
-    const [pingCheck, getCheck, headCheck] = await Promise.all([
+    const [dnsCheck, tcpChecks, pingCheck, httpCheck] = await Promise.all([
+      this.performDnsCheck(url).catch(error => ({
+        isResolved: false,
+        addresses: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+        responseTime: 0
+      })),
+      this.performTcpChecks(url, tcpPorts).catch(error => [{
+        isConnected: false,
+        port: 0,
+        responseTime: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }]),
       this.performPing(url).catch(error => ({
         isUp: false,
         status: 0,
@@ -168,19 +299,20 @@ export class SiteCheckService {
 
     return {
       url,
-      isUp: getCheck.isUp,
+      isUp: httpCheck.isUp,
       checkedAt,
       workerId: this.workerId,
+      dnsCheck,
+      tcpChecks,
       pingCheck,
-      getCheck,
-      headCheck
+      httpCheck,
     };
   }
 
   /**
    * Monitor multiple URLs in parallel
    */
-  async monitorUrls(urls: string[]): Promise<SiteMonitorResult[]> {
-    return Promise.all(urls.map(url => this.monitorUrl(url)));
+  async monitorUrls(urls: string[], tcpPorts?: number[]): Promise<SiteMonitorResult[]> {
+    return Promise.all(urls.map(url => this.monitorUrl(url, tcpPorts)));
   }
 }
