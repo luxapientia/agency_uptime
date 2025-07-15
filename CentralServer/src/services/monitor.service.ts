@@ -129,7 +129,7 @@ export class MonitorService {
       const pingIsUpCount = checks.filter(check => check.pingCheck.isUp).length;
       const pingIsUp = workerKeys.length >= 2 ? pingIsUpCount >= Math.ceil(checks.length / 2) : pingIsUpCount > 0;
 
-      const httpIsUpCount = checks.filter(check => check.getCheck.isUp).length;
+      const httpIsUpCount = checks.filter(check => check.httpCheck.isUp).length;
       const httpIsUp = workerKeys.length >= 2 ? httpIsUpCount >= Math.ceil(checks.length / 2) : httpIsUpCount > 0;
 
       // Calculate response times
@@ -138,8 +138,8 @@ export class MonitorService {
         .map(check => check.pingCheck.responseTime);
 
       const httpResponseTimes = checks
-        .filter(check => check.getCheck?.isUp && check.getCheck?.responseTime)
-        .map(check => check.getCheck.responseTime);
+        .filter(check => check.httpCheck?.isUp && check.httpCheck?.responseTime)
+        .map(check => check.httpCheck.responseTime);
 
       const pingResponseTime = pingResponseTimes.length > 0
         ? pingResponseTimes.reduce((a, b) => a + b, 0) / pingResponseTimes.length
@@ -149,7 +149,7 @@ export class MonitorService {
         ? httpResponseTimes.reduce((a, b) => a + b, 0) / httpResponseTimes.length
         : null;
 
-      const ssl = checks[0].getCheck.ssl;
+      const ssl = checks[0].httpCheck.ssl;
 
       const checkedAt = checks.reduce((latest, check) => new Date(check.checkedAt) > latest ? new Date(check.checkedAt) : latest, new Date(0));
 
