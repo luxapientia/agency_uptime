@@ -89,6 +89,17 @@ export class MonitorService {
 
   private async checkSite(site: Site): Promise<void> {
     try {
+      const previousConsensusStatus = await this.prisma.siteStatus.findFirst({
+        where: {
+          siteId: site.id,
+          workerId: "consensus_worker"
+        },
+        orderBy: {
+          checkedAt: 'desc'
+        },
+        take: 1
+      });
+
       const checkedAt = new Date();
       // Get all active workers
       const workerPattern = 'workers:*';
@@ -201,24 +212,24 @@ export class MonitorService {
 
       // Get SSL info from first worker that has SSL data
       const sslWorker = validResults.find(status => status.hasSsl);
-      
+
       // Get DNS info from first successful DNS resolution
       const dnsWorker = validResults.find(status => status.dnsIsUp);
 
       // Aggregate TCP checks from all workers
       const tcpCheckMap = new Map<number, { connected: number; total: number }>();
-      
+
       validResults.forEach(status => {
         if (status.tcpChecks && Array.isArray(status.tcpChecks)) {
           status.tcpChecks.forEach((tcpCheck: any) => {
             const port = tcpCheck.port;
             const existing = tcpCheckMap.get(port) || { connected: 0, total: 0 };
-            
+
             existing.total++;
             if (tcpCheck.isConnected) {
               existing.connected++;
             }
-            
+
             tcpCheckMap.set(port, existing);
           });
         }
@@ -227,7 +238,7 @@ export class MonitorService {
       const consensusTcpChecks = Array.from(tcpCheckMap.entries()).map(([port, data]) => {
         const tcpIsDownCount = data.total - data.connected;
         const tcpIsUp = !(validResults.length >= 2 ? (tcpIsDownCount >= 2) : false);
-        
+
         return {
           port,
           isConnected: tcpIsUp,
@@ -247,43 +258,32 @@ export class MonitorService {
           httpIsUp: httpIsUp,
           dnsIsUp: dnsIsUp,
           checkedAt,
-          
+
           // Response Times - null for consensus
           pingResponseTime: null,
           httpResponseTime: null,
           dnsResponseTime: null,
-          
+
           // SSL Information - from first worker with SSL data
           hasSsl: !!sslWorker?.hasSsl,
           sslValidFrom: sslWorker?.sslValidFrom || null,
           sslValidTo: sslWorker?.sslValidTo || null,
           sslIssuer: sslWorker?.sslIssuer || null,
           sslDaysUntilExpiry: sslWorker?.sslDaysUntilExpiry || null,
-          
+
           // DNS Information - from first successful DNS worker
           dnsNameservers: dnsWorker?.dnsNameservers || [],
           dnsRecords: dnsWorker?.dnsRecords || { addresses: [], error: null, responseTime: null },
-          
+
           // TCP Check Information - consensus from all workers
           tcpChecks: consensusTcpChecks
         }
       });
 
-      const previousConsensusStatus = await this.prisma.siteStatus.findFirst({
-        where: {
-          siteId: site.id,
-          workerId: "consensus_worker"
-        },
-        orderBy: {
-          checkedAt: 'desc'
-        },
-        take: 1
-      });
-      
-      if(!previousConsensusStatus || previousConsensusStatus.isUp !== isUp) {
+      if (!previousConsensusStatus || previousConsensusStatus.isUp !== isUp) {
         await notificationService.sendNotification(site.id, `Your site ${site.name} (${site.url}) is ${isUp ? 'up' : 'down'} at ${checkedAt.toISOString()}`, 'SITE_STATUS_UPDATE');
-          socketService.sendToUser(site.userId, 'site_status_update', {siteId: site.id, status: consensusSiteStatus});
-          logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
+        socketService.sendToUser(site.userId, 'site_status_update', { siteId: site.id, status: consensusSiteStatus });
+        logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
       }
 
     } catch (error) {
