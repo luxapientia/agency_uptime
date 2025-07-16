@@ -18,7 +18,6 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   sites         Site[]
-  statuses      SiteStatus[]
   themeSettings ThemeSettings?
   customDomain  String?
   notifications Notification[]
@@ -80,19 +79,27 @@ model Notification {
 
 model SiteStatus {
   id        String   @id @default(uuid())
-  siteId    String
-  userId    String
-  isUp      Boolean
-  pingIsUp  Boolean
-  httpIsUp  Boolean
   checkedAt DateTime @default(now())
+  siteId    String
+
+  workerId  String
+
+  isUp      Boolean  @default(false)
+  pingIsUp  Boolean  @default(false)
+  httpIsUp  Boolean  @default(false)
+  dnsIsUp   Boolean  @default(false)
 
   // Response Times
   pingResponseTime Float?
   httpResponseTime Float?
-  pingUptime       Float?
-  httpUptime       Float?
-  overallUptime    Float?
+  dnsResponseTime  Float?
+
+  // TCP Check Information
+  tcpChecks      Json?  // Array of {port: number, isUp: boolean, responseTime: number}
+
+  // DNS Information
+  dnsNameservers String[]
+  dnsRecords     Json?
 
   // SSL Information
   hasSsl             Boolean   @default(false)
@@ -103,10 +110,8 @@ model SiteStatus {
 
   // Relations
   site Site @relation(fields: [siteId], references: [id])
-  user User @relation(fields: [userId], references: [id])
 
   @@index([siteId])
-  @@index([userId])
   @@index([checkedAt])
   @@map("site_statuses")
 }
