@@ -7,6 +7,7 @@ import notificationReducer from './slices/notificationSlice';
 import notificationChannelReducer from './slices/notificationChannelSlice';
 import settingsReducer from './slices/settingSlice';
 import siteStatusReducer from './slices/siteStatusSlice';
+import workerReducer from './slices/workerSlice';
 
 const persistConfig = {
   key: 'root',
@@ -24,7 +25,8 @@ export const store = configureStore({
     notifications: notificationReducer,
     notificationChannels: notificationChannelReducer,
     settings: persistedSettingsReducer,
-    siteStatus: siteStatusReducer
+    siteStatus: siteStatusReducer,
+    workers: workerReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
