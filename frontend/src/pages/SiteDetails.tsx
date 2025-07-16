@@ -59,13 +59,13 @@ export default function SiteDetails() {
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
-  const site = useSelector((state: RootState) => 
+  const site = useSelector((state: RootState) =>
     state.sites.sites.find(s => s.id === id)
   );
-  const siteStatus = useSelector((state: RootState) => 
+  const siteStatus = useSelector((state: RootState) =>
     state.siteStatus.statuses[id || '']
   );
-  const statusHistory = useSelector((state: RootState) => 
+  const statusHistory = useSelector((state: RootState) =>
     state.siteStatus.statusHistory[id || '']
   );
 
@@ -125,12 +125,12 @@ export default function SiteDetails() {
   // Get unique TCP ports from the status history
   const getTcpPorts = () => {
     if (!statusHistory || !statusHistory.length) return [];
-    
+
     const portsSet = new Set<number>();
     statusHistory.forEach(status => {
       if (status.tcpChecks) {
-        const tcpChecksArray = Array.isArray(status.tcpChecks) 
-          ? status.tcpChecks 
+        const tcpChecksArray = Array.isArray(status.tcpChecks)
+          ? status.tcpChecks
           : Object.values(status.tcpChecks);
         tcpChecksArray.forEach((check: any) => {
           if (check?.port) {
@@ -139,7 +139,7 @@ export default function SiteDetails() {
         });
       }
     });
-    
+
     return Array.from(portsSet).sort((a, b) => a - b);
   };
 
@@ -154,7 +154,7 @@ export default function SiteDetails() {
     if (isUp === undefined) {
       return <InfoIcon sx={{ fontSize: size, color: theme.palette.grey[500] }} />;
     }
-    return isUp 
+    return isUp
       ? <CheckIcon sx={{ fontSize: size, color: theme.palette.success.main }} />
       : <CancelIcon sx={{ fontSize: size, color: theme.palette.error.main }} />;
   };
@@ -236,9 +236,9 @@ export default function SiteDetails() {
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
               <Stack spacing={3}>
                 {/* Main Status Header */}
-                <Stack 
-                  direction={{ xs: 'column', sm: 'row' }} 
-                  spacing={2} 
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
                   alignItems={{ xs: 'flex-start', sm: 'center' }}
                 >
                   <Stack direction="row" spacing={2} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
@@ -287,9 +287,9 @@ export default function SiteDetails() {
                     </Box>
                     <Stack spacing={0.5}>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography 
-                          variant="h5" 
-                          sx={{ 
+                        <Typography
+                          variant="h5"
+                          sx={{
                             fontSize: { xs: '1.3rem', sm: '1.5rem' },
                             fontWeight: 700,
                             color: siteStatus?.isUp ? theme.palette.success.main : theme.palette.error.main,
@@ -317,8 +317,8 @@ export default function SiteDetails() {
                           />
                         </Badge>
                       </Stack>
-                      <Typography 
-                        variant="body2" 
+                      <Typography
+                        variant="body2"
                         color="text.secondary"
                         sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                       >
@@ -332,10 +332,10 @@ export default function SiteDetails() {
 
                   <Box sx={{ flexGrow: 1 }} />
 
-                  <Stack 
-                    direction="row" 
-                    spacing={1} 
-                    sx={{ 
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
                       width: { xs: '100%', sm: 'auto' },
                       justifyContent: { xs: 'space-between', sm: 'flex-end' }
                     }}
@@ -390,9 +390,9 @@ export default function SiteDetails() {
                     <AssessmentIcon color="primary" />
                     Service Status Overview
                   </Typography>
-                  
-                  <Stack 
-                    direction={{ xs: 'column', sm: 'row' }} 
+
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
                     spacing={2}
                     sx={{ width: '100%' }}
                   >
@@ -512,8 +512,8 @@ export default function SiteDetails() {
                       <Stack spacing={1} alignItems="center">
                         <Stack direction="row" spacing={1} alignItems="center">
                           <TcpIcon sx={{ color: theme.palette.info.main }} />
-                          <Badge 
-                            badgeContent={siteStatus?.tcpChecks?.length || 0} 
+                          <Badge
+                            badgeContent={siteStatus?.tcpChecks?.length || 0}
                             color="info"
                             sx={{ '& .MuiBadge-badge': { fontSize: '0.65rem' } }}
                           >
@@ -543,9 +543,9 @@ export default function SiteDetails() {
                     <SpeedIcon color="primary" />
                     24-Hour Uptime Statistics
                   </Typography>
-                  
-                  <Stack 
-                    direction={{ xs: 'column', sm: 'row' }} 
+
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
                     spacing={3}
                     sx={{ width: '100%' }}
                   >
@@ -558,9 +558,9 @@ export default function SiteDetails() {
                           {(siteStatus?.overallUptime ?? 0).toFixed(2)}%
                         </Typography>
                       </Stack>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={siteStatus?.overallUptime ?? 0} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={siteStatus?.overallUptime ?? 0}
                         sx={{
                           height: 8,
                           borderRadius: 4,
@@ -582,9 +582,9 @@ export default function SiteDetails() {
                           {(siteStatus?.pingUptime ?? 0).toFixed(2)}%
                         </Typography>
                       </Stack>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={siteStatus?.pingUptime ?? 0} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={siteStatus?.pingUptime ?? 0}
                         sx={{
                           height: 8,
                           borderRadius: 4,
@@ -606,9 +606,9 @@ export default function SiteDetails() {
                           {(siteStatus?.httpUptime ?? 0).toFixed(2)}%
                         </Typography>
                       </Stack>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={siteStatus?.httpUptime ?? 0} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={siteStatus?.httpUptime ?? 0}
                         sx={{
                           height: 8,
                           borderRadius: 4,
@@ -630,9 +630,9 @@ export default function SiteDetails() {
                           {(siteStatus?.dnsUptime ?? 0).toFixed(2)}%
                         </Typography>
                       </Stack>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={siteStatus?.dnsUptime ?? 0} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={siteStatus?.dnsUptime ?? 0}
                         sx={{
                           height: 8,
                           borderRadius: 4,
@@ -653,7 +653,7 @@ export default function SiteDetails() {
                     onClick={() => setShowAdvancedDetails(!showAdvancedDetails)}
                     startIcon={showAdvancedDetails ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     variant="text"
-                    sx={{ 
+                    sx={{
                       textTransform: 'none',
                       color: theme.palette.primary.main,
                     }}
@@ -674,9 +674,9 @@ export default function SiteDetails() {
                             <DnsIcon color="secondary" />
                             DNS Information
                           </Typography>
-                          
-                          <Stack 
-                            direction={{ xs: 'column', md: 'row' }} 
+
+                          <Stack
+                            direction={{ xs: 'column', md: 'row' }}
                             spacing={2}
                             sx={{ width: '100%' }}
                           >
@@ -733,9 +733,9 @@ export default function SiteDetails() {
                             <TcpIcon color="warning" />
                             TCP Port Status
                           </Typography>
-                          
-                          <Stack 
-                            direction={{ xs: 'column', sm: 'row' }} 
+
+                          <Stack
+                            direction={{ xs: 'column', sm: 'row' }}
                             spacing={2}
                             flexWrap="wrap"
                             useFlexGap
@@ -759,8 +759,8 @@ export default function SiteDetails() {
                                     </Typography>
                                     {getStatusIcon(check.isUp, 18)}
                                   </Stack>
-                                  <Typography 
-                                    variant="body2" 
+                                  <Typography
+                                    variant="body2"
                                     color={getStatusColor(check.isUp)}
                                     fontWeight={600}
                                   >
@@ -794,8 +794,8 @@ export default function SiteDetails() {
                             SSL Certificate Details
                           </Typography>
 
-                          <Stack 
-                            direction={{ xs: 'column', md: 'row' }} 
+                          <Stack
+                            direction={{ xs: 'column', md: 'row' }}
                             spacing={3}
                             sx={{ width: '100%' }}
                           >
@@ -818,16 +818,16 @@ export default function SiteDetails() {
                                 Valid From
                               </Typography>
                               <Typography variant="body2">
-                                {siteStatus?.sslValidFrom ? 
-                                  new Date(siteStatus.sslValidFrom).toLocaleDateString() : 
+                                {siteStatus?.sslValidFrom ?
+                                  new Date(siteStatus.sslValidFrom).toLocaleDateString() :
                                   'N/A'}
                               </Typography>
                               <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
                                 Valid Until
                               </Typography>
                               <Typography variant="body2">
-                                {siteStatus?.sslValidTo ? 
-                                  new Date(siteStatus.sslValidTo).toLocaleDateString() : 
+                                {siteStatus?.sslValidTo ?
+                                  new Date(siteStatus.sslValidTo).toLocaleDateString() :
                                   'N/A'}
                               </Typography>
                             </Stack>
@@ -860,9 +860,9 @@ export default function SiteDetails() {
           {/* Worker Response Time Graphs */}
           <Stack spacing={3}>
             <Stack direction="row" spacing={2} alignItems="center">
-              <TimelineIcon 
+              <TimelineIcon
                 color="primary"
-                sx={{ 
+                sx={{
                   fontSize: { xs: 24, sm: 28 },
                   animation: 'pulse 2s infinite',
                   '@keyframes pulse': {
@@ -872,7 +872,7 @@ export default function SiteDetails() {
                   },
                 }}
               />
-              <Typography 
+              <Typography
                 variant="h5"
                 sx={{
                   fontSize: { xs: '1.2rem', sm: '1.5rem' },
@@ -882,36 +882,6 @@ export default function SiteDetails() {
                 Worker Response Times
               </Typography>
               <Box sx={{ flexGrow: 1 }} />
-              <FormControl 
-                size="small" 
-                sx={{ 
-                  minWidth: 150,
-                  '& .MuiOutlinedInput-root': {
-                    background: alpha(theme.palette.primary.main, 0.05),
-                    '&:hover': {
-                      background: alpha(theme.palette.primary.main, 0.08),
-                    }
-                  }
-                }}
-              >
-                <Select
-                  value={timeRange}
-                  onChange={handleTimeRangeChange}
-                  startAdornment={
-                    <TimeIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
-                  }
-                  sx={{
-                    borderRadius: 1,
-                    '& .MuiSelect-select': {
-                      py: 1,
-                    }
-                  }}
-                >
-                  <MenuItem value={1}>Last Hour</MenuItem>
-                  <MenuItem value={12}>Last 12 Hours</MenuItem>
-                  <MenuItem value={24}>Last 24 Hours</MenuItem>
-                </Select>
-              </FormControl>
             </Stack>
 
             {/* Ping Response Time Chart */}
