@@ -1,33 +1,33 @@
 import React, { useState, useCallback } from 'react';
 import {
-  Box,
-  Typography,
-  useTheme,
-  Card,
-  CardContent,
-  Stack,
-  Chip,
-  IconButton,
-  Tooltip as MuiTooltip,
-  ButtonGroup,
+    Box,
+    Typography,
+    useTheme,
+    Card,
+    CardContent,
+    Stack,
+    Chip,
+    IconButton,
+    Tooltip as MuiTooltip,
+    ButtonGroup,
 } from '@mui/material';
 import {
-  ZoomIn as ZoomInIcon,
-  ZoomOut as ZoomOutIcon,
-  ZoomOutMap as ResetZoomIcon,
+    ZoomIn as ZoomInIcon,
+    ZoomOut as ZoomOutIcon,
+    ZoomOutMap as ResetZoomIcon,
 } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import {
-  ResponsiveContainer,
-  ComposedChart,
-  Line,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ReferenceArea,
+    ResponsiveContainer,
+    ComposedChart,
+    Line,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ReferenceArea,
 } from 'recharts';
 import type { SiteStatus } from '../../types/site.types';
 
@@ -117,22 +117,22 @@ const getWorkerDisplayName = (workerId: string) => {
     return workerId.charAt(0).toUpperCase() + workerId.slice(1);
 };
 
-export default function WorkerResponseTimeChart({ 
-  title, 
-  siteStatuses, 
-  responseTimeField,
-  unit = 'ms', 
-  height = 300,
-  icon,
-  tcpPort
+export default function WorkerResponseTimeChart({
+    title,
+    siteStatuses,
+    responseTimeField,
+    unit = 'ms',
+    height = 300,
+    icon,
+    tcpPort
 }: WorkerResponseTimeChartProps) {
-  const theme = useTheme();
-  
-  // Zoom state management
-  const [zoomDomain, setZoomDomain] = useState<{left?: number, right?: number} | undefined>(undefined);
-  const [refAreaLeft, setRefAreaLeft] = useState<string>('');
-  const [refAreaRight, setRefAreaRight] = useState<string>('');
-  const [isZooming, setIsZooming] = useState(false);
+    const theme = useTheme();
+
+    // Zoom state management
+    const [zoomDomain, setZoomDomain] = useState<{ left?: number, right?: number } | undefined>(undefined);
+    const [refAreaLeft, setRefAreaLeft] = useState<string>('');
+    const [refAreaRight, setRefAreaRight] = useState<string>('');
+    const [isZooming, setIsZooming] = useState(false);
 
     // Transform SiteStatus array into chart data
     const transformData = () => {
@@ -177,101 +177,101 @@ export default function WorkerResponseTimeChart({
         }));
     };
 
-      const chartData = transformData();
-  
-  // Get unique worker IDs that have data
-  const workerIds = Array.from(new Set(siteStatuses.map(status => status.workerId)));
-  const activeWorkers = workerIds
-    .filter(workerId => 
-      chartData.some(item => (item as any)[workerId] !== null && (item as any)[workerId] !== undefined)
-    )
-    .sort((a, b) => {
-      // Always put consensus_worker first
-      if (a === 'consensus_worker') return -1;
-      if (b === 'consensus_worker') return 1;
-      // Then sort alphabetically
-      return a.localeCompare(b);
-    });
+    const chartData = transformData();
 
-  // Zoom control functions
-  const handleZoomIn = useCallback(() => {
-    if (!zoomDomain) {
-      const dataLength = chartData.length;
-      const middle = Math.floor(dataLength / 2);
-      const range = Math.floor(dataLength * 0.3);
-      setZoomDomain({
-        left: Math.max(0, middle - range),
-        right: Math.min(dataLength - 1, middle + range)
-      });
-    } else {
-      const range = zoomDomain.right! - zoomDomain.left!;
-      const newRange = Math.max(2, Math.floor(range * 0.7));
-      const middle = zoomDomain.left! + Math.floor(range / 2);
-      setZoomDomain({
-        left: Math.max(0, middle - Math.floor(newRange / 2)),
-        right: Math.min(chartData.length - 1, middle + Math.floor(newRange / 2))
-      });
-    }
-  }, [zoomDomain, chartData.length]);
-
-  const handleZoomOut = useCallback(() => {
-    if (zoomDomain) {
-      const range = zoomDomain.right! - zoomDomain.left!;
-      const newRange = Math.min(chartData.length, Math.floor(range * 1.5));
-      const middle = zoomDomain.left! + Math.floor(range / 2);
-      const newLeft = Math.max(0, middle - Math.floor(newRange / 2));
-      const newRight = Math.min(chartData.length - 1, middle + Math.floor(newRange / 2));
-      
-      if (newLeft === 0 && newRight === chartData.length - 1) {
-        setZoomDomain(undefined);
-      } else {
-        setZoomDomain({ left: newLeft, right: newRight });
-      }
-    }
-  }, [zoomDomain, chartData.length]);
-
-  const handleResetZoom = useCallback(() => {
-    setZoomDomain(undefined);
-    setRefAreaLeft('');
-    setRefAreaRight('');
-    setIsZooming(false);
-  }, []);
-
-  const handleMouseDown = useCallback((e: any) => {
-    if (e?.activeLabel) {
-      setRefAreaLeft(e.activeLabel);
-      setIsZooming(true);
-    }
-  }, []);
-
-  const handleMouseMove = useCallback((e: any) => {
-    if (isZooming && e?.activeLabel && refAreaLeft) {
-      setRefAreaRight(e.activeLabel);
-    }
-  }, [isZooming, refAreaLeft]);
-
-  const handleMouseUp = useCallback(() => {
-    if (refAreaLeft && refAreaRight && refAreaLeft !== refAreaRight) {
-      const leftIndex = chartData.findIndex(item => item.timestamp === refAreaLeft);
-      const rightIndex = chartData.findIndex(item => item.timestamp === refAreaRight);
-      
-      if (leftIndex !== -1 && rightIndex !== -1) {
-        setZoomDomain({
-          left: Math.min(leftIndex, rightIndex),
-          right: Math.max(leftIndex, rightIndex)
+    // Get unique worker IDs that have data
+    const workerIds = Array.from(new Set(siteStatuses.map(status => status.workerId)));
+    const activeWorkers = workerIds
+        .filter(workerId =>
+            chartData.some(item => (item as any)[workerId] !== null && (item as any)[workerId] !== undefined)
+        )
+        .sort((a, b) => {
+            // Always put consensus_worker first
+            if (a === 'consensus_worker') return -1;
+            if (b === 'consensus_worker') return 1;
+            // Then sort alphabetically
+            return a.localeCompare(b);
         });
-      }
-    }
-    
-    setRefAreaLeft('');
-    setRefAreaRight('');
-    setIsZooming(false);
-  }, [refAreaLeft, refAreaRight, chartData]);
 
-  // Get the data to display based on zoom
-  const displayData = (zoomDomain && zoomDomain.left !== undefined && zoomDomain.right !== undefined)
-    ? chartData.slice(zoomDomain.left, zoomDomain.right + 1)
-    : chartData;
+    // Zoom control functions
+    const handleZoomIn = useCallback(() => {
+        if (!zoomDomain) {
+            const dataLength = chartData.length;
+            const middle = Math.floor(dataLength / 2);
+            const range = Math.floor(dataLength * 0.3);
+            setZoomDomain({
+                left: Math.max(0, middle - range),
+                right: Math.min(dataLength - 1, middle + range)
+            });
+        } else {
+            const range = zoomDomain.right! - zoomDomain.left!;
+            const newRange = Math.max(2, Math.floor(range * 0.7));
+            const middle = zoomDomain.left! + Math.floor(range / 2);
+            setZoomDomain({
+                left: Math.max(0, middle - Math.floor(newRange / 2)),
+                right: Math.min(chartData.length - 1, middle + Math.floor(newRange / 2))
+            });
+        }
+    }, [zoomDomain, chartData.length]);
+
+    const handleZoomOut = useCallback(() => {
+        if (zoomDomain) {
+            const range = zoomDomain.right! - zoomDomain.left!;
+            const newRange = Math.min(chartData.length, Math.floor(range * 1.5));
+            const middle = zoomDomain.left! + Math.floor(range / 2);
+            const newLeft = Math.max(0, middle - Math.floor(newRange / 2));
+            const newRight = Math.min(chartData.length - 1, middle + Math.floor(newRange / 2));
+
+            if (newLeft === 0 && newRight === chartData.length - 1) {
+                setZoomDomain(undefined);
+            } else {
+                setZoomDomain({ left: newLeft, right: newRight });
+            }
+        }
+    }, [zoomDomain, chartData.length]);
+
+    const handleResetZoom = useCallback(() => {
+        setZoomDomain(undefined);
+        setRefAreaLeft('');
+        setRefAreaRight('');
+        setIsZooming(false);
+    }, []);
+
+    const handleMouseDown = useCallback((e: any) => {
+        if (e?.activeLabel) {
+            setRefAreaLeft(e.activeLabel);
+            setIsZooming(true);
+        }
+    }, []);
+
+    const handleMouseMove = useCallback((e: any) => {
+        if (isZooming && e?.activeLabel && refAreaLeft) {
+            setRefAreaRight(e.activeLabel);
+        }
+    }, [isZooming, refAreaLeft]);
+
+    const handleMouseUp = useCallback(() => {
+        if (refAreaLeft && refAreaRight && refAreaLeft !== refAreaRight) {
+            const leftIndex = chartData.findIndex(item => item.timestamp === refAreaLeft);
+            const rightIndex = chartData.findIndex(item => item.timestamp === refAreaRight);
+
+            if (leftIndex !== -1 && rightIndex !== -1) {
+                setZoomDomain({
+                    left: Math.min(leftIndex, rightIndex),
+                    right: Math.max(leftIndex, rightIndex)
+                });
+            }
+        }
+
+        setRefAreaLeft('');
+        setRefAreaRight('');
+        setIsZooming(false);
+    }, [refAreaLeft, refAreaRight, chartData]);
+
+    // Get the data to display based on zoom
+    const displayData = (zoomDomain && zoomDomain.left !== undefined && zoomDomain.right !== undefined)
+        ? chartData.slice(zoomDomain.left, zoomDomain.right + 1)
+        : chartData;
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (!active || !payload || !payload.length) return null;
@@ -383,128 +383,128 @@ export default function WorkerResponseTimeChart({
             }}
         >
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-          {icon}
-          <Typography 
-            variant="h6"
-            sx={{
-              fontSize: { xs: '1rem', sm: '1.125rem' },
-              fontWeight: 600,
-            }}
-          >
-            {title}
-          </Typography>
-          
-          {/* Zoom Status Indicator */}
-          {zoomDomain && (
-            <Chip
-              label={`Zoomed: ${Math.round(((zoomDomain.right! - zoomDomain.left! + 1) / chartData.length) * 100)}% of data`}
-              size="small"
-              sx={{
-                backgroundColor: alpha(theme.palette.info.main, 0.1),
-                color: theme.palette.info.main,
-                fontSize: '0.7rem',
-                height: 24,
-                ml: 1,
-              }}
-            />
-          )}
-          
-          <Box sx={{ flexGrow: 1 }} />
-          
-          {/* Zoom Controls */}
-          {chartData.length > 0 && (
-            <ButtonGroup 
-              size="small" 
-              variant="outlined"
-              sx={{ 
-                mr: 2,
-                '& .MuiButton-root': {
-                  borderColor: alpha(theme.palette.primary.main, 0.3),
-                  color: theme.palette.primary.main,
-                  '&:hover': {
-                    borderColor: theme.palette.primary.main,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                  }
-                }
-              }}
-            >
-              <MuiTooltip title="Zoom In">
-                <IconButton 
-                  onClick={handleZoomIn}
-                  size="small"
-                  sx={{
-                    borderRadius: '4px 0 0 4px',
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    }
-                  }}
-                >
-                  <ZoomInIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </MuiTooltip>
-              
-              <MuiTooltip title="Zoom Out">
-                <IconButton 
-                  onClick={handleZoomOut}
-                  disabled={!zoomDomain}
-                  size="small"
-                  sx={{
-                    borderRadius: 0,
-                    borderTop: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                    borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                    borderLeft: 'none',
-                    borderRight: 'none',
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    }
-                  }}
-                >
-                  <ZoomOutIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </MuiTooltip>
-              
-              <MuiTooltip title="Reset Zoom">
-                <IconButton 
-                  onClick={handleResetZoom}
-                  disabled={!zoomDomain}
-                  size="small"
-                  sx={{
-                    borderRadius: '0 4px 4px 0',
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    }
-                  }}
-                >
-                  <ResetZoomIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </MuiTooltip>
-            </ButtonGroup>
-          )}
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+                    {icon}
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: { xs: '1rem', sm: '1.125rem' },
+                            fontWeight: 600,
+                        }}
+                    >
+                        {title}
+                    </Typography>
 
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {activeWorkers.map(workerId => (
-              <Chip
-                key={workerId}
-                label={getWorkerDisplayName(workerId)}
-                size="small"
-                sx={{
-                  backgroundColor: alpha(getWorkerColor(workerId, activeWorkers), 0.1),
-                  color: getWorkerColor(workerId, activeWorkers),
-                  borderColor: getWorkerColor(workerId, activeWorkers),
-                  fontSize: '0.75rem',
-                  fontWeight: workerId === 'consensus_worker' ? 600 : 400,
-                }}
-                variant="outlined"
-              />
-            ))}
-          </Stack>
-        </Stack>
+                    {/* Zoom Status Indicator */}
+                    {zoomDomain && (
+                        <Chip
+                            label={`Zoomed: ${Math.round(((zoomDomain.right! - zoomDomain.left! + 1) / chartData.length) * 100)}% of data`}
+                            size="small"
+                            sx={{
+                                backgroundColor: alpha(theme.palette.info.main, 0.1),
+                                color: theme.palette.info.main,
+                                fontSize: '0.7rem',
+                                height: 24,
+                                ml: 1,
+                            }}
+                        />
+                    )}
+
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {/* Zoom Controls */}
+                    {chartData.length > 0 && (
+                        <ButtonGroup
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                                mr: 2,
+                                '& .MuiButton-root': {
+                                    borderColor: alpha(theme.palette.primary.main, 0.3),
+                                    color: theme.palette.primary.main,
+                                    '&:hover': {
+                                        borderColor: theme.palette.primary.main,
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                                    }
+                                }
+                            }}
+                        >
+                            <MuiTooltip title="Zoom In">
+                                <IconButton
+                                    onClick={handleZoomIn}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: '4px 0 0 4px',
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                        '&:hover': {
+                                            borderColor: theme.palette.primary.main,
+                                            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                                        }
+                                    }}
+                                >
+                                    <ZoomInIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                            </MuiTooltip>
+
+                            <MuiTooltip title="Zoom Out">
+                                <IconButton
+                                    onClick={handleZoomOut}
+                                    disabled={!zoomDomain}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: 0,
+                                        borderTop: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                        borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                        borderLeft: 'none',
+                                        borderRight: 'none',
+                                        '&:hover': {
+                                            borderColor: theme.palette.primary.main,
+                                            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                                        }
+                                    }}
+                                >
+                                    <ZoomOutIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                            </MuiTooltip>
+
+                            <MuiTooltip title="Reset Zoom">
+                                <IconButton
+                                    onClick={handleResetZoom}
+                                    disabled={!zoomDomain}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: '0 4px 4px 0',
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                        '&:hover': {
+                                            borderColor: theme.palette.primary.main,
+                                            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                                        }
+                                    }}
+                                >
+                                    <ResetZoomIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                            </MuiTooltip>
+                        </ButtonGroup>
+                    )}
+
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                        {activeWorkers.map(workerId => (
+                            <Chip
+                                key={workerId}
+                                label={getWorkerDisplayName(workerId)}
+                                size="small"
+                                sx={{
+                                    backgroundColor: alpha(getWorkerColor(workerId, activeWorkers), 0.1),
+                                    color: getWorkerColor(workerId, activeWorkers),
+                                    borderColor: getWorkerColor(workerId, activeWorkers),
+                                    fontSize: '0.75rem',
+                                    fontWeight: workerId === 'consensus_worker' ? 600 : 400,
+                                }}
+                                variant="outlined"
+                            />
+                        ))}
+                    </Stack>
+                </Stack>
 
                 {chartData.length > 0 && activeWorkers.length > 0 ? (
                     <Box
@@ -556,11 +556,11 @@ export default function WorkerResponseTimeChart({
                         }}
                     >
                         <ResponsiveContainer>
-                                          <ComposedChart
-                data={displayData}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
+                            <ComposedChart
+                                data={displayData}
+                                onMouseDown={handleMouseDown}
+                                onMouseMove={handleMouseMove}
+                                onMouseUp={handleMouseUp}
                                 margin={{
                                     top: 25,
                                     right: 35,
@@ -661,30 +661,30 @@ export default function WorkerResponseTimeChart({
                                     iconType="circle"
                                 />
 
-                                                {/* Reference area for zoom selection */}
-                {refAreaLeft && refAreaRight && (
-                  <ReferenceArea
-                    x1={refAreaLeft}
-                    x2={refAreaRight}
-                    strokeOpacity={0.3}
-                    fill={alpha(theme.palette.primary.main, 0.1)}
-                    stroke={theme.palette.primary.main}
-                  />
-                )}
+                                {/* Reference area for zoom selection */}
+                                {refAreaLeft && refAreaRight && (
+                                    <ReferenceArea
+                                        x1={refAreaLeft}
+                                        x2={refAreaRight}
+                                        strokeOpacity={0.3}
+                                        fill={alpha(theme.palette.primary.main, 0.1)}
+                                        stroke={theme.palette.primary.main}
+                                    />
+                                )}
 
-                {/* Area fills with gradients */}
-                {activeWorkers.map((workerId) => (
-                  <Area
-                    key={`area-${workerId}`}
-                    type="monotone"
-                    dataKey={workerId}
-                    fill={`url(#gradient-${workerId})`}
-                    stroke="none"
-                    connectNulls={false}
-                    animationDuration={1200}
-                    animationEasing="ease-out"
-                  />
-                ))}
+                                {/* Area fills with gradients */}
+                                {activeWorkers.map((workerId) => (
+                                    <Area
+                                        key={`area-${workerId}`}
+                                        type="monotone"
+                                        dataKey={workerId}
+                                        fill={`url(#gradient-${workerId})`}
+                                        stroke="none"
+                                        connectNulls={false}
+                                        animationDuration={1200}
+                                        animationEasing="ease-out"
+                                    />
+                                ))}
 
                                 {/* Line charts on top */}
                                 {activeWorkers.map((workerId) => {
