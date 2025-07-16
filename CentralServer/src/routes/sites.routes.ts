@@ -478,12 +478,58 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
     return;
   }
 
-  if(site.statuses.length > 0) {
-    res.status(200).json(site.statuses[0]);
-  } else {
+  if (site.statuses.length === 0) {
     res.status(404).json({ error: 'No status checks available yet' });
     return;
   }
+
+  const latestStatus = site.statuses[0];
+
+  // Calculate uptime for last 24 hours based on consensus_worker status history
+  const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const statusHistory = await prisma.siteStatus.findMany({
+    where: {
+      siteId: id,
+      workerId: "consensus_worker",
+      checkedAt: {
+        gte: last24Hours
+      }
+    },
+    orderBy: {
+      checkedAt: 'desc'
+    }
+  });
+
+  // Calculate uptime percentages
+  const totalChecks = statusHistory.length;
+  
+  let overallUptime = 0;
+  let pingUptime = 0;
+  let httpUptime = 0;
+  let dnsUptime = 0;
+
+  if (totalChecks > 0) {
+    const overallUpChecks = statusHistory.filter(status => status.isUp).length;
+    const pingUpChecks = statusHistory.filter(status => status.pingIsUp).length;
+    const httpUpChecks = statusHistory.filter(status => status.httpIsUp).length;
+    const dnsUpChecks = statusHistory.filter(status => status.dnsIsUp).length;
+
+    overallUptime = (overallUpChecks / totalChecks) * 100;
+    pingUptime = (pingUpChecks / totalChecks) * 100;
+    httpUptime = (httpUpChecks / totalChecks) * 100;
+    dnsUptime = (dnsUpChecks / totalChecks) * 100;
+  }
+
+  // Return latest status with calculated uptime percentages
+  const statusWithUptime = {
+    ...latestStatus,
+    overallUptime: Math.round(overallUptime * 100) / 100, // Round to 2 decimal places
+    pingUptime: Math.round(pingUptime * 100) / 100,
+    httpUptime: Math.round(httpUptime * 100) / 100,
+    dnsUptime: Math.round(dnsUptime * 100) / 100
+  };
+
+  res.status(200).json(statusWithUptime);
 };
 
 // Get site status history
