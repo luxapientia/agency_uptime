@@ -34,7 +34,6 @@ export const updateSite = createAsyncThunk(
   'sites/update',
   async ({ id, data }: { id: string; data: UpdateSiteData }, { rejectWithValue }) => {
     try {
-      showToast.loading('Updating site...');
       const response = await axiosInstance.patch(`/sites/${id}`, data);
       showToast.success('Site updated successfully');
       return response.data;
@@ -49,7 +48,6 @@ export const deleteSite = createAsyncThunk(
   'sites/delete',
   async (id: string, { rejectWithValue }) => {
     try {
-      showToast.loading('Deleting site...');
       await axiosInstance.delete(`/sites/${id}`);
       showToast.success('Site deleted successfully');
       return id;

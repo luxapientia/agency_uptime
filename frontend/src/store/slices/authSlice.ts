@@ -96,7 +96,6 @@ const authSlice = createSlice({
       })
       // Login
       .addCase(login.pending, (state) => {
-        showToast.loading('Logging in...');
         state.isLoading = true;
         state.error = null;
       })
@@ -114,7 +113,6 @@ const authSlice = createSlice({
       })
       // Register
       .addCase(register.pending, (state) => {
-        showToast.loading('Creating your account...');
         state.isLoading = true;
         state.error = null;
       })
