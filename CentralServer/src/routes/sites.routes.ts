@@ -552,12 +552,12 @@ const getSiteStatusHistory = async (req: AuthenticatedRequest, res: Response) =>
       return;
     }
 
-    const startTime = new Date(Date.now() - Number(hours) * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
     const statusHistory = await prisma.siteStatus.findMany({
       where: {
         siteId: id,
         checkedAt: {
-          gte: startTime
+          gte: threeDaysAgo
         }
       },
       orderBy: {
@@ -596,10 +596,52 @@ const getSiteStatuses = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+// Get last 3 days of site statuses from all workers for a specific site
+const getSiteWorkerStatuses = async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const site = await prisma.site.findUnique({
+      where: { id },
+    });
+
+    if (!site) {
+      res.status(404).json({ error: 'Site not found' });
+      return;
+    }
+
+    if (site.userId !== req.user.id) {
+      res.status(403).json({ error: 'You do not have permission to access this site' });
+      return;
+    }
+
+    // Get last 3 days of statuses from all workers
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    
+    const workerStatuses = await prisma.siteStatus.findMany({
+      where: {
+        siteId: id,
+        checkedAt: {
+          gte: threeDaysAgo
+        }
+      },
+      orderBy: {
+        checkedAt: 'desc'
+      }
+    });
+
+    res.json(workerStatuses);
+  } catch (error) {
+    logger.error('Failed to get site worker statuses:', error);
+    res.status(500).json({ error: 'Failed to get site worker statuses' });
+  }
+};
+
 router.get('/', getSites as any);
 router.get('/statistics', getStatistics as any);
 router.get('/:id/status', getSiteStatus as any);
 router.get('/:id/status/history', getSiteStatusHistory as any);
+router.get('/:id/status/workers', getSiteWorkerStatuses as any);
 router.get('/statuses', getSiteStatuses as any);
 
 router.get('/report', generatePDFReport as any);
