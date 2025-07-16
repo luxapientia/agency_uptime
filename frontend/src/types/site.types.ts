@@ -10,20 +10,51 @@ export interface Site {
 }
 
 export interface SiteStatus {
+  id: string;
+  siteId: string;
+  workerId: string;
   isUp: boolean;
+  pingIsUp: boolean;
+  httpIsUp: boolean;
+  dnsIsUp: boolean;
   checkedAt: string;
-  pingUp: boolean;
-  httpUp: boolean;
+  
+  // Response Times
   pingResponseTime?: number;
   httpResponseTime?: number;
+  dnsResponseTime?: number;
+  
+  // Uptime percentages
   overallUptime?: number;
   pingUptime?: number;
   httpUptime?: number;
+  dnsUptime?: number;
+  
+  // SSL Information
   hasSsl: boolean;
   sslValidFrom?: string;
   sslValidTo?: string;
   sslIssuer?: string;
   sslDaysUntilExpiry?: number;
+  
+  // DNS Information
+  dnsNameservers: string[];
+  dnsRecords?: {
+    addresses: string[];
+    error?: string;
+    responseTime?: number;
+  };
+  
+  // TCP Check Information
+  tcpChecks?: TcpCheckResult[];
+}
+
+export interface TcpCheckResult {
+  port: number;
+  isConnected: boolean;
+  isUp: boolean;
+  responseTime?: number;
+  error?: string;
 }
 
 export interface NotificationSetting {
