@@ -17,6 +17,9 @@ import {
   FormControl,
   Tooltip as MuiTooltip,
   Divider,
+  LinearProgress,
+  Badge,
+  Collapse,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -31,22 +34,21 @@ import {
   VerifiedUser as VerifiedIcon,
   GppBad as UnverifiedIcon,
   Info as InfoIcon,
+  Wifi as PingIcon,
+  Http as HttpIcon,
+  Dns as DnsIcon,
+  Router as TcpIcon,
+  Assessment as AssessmentIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  Hub as ConsensusIcon,
+  Speed as SpeedIcon,
 } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
-import {
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  Area,
-  AreaChart,
-} from 'recharts';
 import type { RootState } from '../store';
 import { fetchSiteStatus, fetchSiteStatusHistory } from '../store/slices/siteStatusSlice';
 import SiteForm from '../components/sites/SiteForm';
-import NotificationSettings from '../components/sites/NotificationSettings';
+import WorkerResponseTimeChart from '../components/sites/WorkerResponseTimeChart';
 import { setSelectedSite, updateSite } from '../store/slices/siteSlice';
 import type { CreateSiteData } from '../types/site.types';
 import type { AppDispatch } from '../store';
@@ -71,6 +73,7 @@ export default function SiteDetails() {
   const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [timeRange, setTimeRange] = useState(24); // Default to 24 hours
+  const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
 
   useEffect(() => {
     const loadSiteData = async () => {
@@ -119,61 +122,41 @@ export default function SiteDetails() {
     setTimeRange(event.target.value);
   };
 
-  const formatHistoryData = (history: any[] = []) => {
-    return history.map(status => ({
-      timestamp: new Date(status.checkedAt).toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      }),
-      httpResponseTime: status.httpResponseTime || 0,
-      pingResponseTime: status.pingResponseTime || 0,
-      overallUptime: status.overallUptime || 0,
-      httpUptime: status.httpUptime || 0,
-      pingUptime: status.pingUptime || 0
-    }));
+  // Get unique TCP ports from the status history
+  const getTcpPorts = () => {
+    if (!statusHistory || !statusHistory.length) return [];
+    
+    const portsSet = new Set<number>();
+    statusHistory.forEach(status => {
+      if (status.tcpChecks) {
+        const tcpChecksArray = Array.isArray(status.tcpChecks) 
+          ? status.tcpChecks 
+          : Object.values(status.tcpChecks);
+        tcpChecksArray.forEach((check: any) => {
+          if (check?.port) {
+            portsSet.add(check.port);
+          }
+        });
+      }
+    });
+    
+    return Array.from(portsSet).sort((a, b) => a - b);
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (!active || !payload || !payload.length) return null;
-    
-    return (
-      <Box
-        sx={{
-          background: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: 1,
-          p: 1.5,
-          boxShadow: theme.shadows[3],
-        }}
-      >
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>
-          {label}
-        </Typography>
-        {payload.map((entry: any, index: number) => (
-          <Stack
-            key={index}
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            sx={{ mb: 0.5 }}
-          >
-            <Box
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                backgroundColor: entry.color,
-              }}
-            />
-            <Typography variant="body2">
-              {entry.name}: {entry.value}
-              {entry.name.includes('Time') ? 'ms' : '%'}
-            </Typography>
-          </Stack>
-        ))}
-      </Box>
-    );
+  // Helper function to get status color
+  const getStatusColor = (isUp: boolean | undefined) => {
+    if (isUp === undefined) return theme.palette.grey[500];
+    return isUp ? theme.palette.success.main : theme.palette.error.main;
+  };
+
+  // Helper function to get status icon
+  const getStatusIcon = (isUp: boolean | undefined, size = 20) => {
+    if (isUp === undefined) {
+      return <InfoIcon sx={{ fontSize: size, color: theme.palette.grey[500] }} />;
+    }
+    return isUp 
+      ? <CheckIcon sx={{ fontSize: size, color: theme.palette.success.main }} />
+      : <CancelIcon sx={{ fontSize: size, color: theme.palette.error.main }} />;
   };
 
   if (!site) {
@@ -234,7 +217,7 @@ export default function SiteDetails() {
         </Box>
       ) : (
         <Stack spacing={3}>
-          {/* Status Card */}
+          {/* Consensus Status Card */}
           <Card
             sx={{
               background: theme.palette.mode === 'dark'
@@ -243,6 +226,7 @@ export default function SiteDetails() {
               backdropFilter: 'blur(8px)',
               transition: 'all 0.3s ease',
               overflow: 'visible',
+              border: `2px solid ${alpha(siteStatus?.isUp ? theme.palette.success.main : theme.palette.error.main, 0.3)}`,
               '&:hover': {
                 transform: 'translateY(-2px)',
                 boxShadow: theme.shadows[8],
@@ -251,7 +235,7 @@ export default function SiteDetails() {
           >
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
               <Stack spacing={3}>
-                {/* Status Header */}
+                {/* Main Status Header */}
                 <Stack 
                   direction={{ xs: 'column', sm: 'row' }} 
                   spacing={2} 
@@ -267,7 +251,7 @@ export default function SiteDetails() {
                       {siteStatus?.isUp ? (
                         <CheckIcon
                           sx={{
-                            fontSize: { xs: 32, sm: 40 },
+                            fontSize: { xs: 40, sm: 48 },
                             color: theme.palette.success.main,
                             animation: 'fadeIn 0.5s ease-in',
                             '@keyframes fadeIn': {
@@ -279,7 +263,7 @@ export default function SiteDetails() {
                       ) : (
                         <CancelIcon
                           sx={{
-                            fontSize: { xs: 32, sm: 40 },
+                            fontSize: { xs: 40, sm: 48 },
                             color: theme.palette.error.main,
                             animation: 'fadeIn 0.5s ease-in',
                             '@keyframes fadeIn': {
@@ -291,7 +275,7 @@ export default function SiteDetails() {
                       )}
                       {isGraphLoading && (
                         <CircularProgress
-                          size={44}
+                          size={52}
                           sx={{
                             position: 'absolute',
                             top: -2,
@@ -302,16 +286,37 @@ export default function SiteDetails() {
                       )}
                     </Box>
                     <Stack spacing={0.5}>
-                      <Typography 
-                        variant="h6" 
-                        sx={{ 
-                          fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                          fontWeight: 600,
-                          color: siteStatus?.isUp ? theme.palette.success.main : theme.palette.error.main,
-                        }}
-                      >
-                        {siteStatus?.isUp ? 'Site is Online' : 'Site is Offline'}
-                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography 
+                          variant="h5" 
+                          sx={{ 
+                            fontSize: { xs: '1.3rem', sm: '1.5rem' },
+                            fontWeight: 700,
+                            color: siteStatus?.isUp ? theme.palette.success.main : theme.palette.error.main,
+                          }}
+                        >
+                          {siteStatus?.isUp ? 'Site is Online' : 'Site is Offline'}
+                        </Typography>
+                        <Badge
+                          badgeContent={<ConsensusIcon sx={{ fontSize: 12 }} />}
+                          sx={{
+                            '& .MuiBadge-badge': {
+                              backgroundColor: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                            }
+                          }}
+                        >
+                          <Chip
+                            label={siteStatus?.workerId === 'consensus_worker' ? 'Consensus Status' : `Worker: ${siteStatus?.workerId}`}
+                            size="small"
+                            sx={{
+                              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                              color: theme.palette.primary.main,
+                              fontWeight: 600,
+                            }}
+                          />
+                        </Badge>
+                      </Stack>
                       <Typography 
                         variant="body2" 
                         color="text.secondary"
@@ -379,549 +384,576 @@ export default function SiteDetails() {
 
                 <Divider />
 
-                {/* Quick Stats */}
-                <Stack 
-                  direction={{ xs: 'column', sm: 'row' }} 
-                  spacing={2} 
-                  divider={<Divider orientation="vertical" flexItem />}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Response Time
-                    </Typography>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <Typography variant="h6" color="text.primary">
-                        {siteStatus?.httpResponseTime || 0}ms
-                      </Typography>
-                      <Chip 
-                        label="HTTP" 
-                        size="small"
-                        sx={{ 
-                          backgroundColor: alpha(theme.palette.info.main, 0.1),
-                          color: theme.palette.info.main,
-                        }}
-                      />
-                    </Stack>
-                  </Box>
+                {/* Individual Status Indicators */}
+                <Stack spacing={2}>
+                  <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AssessmentIcon color="primary" />
+                    Service Status Overview
+                  </Typography>
+                  
+                  <Stack 
+                    direction={{ xs: 'column', sm: 'row' }} 
+                    spacing={2}
+                    sx={{ width: '100%' }}
+                  >
+                    {/* Ping Status */}
+                    <Card
+                      sx={{
+                        flex: 1,
+                        p: 2,
+                        background: alpha(getStatusColor(siteStatus?.pingIsUp), 0.08),
+                        border: `1px solid ${alpha(getStatusColor(siteStatus?.pingIsUp), 0.2)}`,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-1px)',
+                          boxShadow: theme.shadows[4],
+                        }
+                      }}
+                    >
+                      <Stack spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <PingIcon sx={{ color: getStatusColor(siteStatus?.pingIsUp) }} />
+                          {getStatusIcon(siteStatus?.pingIsUp, 16)}
+                        </Stack>
+                        <Typography variant="subtitle2" color="text.secondary" align="center">
+                          Ping
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600} color={getStatusColor(siteStatus?.pingIsUp)}>
+                          {siteStatus?.pingIsUp === undefined ? 'Unknown' : (siteStatus.pingIsUp ? 'Online' : 'Offline')}
+                        </Typography>
+                        {siteStatus?.pingResponseTime !== undefined && (
+                          <Typography variant="caption" color="text.secondary">
+                            {siteStatus.pingResponseTime}ms
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Card>
 
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Ping Time
-                    </Typography>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <Typography variant="h6" color="text.primary">
-                        {siteStatus?.pingResponseTime || 0}ms
-                      </Typography>
-                      <Chip 
-                        label="ICMP" 
-                        size="small"
-                        sx={{ 
-                          backgroundColor: alpha(theme.palette.secondary.main, 0.1),
-                          color: theme.palette.secondary.main,
-                        }}
-                      />
-                    </Stack>
-                  </Box>
+                    {/* HTTP Status */}
+                    <Card
+                      sx={{
+                        flex: 1,
+                        p: 2,
+                        background: alpha(getStatusColor(siteStatus?.httpIsUp), 0.08),
+                        border: `1px solid ${alpha(getStatusColor(siteStatus?.httpIsUp), 0.2)}`,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-1px)',
+                          boxShadow: theme.shadows[4],
+                        }
+                      }}
+                    >
+                      <Stack spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <HttpIcon sx={{ color: getStatusColor(siteStatus?.httpIsUp) }} />
+                          {getStatusIcon(siteStatus?.httpIsUp, 16)}
+                        </Stack>
+                        <Typography variant="subtitle2" color="text.secondary" align="center">
+                          HTTP
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600} color={getStatusColor(siteStatus?.httpIsUp)}>
+                          {siteStatus?.httpIsUp === undefined ? 'Unknown' : (siteStatus.httpIsUp ? 'Online' : 'Offline')}
+                        </Typography>
+                        {siteStatus?.httpResponseTime !== undefined && (
+                          <Typography variant="caption" color="text.secondary">
+                            {siteStatus.httpResponseTime}ms
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Card>
 
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Overall Uptime
-                    </Typography>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <Typography variant="h6" color="text.primary">
-                        {((siteStatus?.overallUptime || 0)).toFixed(2)}%
-                      </Typography>
-                      <Chip 
-                        label="24h" 
-                        size="small"
-                        sx={{ 
-                          backgroundColor: alpha(theme.palette.success.main, 0.1),
-                          color: theme.palette.success.main,
-                        }}
-                      />
-                    </Stack>
-                  </Box>
-                </Stack>
+                    {/* DNS Status */}
+                    <Card
+                      sx={{
+                        flex: 1,
+                        p: 2,
+                        background: alpha(getStatusColor(siteStatus?.dnsIsUp), 0.08),
+                        border: `1px solid ${alpha(getStatusColor(siteStatus?.dnsIsUp), 0.2)}`,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-1px)',
+                          boxShadow: theme.shadows[4],
+                        }
+                      }}
+                    >
+                      <Stack spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <DnsIcon sx={{ color: getStatusColor(siteStatus?.dnsIsUp) }} />
+                          {getStatusIcon(siteStatus?.dnsIsUp, 16)}
+                        </Stack>
+                        <Typography variant="subtitle2" color="text.secondary" align="center">
+                          DNS
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600} color={getStatusColor(siteStatus?.dnsIsUp)}>
+                          {siteStatus?.dnsIsUp === undefined ? 'Unknown' : (siteStatus.dnsIsUp ? 'Online' : 'Offline')}
+                        </Typography>
+                        {siteStatus?.dnsResponseTime !== undefined && (
+                          <Typography variant="caption" color="text.secondary">
+                            {siteStatus.dnsResponseTime}ms
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Card>
 
-                {/* SSL Information */}
-                {siteStatus?.hasSsl && (
-                  <>
-                    <Divider />
-                    <Stack spacing={2}>
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <SecurityIcon color="primary" />
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          SSL Certificate
+                    {/* TCP Status Summary */}
+                    <Card
+                      sx={{
+                        flex: 1,
+                        p: 2,
+                        background: alpha(theme.palette.info.main, 0.08),
+                        border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-1px)',
+                          boxShadow: theme.shadows[4],
+                        }
+                      }}
+                    >
+                      <Stack spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <TcpIcon sx={{ color: theme.palette.info.main }} />
+                          <Badge 
+                            badgeContent={siteStatus?.tcpChecks?.length || 0} 
+                            color="info"
+                            sx={{ '& .MuiBadge-badge': { fontSize: '0.65rem' } }}
+                          >
+                            <InfoIcon sx={{ fontSize: 16, color: theme.palette.info.main }} />
+                          </Badge>
+                        </Stack>
+                        <Typography variant="subtitle2" color="text.secondary" align="center">
+                          TCP Ports
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600} color="text.primary">
+                          {siteStatus?.tcpChecks?.filter(check => check.isUp).length || 0}/
+                          {siteStatus?.tcpChecks?.length || 0} Open
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {getTcpPorts().join(', ') || 'None'}
                         </Typography>
                       </Stack>
-
-                      <Stack 
-                        direction={{ xs: 'column', sm: 'row' }} 
-                        spacing={3}
-                        divider={<Divider orientation="vertical" flexItem />}
-                      >
-                        <Box sx={{ flex: 1 }}>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            {(siteStatus?.sslDaysUntilExpiry || 0) > 30 ? (
-                              <VerifiedIcon sx={{ color: theme.palette.success.main }} />
-                            ) : (
-                              <UnverifiedIcon sx={{ color: theme.palette.warning.main }} />
-                            )}
-                            <Typography variant="body2" color="text.secondary">
-                              Expires in {siteStatus?.sslDaysUntilExpiry || 0} days
-                            </Typography>
-                          </Stack>
-                        </Box>
-
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            Valid until: {siteStatus?.sslValidTo && new Date(siteStatus.sslValidTo).toLocaleDateString() || 'N/A'}
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ flex: 1 }}>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary"
-                              sx={{ 
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              Issuer: {siteStatus?.sslIssuer || 'Unknown'}
-                            </Typography>
-                            <MuiTooltip title={siteStatus?.sslIssuer || 'Unknown'}>
-                              <InfoIcon 
-                                sx={{ 
-                                  fontSize: 16,
-                                  color: theme.palette.text.secondary,
-                                  cursor: 'help',
-                                }}
-                              />
-                            </MuiTooltip>
-                          </Stack>
-                        </Box>
-                      </Stack>
-
-                      <Stack direction="row" spacing={1}>
-                        <Chip
-                          icon={<SecurityIcon />}
-                          label={(siteStatus?.sslDaysUntilExpiry || 0) > 30 ? "Certificate Valid" : "Certificate Expiring Soon"}
-                          color={(siteStatus?.sslDaysUntilExpiry || 0) > 30 ? "success" : "warning"}
-                          size="small"
-                          sx={{ borderRadius: 1 }}
-                        />
-                      </Stack>
-                    </Stack>
-                  </>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {/* Status History Graphs */}
-          <Card
-            sx={{
-              background: theme.palette.mode === 'dark'
-                ? alpha(theme.palette.background.paper, 0.6)
-                : theme.palette.background.paper,
-              backdropFilter: 'blur(8px)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: theme.shadows[8],
-              },
-            }}
-          >
-            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-              <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-                <TimelineIcon 
-                  color="primary"
-                  sx={{ 
-                    fontSize: { xs: 24, sm: 28 },
-                    animation: 'pulse 2s infinite',
-                    '@keyframes pulse': {
-                      '0%': { opacity: 0.6 },
-                      '50%': { opacity: 1 },
-                      '100%': { opacity: 0.6 },
-                    },
-                  }}
-                />
-                <Typography 
-                  variant="h6"
-                  sx={{
-                    fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                    fontWeight: 600,
-                  }}
-                >
-                  Status History
-                </Typography>
-                <Box sx={{ flexGrow: 1 }} />
-                <FormControl 
-                  size="small" 
-                  sx={{ 
-                    minWidth: 150,
-                    '& .MuiOutlinedInput-root': {
-                      background: alpha(theme.palette.primary.main, 0.05),
-                      '&:hover': {
-                        background: alpha(theme.palette.primary.main, 0.08),
-                      }
-                    }
-                  }}
-                >
-                  <Select
-                    value={timeRange}
-                    onChange={handleTimeRangeChange}
-                    startAdornment={
-                      <TimeIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
-                    }
-                    sx={{
-                      borderRadius: 1,
-                      '& .MuiSelect-select': {
-                        py: 1,
-                      }
-                    }}
-                  >
-                    <MenuItem value={1}>Last Hour</MenuItem>
-                    <MenuItem value={12}>Last 12 Hours</MenuItem>
-                    <MenuItem value={24}>Last 24 Hours</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
-              
-              {statusHistory && statusHistory.length > 0 ? (
-                <Stack spacing={3}>
-                  {/* Uptime Percentages Graph */}
-                  <Box 
-                    sx={{ 
-                      width: '100%',
-                      height: { xs: 250, sm: 300, md: 350 },
-                      transition: 'height 0.3s ease',
-                      position: 'relative',
-                      '& .recharts-text': {
-                        fontSize: { xs: '10px !important', sm: '12px !important' }
-                      },
-                      '& .recharts-cartesian-grid-horizontal line:last-child, & .recharts-cartesian-grid-vertical line:last-child': {
-                        display: 'none',
-                      },
-                    }}
-                  >
-                    {isGraphLoading && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: alpha(theme.palette.background.paper, 0.7),
-                          backdropFilter: 'blur(4px)',
-                          zIndex: 1,
-                          borderRadius: 1,
-                        }}
-                      >
-                        <CircularProgress size={40} />
-                      </Box>
-                    )}
-                    <ResponsiveContainer>
-                      <AreaChart
-                        data={formatHistoryData(statusHistory || [])}
-                        margin={{
-                          top: 20,
-                          right: 30,
-                          left: 20,
-                          bottom: 35,
-                        }}
-                      >
-                        <defs>
-                          <linearGradient id="uptimeGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={theme.palette.success.main} stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor={theme.palette.success.main} stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="httpGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={theme.palette.info.main} stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor={theme.palette.info.main} stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="pingGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid 
-                          strokeDasharray="3 3" 
-                          stroke={alpha(theme.palette.text.primary, 0.05)}
-                          vertical={false}
-                        />
-                        <XAxis
-                          dataKey="timestamp"
-                          angle={0}
-                          textAnchor="middle"
-                          height={40}
-                          tick={{ 
-                            fill: theme.palette.text.secondary,
-                          }}
-                          stroke={theme.palette.divider}
-                          tickMargin={10}
-                          interval="preserveStartEnd"
-                        />
-                        <YAxis 
-                          domain={[0, 100]}
-                          tick={{ 
-                            fill: theme.palette.text.secondary,
-                          }}
-                          stroke={theme.palette.divider}
-                          label={{ 
-                            value: 'Uptime (%)', 
-                            angle: -90, 
-                            position: 'insideLeft',
-                            style: { 
-                              fill: theme.palette.text.secondary,
-                            }
-                          }}
-                        />
-                        <Tooltip 
-                          content={<CustomTooltip />}
-                          wrapperStyle={{ outline: 'none' }}
-                        />
-                        <Legend 
-                          verticalAlign="top"
-                          height={36}
-                          wrapperStyle={{
-                            paddingBottom: '20px',
-                            fontSize: '0.875rem',
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="overallUptime"
-                          stroke={theme.palette.success.main}
-                          strokeWidth={2}
-                          fillOpacity={1}
-                          fill="url(#uptimeGradient)"
-                          name="Overall Uptime"
-                          activeDot={{ 
-                            r: 6, 
-                            strokeWidth: 0,
-                            fill: theme.palette.success.main,
-                          }}
-                          animationDuration={1000}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="httpUptime"
-                          stroke={theme.palette.info.main}
-                          strokeWidth={2}
-                          fillOpacity={1}
-                          fill="url(#httpGradient)"
-                          name="HTTP Uptime"
-                          activeDot={{ 
-                            r: 6, 
-                            strokeWidth: 0,
-                            fill: theme.palette.info.main,
-                          }}
-                          animationDuration={1000}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="pingUptime"
-                          stroke={theme.palette.primary.main}
-                          strokeWidth={2}
-                          fillOpacity={1}
-                          fill="url(#pingGradient)"
-                          name="Ping Uptime"
-                          activeDot={{ 
-                            r: 6, 
-                            strokeWidth: 0,
-                            fill: theme.palette.primary.main,
-                          }}
-                          animationDuration={1000}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </Box>
-
-                  {/* Response Times Graph */}
-                  <Box 
-                    sx={{ 
-                      width: '100%',
-                      height: { xs: 250, sm: 300, md: 350 },
-                      transition: 'height 0.3s ease',
-                      position: 'relative',
-                      '& .recharts-text': {
-                        fontSize: { xs: '10px !important', sm: '12px !important' }
-                      },
-                      '& .recharts-cartesian-grid-horizontal line:last-child, & .recharts-cartesian-grid-vertical line:last-child': {
-                        display: 'none',
-                      },
-                    }}
-                  >
-                    {isGraphLoading && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: alpha(theme.palette.background.paper, 0.7),
-                          backdropFilter: 'blur(4px)',
-                          zIndex: 1,
-                          borderRadius: 1,
-                        }}
-                      >
-                        <CircularProgress size={40} />
-                      </Box>
-                    )}
-                    <ResponsiveContainer>
-                      <AreaChart
-                        data={formatHistoryData(statusHistory || [])}
-                        margin={{
-                          top: 20,
-                          right: 30,
-                          left: 20,
-                          bottom: 35,
-                        }}
-                      >
-                        <defs>
-                          <linearGradient id="httpResponseGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={theme.palette.warning.main} stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor={theme.palette.warning.main} stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="pingResponseGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={theme.palette.secondary.main} stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor={theme.palette.secondary.main} stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid 
-                          strokeDasharray="3 3" 
-                          stroke={alpha(theme.palette.text.primary, 0.05)}
-                          vertical={false}
-                        />
-                        <XAxis
-                          dataKey="timestamp"
-                          angle={0}
-                          textAnchor="middle"
-                          height={40}
-                          tick={{ 
-                            fill: theme.palette.text.secondary,
-                          }}
-                          stroke={theme.palette.divider}
-                          tickMargin={10}
-                          interval="preserveStartEnd"
-                        />
-                        <YAxis 
-                          tick={{ 
-                            fill: theme.palette.text.secondary,
-                          }}
-                          stroke={theme.palette.divider}
-                          label={{ 
-                            value: 'Response Time (ms)', 
-                            angle: -90, 
-                            position: 'insideLeft',
-                            style: { 
-                              fill: theme.palette.text.secondary,
-                            }
-                          }}
-                        />
-                        <Tooltip 
-                          content={<CustomTooltip />}
-                          wrapperStyle={{ outline: 'none' }}
-                        />
-                        <Legend 
-                          verticalAlign="top"
-                          height={36}
-                          wrapperStyle={{
-                            paddingBottom: '20px',
-                            fontSize: '0.875rem',
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="httpResponseTime"
-                          stroke={theme.palette.warning.main}
-                          strokeWidth={2}
-                          fillOpacity={1}
-                          fill="url(#httpResponseGradient)"
-                          name="HTTP Response Time"
-                          activeDot={{ 
-                            r: 6, 
-                            strokeWidth: 0,
-                            fill: theme.palette.warning.main,
-                          }}
-                          animationDuration={1000}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="pingResponseTime"
-                          stroke={theme.palette.secondary.main}
-                          strokeWidth={2}
-                          fillOpacity={1}
-                          fill="url(#pingResponseGradient)"
-                          name="Ping Response Time"
-                          activeDot={{ 
-                            r: 6, 
-                            strokeWidth: 0,
-                            fill: theme.palette.secondary.main,
-                          }}
-                          animationDuration={1000}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </Box>
+                    </Card>
+                  </Stack>
                 </Stack>
-              ) : (
-                <Box 
-                  sx={{ 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    py: { xs: 4, sm: 6 },
-                    px: 2,
-                    background: alpha(theme.palette.primary.main, 0.05),
-                    borderRadius: 2,
-                    transition: 'all 0.3s ease',
-                    minHeight: { xs: 200, sm: 250, md: 300 },
-                  }}
-                >
-                  <TimelineIcon 
-                    sx={{ 
-                      fontSize: { xs: 36, sm: 48 }, 
-                      color: alpha(theme.palette.text.secondary, 0.5),
-                      mb: 2
-                    }} 
-                  />
-                  <Typography 
-                    variant="h6" 
-                    color="text.secondary"
-                    gutterBottom
-                    sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
-                  >
-                    No History Data
+
+                <Divider />
+
+                {/* Uptime Statistics */}
+                <Stack spacing={2}>
+                  <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <SpeedIcon color="primary" />
+                    24-Hour Uptime Statistics
                   </Typography>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    align="center"
+                  
+                  <Stack 
+                    direction={{ xs: 'column', sm: 'row' }} 
+                    spacing={3}
+                    sx={{ width: '100%' }}
+                  >
+                    <Stack spacing={1} sx={{ flex: 1 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Overall
+                        </Typography>
+                        <Typography variant="h6" fontWeight={700}>
+                          {(siteStatus?.overallUptime ?? 0).toFixed(2)}%
+                        </Typography>
+                      </Stack>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={siteStatus?.overallUptime ?? 0} 
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: alpha(theme.palette.grey[500], 0.2),
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 4,
+                            backgroundColor: theme.palette.success.main,
+                          }
+                        }}
+                      />
+                    </Stack>
+
+                    <Stack spacing={1} sx={{ flex: 1 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Ping
+                        </Typography>
+                        <Typography variant="h6" fontWeight={700}>
+                          {(siteStatus?.pingUptime ?? 0).toFixed(2)}%
+                        </Typography>
+                      </Stack>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={siteStatus?.pingUptime ?? 0} 
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: alpha(theme.palette.grey[500], 0.2),
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 4,
+                            backgroundColor: theme.palette.info.main,
+                          }
+                        }}
+                      />
+                    </Stack>
+
+                    <Stack spacing={1} sx={{ flex: 1 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="subtitle2" color="text.secondary">
+                          HTTP
+                        </Typography>
+                        <Typography variant="h6" fontWeight={700}>
+                          {(siteStatus?.httpUptime ?? 0).toFixed(2)}%
+                        </Typography>
+                      </Stack>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={siteStatus?.httpUptime ?? 0} 
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: alpha(theme.palette.grey[500], 0.2),
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 4,
+                            backgroundColor: theme.palette.warning.main,
+                          }
+                        }}
+                      />
+                    </Stack>
+
+                    <Stack spacing={1} sx={{ flex: 1 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="subtitle2" color="text.secondary">
+                          DNS
+                        </Typography>
+                        <Typography variant="h6" fontWeight={700}>
+                          {(siteStatus?.dnsUptime ?? 0).toFixed(2)}%
+                        </Typography>
+                      </Stack>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={siteStatus?.dnsUptime ?? 0} 
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: alpha(theme.palette.grey[500], 0.2),
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 4,
+                            backgroundColor: theme.palette.secondary.main,
+                          }
+                        }}
+                      />
+                    </Stack>
+                  </Stack>
+                </Stack>
+
+                {/* Advanced Details Toggle */}
+                <Stack direction="row" justifyContent="center">
+                  <Button
+                    onClick={() => setShowAdvancedDetails(!showAdvancedDetails)}
+                    startIcon={showAdvancedDetails ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    variant="text"
                     sx={{ 
-                      maxWidth: 300,
-                      fontSize: { xs: '0.813rem', sm: '0.875rem' }
+                      textTransform: 'none',
+                      color: theme.palette.primary.main,
                     }}
                   >
-                    Status history will appear here once monitoring data is collected.
-                  </Typography>
-                </Box>
-              )}
+                    {showAdvancedDetails ? 'Hide' : 'Show'} Advanced Details
+                  </Button>
+                </Stack>
+
+                {/* Advanced Details */}
+                <Collapse in={showAdvancedDetails}>
+                  <Stack spacing={3}>
+                    {/* DNS Information */}
+                    {siteStatus?.dnsNameservers && siteStatus.dnsNameservers.length > 0 && (
+                      <>
+                        <Divider />
+                        <Stack spacing={2}>
+                          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <DnsIcon color="secondary" />
+                            DNS Information
+                          </Typography>
+                          
+                          <Stack 
+                            direction={{ xs: 'column', md: 'row' }} 
+                            spacing={2}
+                            sx={{ width: '100%' }}
+                          >
+                            <Stack spacing={1} sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Nameservers
+                              </Typography>
+                              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                {siteStatus.dnsNameservers.map((ns, index) => (
+                                  <Chip
+                                    key={index}
+                                    label={ns}
+                                    size="small"
+                                    sx={{
+                                      backgroundColor: alpha(theme.palette.secondary.main, 0.1),
+                                      color: theme.palette.secondary.main,
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                            </Stack>
+
+                            {siteStatus.dnsRecords?.addresses && (
+                              <Stack spacing={1} sx={{ flex: 1 }}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                  IP Addresses
+                                </Typography>
+                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                  {siteStatus.dnsRecords.addresses.map((addr, index) => (
+                                    <Chip
+                                      key={index}
+                                      label={addr}
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: alpha(theme.palette.info.main, 0.1),
+                                        color: theme.palette.info.main,
+                                      }}
+                                    />
+                                  ))}
+                                </Stack>
+                              </Stack>
+                            )}
+                          </Stack>
+                        </Stack>
+                      </>
+                    )}
+
+                    {/* TCP Port Details */}
+                    {siteStatus?.tcpChecks && siteStatus.tcpChecks.length > 0 && (
+                      <>
+                        <Divider />
+                        <Stack spacing={2}>
+                          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TcpIcon color="warning" />
+                            TCP Port Status
+                          </Typography>
+                          
+                          <Stack 
+                            direction={{ xs: 'column', sm: 'row' }} 
+                            spacing={2}
+                            flexWrap="wrap"
+                            useFlexGap
+                            sx={{ width: '100%' }}
+                          >
+                            {siteStatus.tcpChecks.map((check, index) => (
+                              <Card
+                                key={index}
+                                sx={{
+                                  flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 8px)', md: '1 1 calc(33.333% - 11px)' },
+                                  minWidth: 200,
+                                  p: 2,
+                                  background: alpha(getStatusColor(check.isUp), 0.08),
+                                  border: `1px solid ${alpha(getStatusColor(check.isUp), 0.2)}`,
+                                }}
+                              >
+                                <Stack spacing={1}>
+                                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                    <Typography variant="subtitle2" fontWeight={600}>
+                                      Port {check.port}
+                                    </Typography>
+                                    {getStatusIcon(check.isUp, 18)}
+                                  </Stack>
+                                  <Typography 
+                                    variant="body2" 
+                                    color={getStatusColor(check.isUp)}
+                                    fontWeight={600}
+                                  >
+                                    {check.isUp ? 'Open' : 'Closed'}
+                                  </Typography>
+                                  {check.responseTime !== undefined && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      Response: {check.responseTime}ms
+                                    </Typography>
+                                  )}
+                                  {check.error && (
+                                    <Typography variant="caption" color="error">
+                                      Error: {check.error}
+                                    </Typography>
+                                  )}
+                                </Stack>
+                              </Card>
+                            ))}
+                          </Stack>
+                        </Stack>
+                      </>
+                    )}
+
+                    {/* SSL Information */}
+                    {siteStatus?.hasSsl && (
+                      <>
+                        <Divider />
+                        <Stack spacing={2}>
+                          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <SecurityIcon color="primary" />
+                            SSL Certificate Details
+                          </Typography>
+
+                          <Stack 
+                            direction={{ xs: 'column', md: 'row' }} 
+                            spacing={3}
+                            sx={{ width: '100%' }}
+                          >
+                            <Stack spacing={1} alignItems="center" sx={{ flex: 1 }}>
+                              {(siteStatus?.sslDaysUntilExpiry || 0) > 30 ? (
+                                <VerifiedIcon sx={{ color: theme.palette.success.main, fontSize: 32 }} />
+                              ) : (
+                                <UnverifiedIcon sx={{ color: theme.palette.warning.main, fontSize: 32 }} />
+                              )}
+                              <Typography variant="h6" fontWeight={600}>
+                                {siteStatus?.sslDaysUntilExpiry || 0} days
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Until expiry
+                              </Typography>
+                            </Stack>
+
+                            <Stack spacing={1} sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2" color="text.secondary">
+                                Valid From
+                              </Typography>
+                              <Typography variant="body2">
+                                {siteStatus?.sslValidFrom ? 
+                                  new Date(siteStatus.sslValidFrom).toLocaleDateString() : 
+                                  'N/A'}
+                              </Typography>
+                              <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
+                                Valid Until
+                              </Typography>
+                              <Typography variant="body2">
+                                {siteStatus?.sslValidTo ? 
+                                  new Date(siteStatus.sslValidTo).toLocaleDateString() : 
+                                  'N/A'}
+                              </Typography>
+                            </Stack>
+
+                            <Stack spacing={1} sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2" color="text.secondary">
+                                Certificate Issuer
+                              </Typography>
+                              <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                                {siteStatus?.sslIssuer || 'Unknown'}
+                              </Typography>
+                              <Chip
+                                icon={<SecurityIcon />}
+                                label={(siteStatus?.sslDaysUntilExpiry || 0) > 30 ? "Certificate Valid" : "Certificate Expiring Soon"}
+                                color={(siteStatus?.sslDaysUntilExpiry || 0) > 30 ? "success" : "warning"}
+                                size="small"
+                                sx={{ borderRadius: 1, mt: 1 }}
+                              />
+                            </Stack>
+                          </Stack>
+                        </Stack>
+                      </>
+                    )}
+                  </Stack>
+                </Collapse>
+              </Stack>
             </CardContent>
           </Card>
+
+          {/* Worker Response Time Graphs */}
+          <Stack spacing={3}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TimelineIcon 
+                color="primary"
+                sx={{ 
+                  fontSize: { xs: 24, sm: 28 },
+                  animation: 'pulse 2s infinite',
+                  '@keyframes pulse': {
+                    '0%': { opacity: 0.6 },
+                    '50%': { opacity: 1 },
+                    '100%': { opacity: 0.6 },
+                  },
+                }}
+              />
+              <Typography 
+                variant="h5"
+                sx={{
+                  fontSize: { xs: '1.2rem', sm: '1.5rem' },
+                  fontWeight: 600,
+                }}
+              >
+                Worker Response Times
+              </Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <FormControl 
+                size="small" 
+                sx={{ 
+                  minWidth: 150,
+                  '& .MuiOutlinedInput-root': {
+                    background: alpha(theme.palette.primary.main, 0.05),
+                    '&:hover': {
+                      background: alpha(theme.palette.primary.main, 0.08),
+                    }
+                  }
+                }}
+              >
+                <Select
+                  value={timeRange}
+                  onChange={handleTimeRangeChange}
+                  startAdornment={
+                    <TimeIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                  }
+                  sx={{
+                    borderRadius: 1,
+                    '& .MuiSelect-select': {
+                      py: 1,
+                    }
+                  }}
+                >
+                  <MenuItem value={1}>Last Hour</MenuItem>
+                  <MenuItem value={12}>Last 12 Hours</MenuItem>
+                  <MenuItem value={24}>Last 24 Hours</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
+
+            {/* Ping Response Time Chart */}
+            <WorkerResponseTimeChart
+              title="Ping Response Times"
+              siteStatuses={statusHistory || []}
+              responseTimeField="pingResponseTime"
+              icon={<PingIcon color="primary" />}
+              height={300}
+            />
+
+            {/* HTTP Response Time Chart */}
+            <WorkerResponseTimeChart
+              title="HTTP Response Times"
+              siteStatuses={statusHistory || []}
+              responseTimeField="httpResponseTime"
+              icon={<HttpIcon color="info" />}
+              height={300}
+            />
+
+            {/* DNS Response Time Chart */}
+            <WorkerResponseTimeChart
+              title="DNS Response Times"
+              siteStatuses={statusHistory || []}
+              responseTimeField="dnsResponseTime"
+              icon={<DnsIcon color="secondary" />}
+              height={300}
+            />
+
+            {/* TCP Response Time Charts for each port */}
+            {getTcpPorts().map(port => (
+              <WorkerResponseTimeChart
+                key={`tcp-${port}`}
+                title={`TCP Port ${port} Response Times`}
+                siteStatuses={statusHistory || []}
+                responseTimeField="pingResponseTime" // This will be overridden by tcpPort prop
+                tcpPort={port}
+                icon={<TcpIcon color="warning" />}
+                height={300}
+              />
+            ))}
+          </Stack>
         </Stack>
       )}
 
@@ -931,11 +963,6 @@ export default function SiteDetails() {
         onClose={handleFormClose}
         onSubmit={handleFormSubmit}
         site={site}
-      />
-
-      {/* Notification Settings Dialog */}
-      <NotificationSettings
-        siteId={site.id}
       />
     </Box>
   );
