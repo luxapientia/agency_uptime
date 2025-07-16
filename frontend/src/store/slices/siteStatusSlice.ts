@@ -51,7 +51,6 @@ export const fetchSiteStatusHistory = createAsyncThunk(
   async ({ siteId, hours = 24 }: { siteId: string; hours?: number }, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/sites/${siteId}/status/history?hours=${hours}`);
-      console.log(response.data);
       return { siteId, history: response.data };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch site status history');
