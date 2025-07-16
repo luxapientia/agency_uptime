@@ -164,7 +164,7 @@ export default function SiteStatistics({ open, onClose, siteId }: SiteStatistics
                   </Stack>
                   <LinearProgress
                     variant="determinate"
-                    value={statuses[siteId].overallUptime}
+                    value={statuses[siteId].overallUptime ?? 0}
                     color="success"
                     sx={{ height: 8, borderRadius: 2 }}
                   />
