@@ -43,7 +43,7 @@ export class MonitorService {
 
   async stop(): Promise<void> {
     this.isRunning = false;
-    
+
     // Stop all scheduled tasks
     for (const task of this.scheduledTasks.values()) {
       task.stop();
@@ -61,7 +61,7 @@ export class MonitorService {
 
     const cronExpression = `* * * * *`;
     const task = cron.schedule(cronExpression, () => this.checkSite(site));
-    
+
     this.scheduledTasks.set(site.id, task);
     logger.info(`Added schedule for site ${site.url} every minute`);
   }
@@ -70,7 +70,7 @@ export class MonitorService {
   async updateSiteSchedule(site: Site): Promise<void> {
     // Remove existing schedule if any
     await this.removeSiteSchedule(site.id);
-    
+
     // Add new schedule if site is active
     if (site.isActive) {
       await this.addSiteSchedule(site);
@@ -89,16 +89,7 @@ export class MonitorService {
 
   private async checkSite(site: Site): Promise<void> {
     try {
-      const previousStatus = await this.prisma.siteStatus.findFirst({
-        where: {
-          siteId: site.id
-        },
-        orderBy: {
-          checkedAt: 'desc'
-        },
-        take: 1
-      });
-
+      const checkedAt = new Date();
       // Get all active workers
       const workerPattern = 'workers:*';
       const workerKeys = await this.redis.keys(workerPattern);
@@ -112,147 +103,194 @@ export class MonitorService {
       const checkPromises = workerKeys.map(async workerKey => {
         const workerId = workerKey.split(':')[1];
         const checksKey = `checks:${site.id}:${workerId}`;
-        return this.redis.get(checksKey);
+        const checkData = await this.redis.get(checksKey);
+
+        if (!checkData) {
+          return null;
+        }
+
+        try {
+          const siteMonitorResult = JSON.parse(checkData);
+
+          // Save individual worker status to database
+          const siteStatus = await this.prisma.siteStatus.create({
+            data: {
+              siteId: site.id,
+              workerId: workerId,
+              isUp: siteMonitorResult.isUp,
+              pingIsUp: siteMonitorResult.pingCheck.isUp,
+              httpIsUp: siteMonitorResult.httpCheck.isUp,
+              dnsIsUp: siteMonitorResult.dnsCheck.isResolved,
+              checkedAt: new Date(siteMonitorResult.checkedAt),
+
+              // Response Times - handle both number and null values
+              pingResponseTime: typeof siteMonitorResult.pingCheck.responseTime === 'number'
+                ? siteMonitorResult.pingCheck.responseTime
+                : null,
+              httpResponseTime: typeof siteMonitorResult.httpCheck.responseTime === 'number'
+                ? siteMonitorResult.httpCheck.responseTime
+                : null,
+              dnsResponseTime: typeof siteMonitorResult.dnsCheck.responseTime === 'number'
+                ? siteMonitorResult.dnsCheck.responseTime
+                : null,
+
+              // SSL Information - complete mapping
+              hasSsl: !!siteMonitorResult.httpCheck.ssl,
+              sslValidFrom: siteMonitorResult.httpCheck.ssl?.validFrom
+                ? new Date(siteMonitorResult.httpCheck.ssl.validFrom)
+                : null,
+              sslValidTo: siteMonitorResult.httpCheck.ssl?.validTo
+                ? new Date(siteMonitorResult.httpCheck.ssl.validTo)
+                : null,
+              sslIssuer: siteMonitorResult.httpCheck.ssl?.issuer || null,
+              sslDaysUntilExpiry: siteMonitorResult.httpCheck.ssl?.daysUntilExpiry || null,
+
+              // DNS Information - complete mapping
+              dnsNameservers: Array.isArray(siteMonitorResult.dnsCheck.nameservers)
+                ? siteMonitorResult.dnsCheck.nameservers
+                : [],
+              dnsRecords: {
+                addresses: Array.isArray(siteMonitorResult.dnsCheck.addresses)
+                  ? siteMonitorResult.dnsCheck.addresses
+                  : [],
+                error: siteMonitorResult.dnsCheck.error || null,
+                responseTime: siteMonitorResult.dnsCheck.responseTime
+              },
+
+              // TCP Check Information - complete mapping
+              tcpChecks: Array.isArray(siteMonitorResult.tcpChecks)
+                ? siteMonitorResult.tcpChecks.map((tcpCheck: any) => ({
+                  port: tcpCheck.port,
+                  isConnected: tcpCheck.isConnected,
+                  isUp: tcpCheck.isConnected, // Map isConnected to isUp for consistency
+                  responseTime: typeof tcpCheck.responseTime === 'number'
+                    ? tcpCheck.responseTime
+                    : null,
+                  error: tcpCheck.error || null
+                }))
+                : []
+            }
+          });
+
+          logger.info(`Saved status for site ${site.url} from worker ${workerId}: ${siteMonitorResult.isUp ? 'UP' : 'DOWN'}`);
+
+          return siteStatus;
+
+        } catch (parseError) {
+          logger.error(`Error parsing check data for site ${site.url} from worker ${workerId}:`, parseError);
+          return null;
+        }
       });
 
-      const workerChecks = await Promise.all(checkPromises);
-      const checks = workerChecks.map(check => JSON.parse(check || '{}'));
+      const workerResults = await Promise.all(checkPromises);
+      const validResults = workerResults.filter(result => result !== null);
 
-      if (!checks.length) {
-        logger.error(`No check results found for site ${site.url}`);
+      if (validResults.length === 0) {
+        logger.error(`No valid check results found for site ${site.url}`);
         return;
       }
 
-      const isUpCount = checks.filter(check => check.isUp).length;
-      const isUp = workerKeys.length >= 2 ? isUpCount >= Math.ceil(checks.length / 2) : isUpCount > 0;
+      const isDownCount = validResults.filter(result => !result.isUp).length;
+      const isUp = !(validResults.length >= 2 ? (isDownCount >= 2) : false);
+      const pingIsDownCount = validResults.filter(result => !result.pingIsUp).length;
+      const pingIsUp = !(validResults.length >= 2 ? (pingIsDownCount >= 2) : false);
+      const httpIsDownCount = validResults.filter(result => !result.httpIsUp).length;
+      const httpIsUp = !(validResults.length >= 2 ? (httpIsDownCount >= 2) : false);
+      const dnsIsDownCount = validResults.filter(result => !result.dnsIsUp).length;
+      const dnsIsUp = !(validResults.length >= 2 ? (dnsIsDownCount >= 2) : false);
 
-      const pingIsUpCount = checks.filter(check => check.pingCheck.isUp).length;
-      const pingIsUp = workerKeys.length >= 2 ? pingIsUpCount >= Math.ceil(checks.length / 2) : pingIsUpCount > 0;
+      // Get SSL info from first worker that has SSL data
+      const sslWorker = validResults.find(status => status.hasSsl);
+      
+      // Get DNS info from first successful DNS resolution
+      const dnsWorker = validResults.find(status => status.dnsIsUp);
 
-      const httpIsUpCount = checks.filter(check => check.httpCheck.isUp).length;
-      const httpIsUp = workerKeys.length >= 2 ? httpIsUpCount >= Math.ceil(checks.length / 2) : httpIsUpCount > 0;
+      // Aggregate TCP checks from all workers
+      const tcpCheckMap = new Map<number, { connected: number; total: number }>();
+      
+      validResults.forEach(status => {
+        if (status.tcpChecks && Array.isArray(status.tcpChecks)) {
+          status.tcpChecks.forEach((tcpCheck: any) => {
+            const port = tcpCheck.port;
+            const existing = tcpCheckMap.get(port) || { connected: 0, total: 0 };
+            
+            existing.total++;
+            if (tcpCheck.isConnected) {
+              existing.connected++;
+            }
+            
+            tcpCheckMap.set(port, existing);
+          });
+        }
+      });
 
-      // Calculate response times
-      const pingResponseTimes = checks
-        .filter(check => check.pingCheck?.isUp && check.pingCheck?.responseTime)
-        .map(check => check.pingCheck.responseTime);
+      const consensusTcpChecks = Array.from(tcpCheckMap.entries()).map(([port, data]) => {
+        const tcpIsDownCount = data.total - data.connected;
+        const tcpIsUp = !(validResults.length >= 2 ? (tcpIsDownCount >= 2) : false);
+        
+        return {
+          port,
+          isConnected: tcpIsUp,
+          isUp: tcpIsUp,
+          responseTime: null,
+          error: null
+        };
+      });
 
-      const httpResponseTimes = checks
-        .filter(check => check.httpCheck?.isUp && check.httpCheck?.responseTime)
-        .map(check => check.httpCheck.responseTime);
+      // Create consensus site status
+      const consensusSiteStatus = await this.prisma.siteStatus.create({
+        data: {
+          siteId: site.id,
+          workerId: 'consensus_worker',
+          isUp: isUp,
+          pingIsUp: pingIsUp,
+          httpIsUp: httpIsUp,
+          dnsIsUp: dnsIsUp,
+          checkedAt,
+          
+          // Response Times - null for consensus
+          pingResponseTime: null,
+          httpResponseTime: null,
+          dnsResponseTime: null,
+          
+          // SSL Information - from first worker with SSL data
+          hasSsl: !!sslWorker?.hasSsl,
+          sslValidFrom: sslWorker?.sslValidFrom || null,
+          sslValidTo: sslWorker?.sslValidTo || null,
+          sslIssuer: sslWorker?.sslIssuer || null,
+          sslDaysUntilExpiry: sslWorker?.sslDaysUntilExpiry || null,
+          
+          // DNS Information - from first successful DNS worker
+          dnsNameservers: dnsWorker?.dnsNameservers || [],
+          dnsRecords: dnsWorker?.dnsRecords || { addresses: [], error: null, responseTime: null },
+          
+          // TCP Check Information - consensus from all workers
+          tcpChecks: consensusTcpChecks
+        }
+      });
 
-      const pingResponseTime = pingResponseTimes.length > 0
-        ? pingResponseTimes.reduce((a, b) => a + b, 0) / pingResponseTimes.length
-        : null;
-
-      const httpResponseTime = httpResponseTimes.length > 0
-        ? httpResponseTimes.reduce((a, b) => a + b, 0) / httpResponseTimes.length
-        : null;
-
-      const ssl = checks[0].httpCheck.ssl;
-
-      const checkedAt = checks.reduce((latest, check) => new Date(check.checkedAt) > latest ? new Date(check.checkedAt) : latest, new Date(0));
-
-      // Calculate uptime percentage for last 24 hours
-      const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const statusHistory = await this.prisma.siteStatus.findMany({
+      const previousConsensusStatus = await this.prisma.siteStatus.findFirst({
         where: {
           siteId: site.id,
-          checkedAt: {
-            gte: last24Hours
-          }
+          workerId: "consensus_worker"
         },
         orderBy: {
           checkedAt: 'desc'
-        }
+        },
+        take: 1
       });
-
-      // Include current status in calculation
-      const totalChecks = statusHistory.length + 1;
-      const upChecks = statusHistory.filter(status => status.isUp).length + (isUp ? 1 : 0);
-      const overallUptime = (upChecks / totalChecks) * 100;
-
-      const pingUpChecks = statusHistory.filter(status => status.pingIsUp).length + (pingIsUp ? 1 : 0);
-      const pingUptime = (pingUpChecks / totalChecks) * 100;
-      const httpUpChecks = statusHistory.filter(status => status.httpIsUp).length + (httpIsUp ? 1 : 0);
-      const httpUptime = (httpUpChecks / totalChecks) * 100;
-
-      // Delete old records
-      await this.prisma.siteStatus.deleteMany({
-        where: {
-          checkedAt: {
-            lt: new Date(Date.now() - 1000 * 60 * 60 * 24)
-          }
-        }
-      });
-
-      await this.prisma.siteStatus.create({
-        data: {
-          siteId: site.id,
-          userId: site.userId,
-          pingIsUp,
-          httpIsUp,
-          isUp,
-          pingResponseTime,
-          httpResponseTime,
-          overallUptime,
-          pingUptime,
-          httpUptime,
-          hasSsl: !!ssl,
-          sslValidFrom: ssl?.validFrom ? new Date(ssl.validFrom) : undefined,
-          sslValidTo: ssl?.validTo ? new Date(ssl.validTo) : undefined,
-          sslIssuer: ssl?.issuer,
-          sslDaysUntilExpiry: ssl?.daysUntilExpiry,
-          checkedAt
-        }
-      });
-
-        if(!previousStatus || previousStatus.isUp !== isUp) {
-          // Send notification through notification service
-          
-          // Send real-time update through socket
-          const statusUpdate = {
-            isUp,
-            pingIsUp,
-            httpIsUp,
-            pingResponseTime,
-            httpResponseTime,
-            overallUptime,
-            pingUptime,
-            httpUptime,
-            checkedAt,
-            hasSsl: !!ssl,
-            sslValidTo: ssl?.validTo,
-            sslDaysUntilExpiry: ssl?.daysUntilExpiry
-          };
-          
-          await notificationService.sendNotification(site.id, `Your site ${site.name} (${site.url}) is ${isUp ? 'up' : 'down'} at ${checkedAt.toISOString()}`, 'SITE_STATUS_UPDATE');
-          socketService.sendToUser(site.userId, 'site_status_update', {siteId: site.id, status: statusUpdate});
+      
+      if(!previousConsensusStatus || previousConsensusStatus.isUp !== isUp) {
+        await notificationService.sendNotification(site.id, `Your site ${site.name} (${site.url}) is ${isUp ? 'up' : 'down'} at ${checkedAt.toISOString()}`, 'SITE_STATUS_UPDATE');
+          socketService.sendToUser(site.userId, 'site_status_update', {siteId: site.id, status: consensusSiteStatus});
           logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
-        }
+      }
+
     } catch (error) {
       logger.error(`Error checking site ${site.url}:`, error);
-      
-      // // Save error status
-      // await this.prisma.siteStatus.create({
-      //   data: {
-      //     siteId: site.id,
-      //     userId: site.userId,
-      //     isUp: false,
-      //     pingIsUp: false,
-      //     httpIsUp: false,
-      //     checkedAt: new Date(),
-      //     hasSsl: false,
-      //     pingResponseTime: null,
-      //     httpResponseTime: null,
-      //     overallUptime: 0,
-      //     pingUptime: 0,
-      //     httpUptime: 0
-      //   }
-      // });
     }
   }
-} 
+}
 
 const monitorService = new MonitorService();
 export default monitorService;
