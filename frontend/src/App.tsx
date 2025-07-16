@@ -22,6 +22,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import { SocketEventHandler } from './components/socket/SocketEventHandler';
 import { fetchAllSiteStatuses } from './store/slices/siteStatusSlice';
 import { fetchAllNotifications } from './store/slices/notificationSlice';
+import { fetchWorkers } from './store/slices/workerSlice';
 import Notifications from './pages/Notifications';
 
 // Helper function to update favicon
@@ -64,6 +65,7 @@ function AppContent() {
       dispatch(fetchSites());
       dispatch(fetchAllSiteStatuses());
       dispatch(fetchAllNotifications());
+      dispatch(fetchWorkers());
     }
   }, [dispatch, user]);
 
