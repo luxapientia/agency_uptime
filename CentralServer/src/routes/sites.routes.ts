@@ -457,6 +457,9 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
     where: { id },
     include: {
       statuses: {
+        where: {
+          workerId: "consensus_worker"
+        },
         orderBy: {
           checkedAt: 'desc'
         },
