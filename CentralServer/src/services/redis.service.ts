@@ -236,6 +236,64 @@ class RedisService {
       throw error;
     }
   }
+
+  /**
+   * Gets all active worker IDs from Redis
+   * @returns Array of worker IDs
+   */
+  async getWorkerIds(): Promise<string[]> {
+    try {
+      const workerKeys = await this.redis.keys('workers:*');
+      return workerKeys.map(workerKey => workerKey.split(':')[1]);
+    } catch (error) {
+      logger.error('Failed to get worker IDs from Redis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets detailed information about all active workers
+   * @returns Array of worker information objects
+   */
+  async getWorkersInfo(): Promise<Array<{
+    workerId: string;
+    region: string;
+    startedAt: string;
+    lastHeartbeat: string;
+    activeSites: number;
+  }>> {
+    try {
+      const workerKeys = await this.redis.keys('workers:*');
+      
+      if (!workerKeys.length) {
+        return [];
+      }
+
+      const workerPromises = workerKeys.map(async (workerKey) => {
+        const workerId = workerKey.split(':')[1];
+        const workerData = await this.redis.hmget(
+          workerKey,
+          'region',
+          'startedAt', 
+          'lastHeartbeat',
+          'activeSites'
+        );
+
+        return {
+          workerId,
+          region: workerData[0] || workerId,
+          startedAt: workerData[1] || '',
+          lastHeartbeat: workerData[2] || '',
+          activeSites: parseInt(workerData[3] || '0', 10)
+        };
+      });
+
+      return await Promise.all(workerPromises);
+    } catch (error) {
+      logger.error('Failed to get workers info from Redis:', error);
+      throw error;
+    }
+  }
 }
 
 export default new RedisService(); 
