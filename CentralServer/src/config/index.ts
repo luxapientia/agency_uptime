@@ -46,6 +46,9 @@ export interface Config {
     url: string;
     upstream: string;
   };
+  moonshot: {
+    apiKey: string;
+  }
 }
 
 export const config: Config = {
@@ -90,5 +93,8 @@ export const config: Config = {
   caddyApi: {
     url: process.env.CADDY_API_URL || 'http://localhost:2019',
     upstream: process.env.APP_UPSTREAM || 'localhost:3000'
+  },
+  moonshot: {
+    apiKey: process.env.MOONSHOT_API_KEY || '',
   }
 }; 
