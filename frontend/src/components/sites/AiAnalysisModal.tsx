@@ -14,7 +14,6 @@ import {
   Chip,
   Tabs,
   Tab,
-  Divider,
   useTheme,
   IconButton,
   Collapse,
@@ -183,6 +182,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    event.preventDefault();
     setTabValue(newValue);
     
     // Auto-fetch predictive data when switching to predictive tab
@@ -653,7 +653,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                               transition: 'all 0.3s ease',
                               '&:hover': {
                                 transform: 'translateY(-2px)',
-                                boxShadow: theme.shadows[4],
+                                boxShadow: theme.shadows[4]
                               }
                             }}>
                               <Stack spacing={3}>
