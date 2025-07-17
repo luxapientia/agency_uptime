@@ -12,9 +12,6 @@ import {
   useTheme,
   Card,
   CardContent,
-  Select,
-  MenuItem,
-  FormControl,
   Tooltip as MuiTooltip,
   Divider,
   LinearProgress,
@@ -74,7 +71,6 @@ export default function SiteDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [isGraphLoading, setIsGraphLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [timeRange, setTimeRange] = useState(24); // Default to 24 hours
   const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
 
@@ -89,7 +85,7 @@ export default function SiteDetails() {
       try {
         await Promise.all([
           dispatch(fetchSiteStatus(id)),
-          dispatch(fetchSiteStatusHistory({ siteId: id, hours: timeRange }))
+          dispatch(fetchSiteStatusHistory({ siteId: id}))
         ]);
       } catch (error) {
         console.error('Failed to fetch site data:', error);
@@ -100,7 +96,7 @@ export default function SiteDetails() {
     };
 
     loadSiteData();
-  }, [id, dispatch, timeRange]);
+  }, [id, dispatch]);
 
   const handleEditClick = () => {
     if (site) {
@@ -119,10 +115,6 @@ export default function SiteDetails() {
   const handleFormClose = () => {
     dispatch(setSelectedSite(null));
     setIsFormOpen(false);
-  };
-
-  const handleTimeRangeChange = (event: any) => {
-    setTimeRange(event.target.value);
   };
 
   const handleAiAnalysis = () => {
