@@ -43,12 +43,14 @@ import {
   ExpandLess as ExpandLessIcon,
   Hub as ConsensusIcon,
   Speed as SpeedIcon,
+  Psychology as AiIcon,
 } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import type { RootState } from '../store';
 import { fetchSiteStatus, fetchSiteStatusHistory } from '../store/slices/siteStatusSlice';
 import SiteForm from '../components/sites/SiteForm';
 import WorkerResponseTimeChart from '../components/sites/WorkerResponseTimeChart';
+import AiAnalysisModal from '../components/sites/AiAnalysisModal';
 import { setSelectedSite, updateSite } from '../store/slices/siteSlice';
 import type { CreateSiteData } from '../types/site.types';
 import type { AppDispatch } from '../store';
@@ -74,6 +76,7 @@ export default function SiteDetails() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [timeRange, setTimeRange] = useState(24); // Default to 24 hours
   const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
+  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
 
   useEffect(() => {
     const loadSiteData = async () => {
@@ -120,6 +123,14 @@ export default function SiteDetails() {
 
   const handleTimeRangeChange = (event: any) => {
     setTimeRange(event.target.value);
+  };
+
+  const handleAiAnalysis = () => {
+    setIsAiDialogOpen(true);
+  };
+
+  const handleCloseAiDialog = () => {
+    setIsAiDialogOpen(false);
   };
 
   // Get unique TCP ports from the status history
@@ -357,6 +368,23 @@ export default function SiteDetails() {
                       >
                         <RefreshIcon />
                       </IconButton>
+                    </MuiTooltip>
+                    <MuiTooltip title="AI Health Analysis">
+                      <Button
+                        onClick={handleAiAnalysis}
+                        startIcon={<AiIcon />}
+                        variant="outlined"
+                        sx={{
+                          borderColor: theme.palette.info.main,
+                          color: theme.palette.info.main,
+                          '&:hover': {
+                            borderColor: theme.palette.info.dark,
+                            backgroundColor: alpha(theme.palette.info.main, 0.1),
+                          }
+                        }}
+                      >
+                        AI Analysis
+                      </Button>
                     </MuiTooltip>
                     <Button
                       component="a"
@@ -933,6 +961,14 @@ export default function SiteDetails() {
         onClose={handleFormClose}
         onSubmit={handleFormSubmit}
         site={site}
+      />
+
+      {/* AI Analysis Modal */}
+      <AiAnalysisModal
+        open={isAiDialogOpen}
+        onClose={handleCloseAiDialog}
+        siteId={id || ''}
+        siteName={site.name}
       />
     </Box>
   );
