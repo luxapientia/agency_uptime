@@ -451,6 +451,7 @@ const getStatistics = async (req: AuthenticatedRequest, res: Response) => {
 
 // Get site status
 const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
+  try {
   const { id } = req.params;
 
   const site = await prisma.site.findUnique({
@@ -529,7 +530,11 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
     dnsUptime: Math.round(dnsUptime * 100) / 100
   };
 
-  res.status(200).json(statusWithUptime);
+    res.status(200).json(statusWithUptime);
+  } catch (error) {
+    logger.error('Failed to get site status:', error);
+    res.status(500).json({ error: 'Failed to get site status' });
+  }
 };
 
 // Get site status history
