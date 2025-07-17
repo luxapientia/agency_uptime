@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { Worker, WorkerState, WorkersResponse, WorkerIdsResponse } from '../../types/worker.types';
+import type { WorkerState, WorkersResponse, WorkerIdsResponse } from '../../types/worker.types';
 import axiosInstance from '../../lib/axios';
 import { showToast } from '../../utils/toast';
 
