@@ -132,7 +132,7 @@ export class MonitorService {
               pingIsUp: siteMonitorResult.pingCheck.isUp,
               httpIsUp: siteMonitorResult.httpCheck.isUp,
               dnsIsUp: siteMonitorResult.dnsCheck.isResolved,
-              checkedAt: new Date(siteMonitorResult.checkedAt),
+              checkedAt: checkedAt,
 
               // Response Times - handle both number and null values
               pingResponseTime: typeof siteMonitorResult.pingCheck.responseTime === 'number'
