@@ -280,7 +280,7 @@ export class MonitorService {
         }
       });
 
-      if (!previousConsensusStatus || previousConsensusStatus.isUp !== isUp) {
+      if (previousConsensusStatus && previousConsensusStatus.isUp !== isUp) {
         await notificationService.sendNotification(site.id, `Your site ${site.name} (${site.url}) is ${isUp ? 'up' : 'down'} at ${checkedAt.toISOString()}`, 'SITE_STATUS_UPDATE');
         socketService.sendToUser(site.userId, 'site_status_update', { siteId: site.id, status: consensusSiteStatus });
         logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
