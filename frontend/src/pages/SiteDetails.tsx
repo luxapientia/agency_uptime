@@ -17,6 +17,10 @@ import {
   LinearProgress,
   Badge,
   Collapse,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -73,6 +77,7 @@ export default function SiteDetails() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+  const [timeRange, setTimeRange] = useState(24); // Default to 24 hours
 
   useEffect(() => {
     const loadSiteData = async () => {
@@ -85,7 +90,7 @@ export default function SiteDetails() {
       try {
         await Promise.all([
           dispatch(fetchSiteStatus(id)),
-          dispatch(fetchSiteStatusHistory({ siteId: id}))
+          dispatch(fetchSiteStatusHistory({ siteId: id, hours: timeRange }))
         ]);
       } catch (error) {
         console.error('Failed to fetch site data:', error);
@@ -96,7 +101,7 @@ export default function SiteDetails() {
     };
 
     loadSiteData();
-  }, [id, dispatch]);
+  }, [id, dispatch, timeRange]);
 
   const handleEditClick = () => {
     if (site) {
@@ -123,6 +128,11 @@ export default function SiteDetails() {
 
   const handleCloseAiDialog = () => {
     setIsAiDialogOpen(false);
+  };
+
+  const handleTimeRangeChange = (event: any) => {
+    setTimeRange(event.target.value);
+    // The useEffect will automatically trigger a reload with the new time range
   };
 
   // Get unique TCP ports from the status history
@@ -347,8 +357,10 @@ export default function SiteDetails() {
                       <IconButton
                         onClick={() => {
                           setIsGraphLoading(true);
-                          dispatch(fetchSiteStatus(id || ''))
-                            .then(() => setIsGraphLoading(false));
+                          Promise.all([
+                            dispatch(fetchSiteStatus(id || '')),
+                            dispatch(fetchSiteStatusHistory({ siteId: id || '', hours: timeRange }))
+                          ]).then(() => setIsGraphLoading(false));
                         }}
                         sx={{
                           color: theme.palette.primary.main,
@@ -561,7 +573,13 @@ export default function SiteDetails() {
                 <Stack spacing={2}>
                   <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <SpeedIcon color="primary" />
-                    24-Hour Uptime Statistics
+                    {timeRange === 1 ? '1-Hour' : 
+                     timeRange === 6 ? '6-Hour' :
+                     timeRange === 12 ? '12-Hour' :
+                     timeRange === 24 ? '24-Hour' :
+                     timeRange === 48 ? '48-Hour' :
+                     timeRange === 72 ? '3-Day' :
+                     timeRange === 168 ? '7-Day' : `${timeRange}-Hour`} Uptime Statistics
                   </Typography>
 
                   <Stack
@@ -879,7 +897,7 @@ export default function SiteDetails() {
 
           {/* Worker Response Time Graphs */}
           <Stack spacing={3}>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
               <TimelineIcon
                 color="primary"
                 sx={{
@@ -902,6 +920,40 @@ export default function SiteDetails() {
                 Worker Response Times
               </Typography>
               <Box sx={{ flexGrow: 1 }} />
+              
+              {/* Time Range Selector */}
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel id="time-range-label">Time Range</InputLabel>
+                  <Select
+                    labelId="time-range-label"
+                    value={timeRange}
+                    label="Time Range"
+                    onChange={handleTimeRangeChange}
+                    disabled={isGraphLoading}
+                    sx={{
+                      backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: alpha(theme.palette.primary.main, 0.3),
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.primary.main,
+                      },
+                    }}
+                  >
+                    <MenuItem value={1}>1 Hour</MenuItem>
+                    <MenuItem value={6}>6 Hours</MenuItem>
+                    <MenuItem value={12}>12 Hours</MenuItem>
+                    <MenuItem value={24}>24 Hours</MenuItem>
+                    <MenuItem value={48}>48 Hours</MenuItem>
+                    <MenuItem value={72}>3 Days</MenuItem>
+                    <MenuItem value={168}>7 Days</MenuItem>
+                  </Select>
+                </FormControl>
+                {isGraphLoading && (
+                  <CircularProgress size={20} sx={{ color: theme.palette.primary.main }} />
+                )}
+              </Stack>
             </Stack>
 
             {/* Ping Response Time Chart */}

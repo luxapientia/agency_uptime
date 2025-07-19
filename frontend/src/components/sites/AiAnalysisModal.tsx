@@ -79,9 +79,47 @@ interface PredictiveSummary {
 interface DiagnosticResult {
   diagnosis: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
+  overallHealth?: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  performanceAnalysis?: {
+    responseTimeIssues?: string;
+    uptimeIssues?: string;
+    regionalIssues?: string;
+  };
+  securityAnalysis?: {
+    sslIssues?: string;
+    dnsIssues?: string;
+    tcpIssues?: string;
+  };
   recommendations: string[];
+  perWorkerRecommendations?: Array<{
+    workerId: string;
+    issues: string[];
+    recommendations: string[];
+  }>;
   predictedIssues?: string[];
   confidence: number;
+  anomalies?: string[];
+  tokenUsage: TokenUsage;
+}
+
+interface StatusPrediction {
+  predictedStatus: 'up' | 'down' | 'degraded';
+  confidence: number;
+  timeframe: string;
+  reasoning: string;
+  performancePrediction?: {
+    responseTime?: string;
+    uptime?: string;
+    reliability?: string;
+  };
+  riskFactors?: string[];
+  recommendations: string[];
+  perWorkerPredictions?: Array<{
+    workerId: string;
+    predictedStatus: 'up' | 'down' | 'degraded';
+    confidence: number;
+    reasoning: string;
+  }>;
   tokenUsage: TokenUsage;
 }
 
@@ -111,7 +149,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
   const [isPredictiveLoading, setIsPredictiveLoading] = useState(false);
   const [analysisData, setAnalysisData] = useState<{ analysis: DiagnosticResult; siteId: string; siteName: string; analyzedAt: string } | null>(null);
-  const [predictiveData, setPredictiveData] = useState<{ summary: PredictiveSummary; sitesAnalyzed: number; period: string; generatedAt: string } | null>(null);
+  const [predictiveData, setPredictiveData] = useState<{ prediction: StatusPrediction; siteId: string; siteName: string; timeframe: string; predictedAt: string } | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [predictiveError, setPredictiveError] = useState<string | null>(null);
   const [showTokenDetails, setShowTokenDetails] = useState(false);
@@ -162,9 +200,9 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
     setPredictiveError(null);
     
     try {
-      const response = await axios.post('/ai/predictive-summary', {
-        siteIds: [siteId],
-        period: '24h'
+      const response = await axios.post('/ai/predict-site', {
+        siteId: siteId,
+        timeframe: '24h'
       });
       
       if (response.data.success) {
@@ -282,6 +320,47 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
       </Box>
 
       <DialogContent sx={{ p: 0, minHeight: 450 }}>
+        {/* Information Banner */}
+        <Box sx={{ 
+          p: 2, 
+          bgcolor: alpha(theme.palette.info.main, 0.05), 
+          borderBottom: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}>
+          <InfoIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />
+          <Stack spacing={1} sx={{ flex: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Monitoring System:</strong> Your site is monitored from multiple regions worldwide.
+            </Typography>
+            <Stack direction="row" spacing={3} alignItems="center">
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  backgroundColor: theme.palette.secondary.main
+                }} />
+                <Typography variant="caption" color="text.secondary">
+                  Regional monitoring
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  backgroundColor: theme.palette.primary.main
+                }} />
+                <Typography variant="caption" color="text.secondary">
+                  Combined analysis
+                </Typography>
+              </Stack>
+            </Stack>
+          </Stack>
+        </Box>
+
         {/* Site Analysis Tab */}
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ p: 3 }}>
@@ -483,6 +562,256 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                   </Card>
                 )}
 
+                {/* Overall Health Status */}
+                {analysisData.analysis?.overallHealth && (
+                  <Card sx={{ 
+                    p: 3, 
+                    bgcolor: alpha(theme.palette.info.main, 0.05), 
+                    border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: theme.shadows[4],
+                    }
+                  }}>
+                    <Stack spacing={3}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Box sx={{
+                          p: 1,
+                          borderRadius: 1,
+                          backgroundColor: alpha(theme.palette.info.main, 0.15),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <TrendingUpIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />
+                        </Box>
+                        <Stack>
+                          <Typography variant="subtitle1" fontWeight={600} color="info.main">
+                            Overall Health Status
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Combined analysis from all monitoring regions
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                      
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Typography variant="body1" fontWeight={600} color="text.primary">
+                          Health Level:
+                        </Typography>
+                        <Chip
+                          label={analysisData.analysis.overallHealth.toUpperCase()}
+                          sx={{
+                            backgroundColor: 
+                              analysisData.analysis.overallHealth === 'excellent' ? theme.palette.success.main :
+                              analysisData.analysis.overallHealth === 'good' ? theme.palette.info.main :
+                              analysisData.analysis.overallHealth === 'fair' ? theme.palette.warning.main :
+                              analysisData.analysis.overallHealth === 'poor' ? theme.palette.error.main :
+                              theme.palette.grey[500],
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.875rem'
+                          }}
+                        />
+                      </Stack>
+                    </Stack>
+                  </Card>
+                )}
+
+                {/* Performance Analysis */}
+                {analysisData.analysis?.performanceAnalysis && (
+                  <Card sx={{ 
+                    p: 3, 
+                    bgcolor: alpha(theme.palette.primary.main, 0.05), 
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: theme.shadows[4],
+                    }
+                  }}>
+                    <Stack spacing={3}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Box sx={{
+                          p: 1,
+                          borderRadius: 1,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <TrendingUpIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight={600} color="primary.main">
+                          Performance Analysis
+                        </Typography>
+                      </Stack>
+                      
+                      <Stack spacing={3}>
+                        {analysisData.analysis.performanceAnalysis.responseTimeIssues && (
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                              Response Time Issues:
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                              {analysisData.analysis.performanceAnalysis.responseTimeIssues}
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {analysisData.analysis.performanceAnalysis.uptimeIssues && (
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                              Uptime Issues:
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                              {analysisData.analysis.performanceAnalysis.uptimeIssues}
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {analysisData.analysis.performanceAnalysis.regionalIssues && (
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                              Regional Issues:
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                              {analysisData.analysis.performanceAnalysis.regionalIssues}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Stack>
+                  </Card>
+                )}
+
+                {/* Security Analysis */}
+                {analysisData.analysis?.securityAnalysis && (
+                  <Card sx={{ 
+                    p: 3, 
+                    bgcolor: alpha(theme.palette.warning.main, 0.05), 
+                    border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: theme.shadows[4],
+                    }
+                  }}>
+                    <Stack spacing={3}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Box sx={{
+                          p: 1,
+                          borderRadius: 1,
+                          backgroundColor: alpha(theme.palette.warning.main, 0.15),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <ShieldIcon sx={{ color: theme.palette.warning.main, fontSize: 20 }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight={600} color="warning.main">
+                          Security Analysis
+                        </Typography>
+                      </Stack>
+                      
+                      <Stack spacing={3}>
+                        {analysisData.analysis.securityAnalysis.sslIssues && (
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                              SSL Issues:
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                              {analysisData.analysis.securityAnalysis.sslIssues}
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {analysisData.analysis.securityAnalysis.dnsIssues && (
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                              DNS Issues:
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                              {analysisData.analysis.securityAnalysis.dnsIssues}
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {analysisData.analysis.securityAnalysis.tcpIssues && (
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                              TCP Issues:
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                              {analysisData.analysis.securityAnalysis.tcpIssues}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Stack>
+                  </Card>
+                )}
+
+                {/* Anomalies */}
+                {analysisData.analysis?.anomalies && analysisData.analysis.anomalies.length > 0 && (
+                  <Card sx={{ 
+                    p: 3, 
+                    bgcolor: alpha(theme.palette.error.main, 0.05), 
+                    border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: theme.shadows[4],
+                    }
+                  }}>
+                    <Stack spacing={3}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Box sx={{
+                          p: 1,
+                          borderRadius: 1,
+                          backgroundColor: alpha(theme.palette.error.main, 0.15),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <WarningIcon sx={{ color: theme.palette.error.main, fontSize: 20 }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight={600} color="error.main">
+                          Detected Anomalies
+                        </Typography>
+                      </Stack>
+                      
+                      <Stack spacing={2}>
+                        {analysisData.analysis.anomalies.map((anomaly: string, index: number) => (
+                          <Stack key={index} direction="row" spacing={2} alignItems="flex-start">
+                            <Box sx={{
+                              p: 0.5,
+                              borderRadius: '50%',
+                              backgroundColor: alpha(theme.palette.error.main, 0.2),
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minWidth: 24,
+                              height: 24,
+                              mt: 0.25
+                            }}>
+                              <WarningIcon sx={{ fontSize: 14, color: theme.palette.error.main }} />
+                            </Box>
+                            <Typography variant="body1" sx={{ lineHeight: 1.6, flex: 1 }}>
+                              {anomaly}
+                            </Typography>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </Card>
+                )}
+
                 {/* Predicted Issues */}
                 {analysisData.analysis?.predictedIssues && analysisData.analysis.predictedIssues.length > 0 && (
                   <Card sx={{ p: 3, bgcolor: alpha(theme.palette.warning.main, 0.05), border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}` }}>
@@ -579,25 +908,19 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                   </Box>
                   <Stack>
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      Predictive Summary
+                      Predictive Analysis
                     </Typography>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
                       <Stack direction="row" spacing={1} alignItems="center">
                         <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                         <Typography variant="body2" color="text.secondary">
-                          {new Date(predictiveData.generatedAt).toLocaleString()}
+                          {new Date(predictiveData.predictedAt).toLocaleString()}
                         </Typography>
                       </Stack>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <ScheduleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                         <Typography variant="body2" color="text.secondary">
-                          {predictiveData.period}
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <AnalysisIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                        <Typography variant="body2" color="text.secondary">
-                          {predictiveData.sitesAnalyzed} sites
+                          {predictiveData.timeframe}
                         </Typography>
                       </Stack>
                     </Stack>
@@ -605,46 +928,155 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                 </Stack>
 
                 {/* Summary Content */}
-                {predictiveData.summary && (
+                {predictiveData.prediction && (
                   <Stack spacing={3}>
                     {/* Overall Health Status */}
                     <Card sx={{ p: 3, bgcolor: alpha(theme.palette.primary.main, 0.05), border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` }}>
                       <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <PredictiveIcon color="primary" />
-                        AI Predictive Analysis - {predictiveData.period}
+                        AI Predictive Analysis - {predictiveData.timeframe}
                       </Typography>
                       
-                      {/* Overall Health Badge */}
-                      {predictiveData.summary.overallHealth && (
-                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                          <Typography variant="subtitle2" fontWeight={600}>
-                            Overall Health:
-                          </Typography>
-                          <Chip
-                            label={predictiveData.summary.overallHealth.toUpperCase()}
-                            sx={{
-                              backgroundColor: 
-                                predictiveData.summary.overallHealth === 'excellent' ? theme.palette.success.main :
-                                predictiveData.summary.overallHealth === 'good' ? theme.palette.info.main :
-                                predictiveData.summary.overallHealth === 'fair' ? theme.palette.warning.main :
-                                predictiveData.summary.overallHealth === 'poor' ? theme.palette.error.main :
-                                theme.palette.grey[500],
-                              color: 'white',
-                              fontWeight: 600,
-                            }}
-                          />
-                        </Stack>
-                      )}
-                      
-                      {/* Handle different summary formats */}
-                      {typeof predictiveData.summary === 'string' ? (
+                      {/* Handle different prediction formats */}
+                      {typeof predictiveData.prediction === 'string' ? (
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                          {predictiveData.summary}
+                          {predictiveData.prediction}
                         </Typography>
-                      ) : predictiveData.summary && typeof predictiveData.summary === 'object' ? (
+                      ) : predictiveData.prediction && typeof predictiveData.prediction === 'object' ? (
                         <Stack spacing={3}>
-                          {/* Key Insights */}
-                          {predictiveData.summary.keyInsights && predictiveData.summary.keyInsights.length > 0 && (
+                          {/* Predicted Status */}
+                          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" fontWeight={600}>
+                              Predicted Status:
+                            </Typography>
+                            <Chip
+                              label={predictiveData.prediction.predictedStatus.toUpperCase()}
+                              sx={{
+                                backgroundColor: 
+                                  predictiveData.prediction.predictedStatus === 'up' ? theme.palette.success.main :
+                                  predictiveData.prediction.predictedStatus === 'degraded' ? theme.palette.warning.main :
+                                  theme.palette.error.main,
+                                color: 'white',
+                                fontWeight: 600,
+                              }}
+                            />
+                            <Chip
+                              label={`${Math.round(predictiveData.prediction.confidence * 100)}% confidence`}
+                              size="small"
+                              sx={{
+                                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                color: theme.palette.primary.main,
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Stack>
+
+                          {/* Reasoning */}
+                          {predictiveData.prediction.reasoning && (
+                            <Card sx={{ 
+                              p: 3, 
+                              bgcolor: alpha(theme.palette.info.main, 0.05), 
+                              border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                              borderRadius: 2,
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: theme.shadows[4],
+                              }
+                            }}>
+                              <Stack spacing={3}>
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                  <Box sx={{
+                                    p: 1,
+                                    borderRadius: 1,
+                                    backgroundColor: alpha(theme.palette.info.main, 0.15),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}>
+                                    <InsightIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />
+                                  </Box>
+                                  <Typography variant="subtitle1" fontWeight={600} color="info.main">
+                                    Prediction Reasoning
+                                  </Typography>
+                                </Stack>
+                                <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                                  {predictiveData.prediction.reasoning}
+                                </Typography>
+                              </Stack>
+                            </Card>
+                          )}
+
+                          {/* Performance Prediction */}
+                          {predictiveData.prediction.performancePrediction && (
+                            <Card sx={{ 
+                              p: 3, 
+                              bgcolor: alpha(theme.palette.primary.main, 0.05), 
+                              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                              borderRadius: 2,
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: theme.shadows[4],
+                              }
+                            }}>
+                              <Stack spacing={3}>
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                  <Box sx={{
+                                    p: 1,
+                                    borderRadius: 1,
+                                    backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}>
+                                    <TrendingUpIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
+                                  </Box>
+                                  <Typography variant="subtitle1" fontWeight={600} color="primary.main">
+                                    Performance Prediction
+                                  </Typography>
+                                </Stack>
+                                
+                                <Stack spacing={3}>
+                                  {predictiveData.prediction.performancePrediction.responseTime && (
+                                    <Box>
+                                      <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                                        Response Time:
+                                      </Typography>
+                                      <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                                        {predictiveData.prediction.performancePrediction.responseTime}
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                  
+                                  {predictiveData.prediction.performancePrediction.uptime && (
+                                    <Box>
+                                      <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                                        Uptime:
+                                      </Typography>
+                                      <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                                        {predictiveData.prediction.performancePrediction.uptime}
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                  
+                                  {predictiveData.prediction.performancePrediction.reliability && (
+                                    <Box>
+                                      <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
+                                        Reliability:
+                                      </Typography>
+                                      <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                                        {predictiveData.prediction.performancePrediction.reliability}
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                </Stack>
+                              </Stack>
+                            </Card>
+                          )}
+
+                          {/* Risk Factors */}
+                          {predictiveData.prediction.riskFactors && predictiveData.prediction.riskFactors.length > 0 && (
                             <Card sx={{ 
                               p: 3, 
                               bgcolor: alpha(theme.palette.info.main, 0.05), 
@@ -668,13 +1100,13 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                   }}>
                                     <InsightIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />
                                   </Box>
-                                  <Typography variant="subtitle1" fontWeight={600} color="info.main">
-                                    Key Insights
+                                  <Typography variant="subtitle1" fontWeight={600} color="error.main">
+                                    Risk Factors
                                   </Typography>
                                 </Stack>
                                 
                                 <Stack spacing={2}>
-                                  {predictiveData.summary.keyInsights.map((insight: string, index: number) => (
+                                  {predictiveData.prediction.riskFactors.map((risk: string, index: number) => (
                                     <Stack key={index} direction="row" spacing={2} alignItems="flex-start" sx={{
                                       p: 2,
                                       borderRadius: 1.5,
@@ -695,7 +1127,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                         <InsightIcon sx={{ fontSize: 14, color: theme.palette.info.main }} />
                                       </Box>
                                       <Typography variant="body1" sx={{ lineHeight: 1.6, flex: 1 }}>
-                                        {insight}
+                                        {risk}
                                       </Typography>
                                     </Stack>
                                   ))}
@@ -704,93 +1136,127 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                             </Card>
                           )}
                           
-                          {/* Upcoming Risks */}
-                          {predictiveData.summary.upcomingRisks && predictiveData.summary.upcomingRisks.length > 0 && (
-                            <Box>
-                              <Stack direction="row" spacing={2} alignItems="center">
-                                <Box sx={{
-                                  p: 1,
-                                  borderRadius: 1,
-                                  backgroundColor: alpha(theme.palette.error.main, 0.15),
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}>
-                                  <RiskIcon sx={{ color: theme.palette.error.main, fontSize: 20 }} />
-                                </Box>
-                                <Typography variant="subtitle1" fontWeight={600} color="error.main">
-                                  Upcoming Risks
-                                </Typography>
-                              </Stack>
-                              <Stack spacing={2} sx={{ mt: 2 }}>
-                                {predictiveData.summary.upcomingRisks.map((risk: {
-                                  risk: string;
-                                  probability: number;
-                                  timeframe: string;
-                                  mitigation: string;
-                                }, index: number) => (
-                                  <Card key={index} sx={{ p: 3, bgcolor: alpha(theme.palette.error.main, 0.05), border: `1px solid ${alpha(theme.palette.error.main, 0.2)}` }}>
-                                    <Stack spacing={2}>
-                                      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                          {/* Regional Predictions */}
+                          {predictiveData.prediction.perWorkerPredictions && predictiveData.prediction.perWorkerPredictions.length > 0 && (
+                            <Card sx={{ 
+                              p: 3, 
+                              bgcolor: alpha(theme.palette.secondary.main, 0.05), 
+                              border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+                              borderRadius: 2,
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: theme.shadows[4],
+                              }
+                            }}>
+                              <Stack spacing={3}>
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                  <Box sx={{
+                                    p: 1,
+                                    borderRadius: 1,
+                                    backgroundColor: alpha(theme.palette.secondary.main, 0.15),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}>
+                                    <AnalysisIcon sx={{ color: theme.palette.secondary.main, fontSize: 20 }} />
+                                  </Box>
+                                  <Stack>
+                                    <Typography variant="subtitle1" fontWeight={600} color="secondary.main">
+                                      Regional Predictions
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                      Predicted status for each monitoring region
+                                    </Typography>
+                                  </Stack>
+                                </Stack>
+                                
+                                <Stack spacing={3}>
+                                  {predictiveData.prediction.perWorkerPredictions.map((worker: any, index: number) => (
+                                    <Box key={index} sx={{
+                                      p: 2,
+                                      borderRadius: 1.5,
+                                      backgroundColor: alpha(theme.palette.secondary.main, 0.03),
+                                      border: `1px solid ${alpha(theme.palette.secondary.main, 0.1)}`,
+                                      position: 'relative'
+                                    }}>
+                                      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
                                         <Box sx={{
                                           p: 0.5,
                                           borderRadius: '50%',
-                                          backgroundColor: alpha(theme.palette.error.main, 0.2),
+                                          backgroundColor: worker.workerId === 'consensus_worker' 
+                                            ? alpha(theme.palette.primary.main, 0.2)
+                                            : alpha(theme.palette.secondary.main, 0.2),
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
                                           minWidth: 32,
                                           height: 32
                                         }}>
-                                          <RiskIcon sx={{ color: theme.palette.error.main, fontSize: 18 }} />
+                                          {worker.workerId === 'consensus_worker' ? (
+                                            <TrendingUpIcon sx={{ 
+                                              fontSize: 18, 
+                                              color: theme.palette.primary.main 
+                                            }} />
+                                          ) : (
+                                            <AnalysisIcon sx={{ 
+                                              fontSize: 18, 
+                                              color: theme.palette.secondary.main 
+                                            }} />
+                                          )}
                                         </Box>
-                                        <Typography variant="body1" fontWeight={600} sx={{ flex: 1 }}>
-                                          {risk.risk}
-                                        </Typography>
-                                        <Chip
-                                          label={`${Math.round(risk.probability * 100)}% probability`}
-                                          size="small"
-                                          sx={{
-                                            backgroundColor: theme.palette.error.main,
-                                            color: '#ffffff',
-                                            fontWeight: 600,
-                                          }}
-                                        />
+                                        <Stack sx={{ flex: 1 }}>
+                                          <Typography variant="subtitle2" fontWeight={600} color="text.primary">
+                                            {worker.workerId === 'consensus_worker' 
+                                              ? 'Combined Prediction (All Regions)' 
+                                              : `Monitoring Region: ${worker.workerId}`
+                                            }
+                                          </Typography>
+                                          {worker.workerId === 'consensus_worker' && (
+                                            <Typography variant="caption" color="text.secondary">
+                                              Overall prediction combining all regional data
+                                            </Typography>
+                                          )}
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}>
+                                          <Chip
+                                            label={worker.predictedStatus.toUpperCase()}
+                                            size="small"
+                                            sx={{
+                                              backgroundColor: 
+                                                worker.predictedStatus === 'up' ? theme.palette.success.main :
+                                                worker.predictedStatus === 'degraded' ? theme.palette.warning.main :
+                                                theme.palette.error.main,
+                                              color: 'white',
+                                              fontWeight: 600,
+                                            }}
+                                          />
+                                          <Chip
+                                            label={`${Math.round(worker.confidence * 100)}%`}
+                                            size="small"
+                                            sx={{
+                                              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                              color: theme.palette.primary.main,
+                                              fontWeight: 600,
+                                            }}
+                                          />
+                                        </Stack>
                                       </Stack>
                                       
-                                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                                        <Box sx={{ flex: 1 }}>
-                                          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                                            <ScheduleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                                              Timeframe:
-                                            </Typography>
-                                          </Stack>
-                                          <Typography variant="body1">
-                                            {risk.timeframe}
-                                          </Typography>
-                                        </Box>
-                                        <Box sx={{ flex: 1 }}>
-                                          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                                            <ShieldIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                            <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                                              Mitigation:
-                                            </Typography>
-                                          </Stack>
-                                          <Typography variant="body1">
-                                            {risk.mitigation}
-                                          </Typography>
-                                        </Box>
-                                      </Stack>
-                                    </Stack>
-                                  </Card>
-                                ))}
+                                      {worker.reasoning && (
+                                        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                                          {worker.reasoning}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                  ))}
+                                </Stack>
                               </Stack>
-                            </Box>
+                            </Card>
                           )}
                           
                           {/* Recommendations */}
-                          {predictiveData.summary.recommendations && predictiveData.summary.recommendations.length > 0 && (
+                          {predictiveData.prediction.recommendations && predictiveData.prediction.recommendations.length > 0 && (
                             <Card sx={{ 
                               p: 3, 
                               bgcolor: alpha(theme.palette.success.main, 0.05), 
@@ -820,7 +1286,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                 </Stack>
                                 
                                 <Stack spacing={2}>
-                                  {predictiveData.summary.recommendations.map((recommendation: string, index: number) => (
+                                  {predictiveData.prediction.recommendations.map((recommendation: string, index: number) => (
                                     <Stack key={index} direction="row" spacing={2} alignItems="flex-start" sx={{
                                       p: 2,
                                       borderRadius: 1.5,
@@ -853,30 +1319,30 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                         </Stack>
                       ) : (
                         <Typography variant="body1" color="text.secondary">
-                          No summary data available
+                          No prediction data available
                         </Typography>
                       )}
                     </Card>
 
                     {/* Token Usage Information */}
-                    {predictiveData.summary.tokenUsage && (
+                    {predictiveData.prediction.tokenUsage && (
                       <Card sx={{ p: 2, bgcolor: alpha(theme.palette.grey[500], 0.05) }}>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
                           Analysis Details:
                         </Typography>
                         <Stack direction="row" spacing={3} flexWrap="wrap" alignItems="center">
                           <Typography variant="body2" color="text.secondary">
-                            Total tokens: {predictiveData.summary.tokenUsage.total}
+                            Total tokens: {predictiveData.prediction.tokenUsage.total}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Input: {predictiveData.summary.tokenUsage.prompt}
+                            Input: {predictiveData.prediction.tokenUsage.prompt}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Output: {predictiveData.summary.tokenUsage.completion}
+                            Output: {predictiveData.prediction.tokenUsage.completion}
                           </Typography>
-                          {predictiveData.summary.tokenUsage.cacheHits && (
+                          {predictiveData.prediction.tokenUsage.cacheHits && (
                             <Typography variant="body2" color="success.main">
-                              Cache hits: {predictiveData.summary.tokenUsage.cacheHits}
+                              Cache hits: {predictiveData.prediction.tokenUsage.cacheHits}
                             </Typography>
                           )}
                         </Stack>
@@ -888,14 +1354,14 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
             ) : (
               <Box sx={{ textAlign: 'center', py: 6 }}>
                 <Typography variant="body1" color="text.secondary" gutterBottom>
-                  No predictive summary available
+                  No predictive analysis available
                 </Typography>
                 <Button 
                   onClick={fetchPredictiveSummary}
                   startIcon={<PredictiveIcon />}
                   variant="contained"
                 >
-                  Generate Summary
+                  Generate Prediction
                 </Button>
               </Box>
             )}

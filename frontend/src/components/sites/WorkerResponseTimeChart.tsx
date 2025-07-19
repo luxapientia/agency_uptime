@@ -142,7 +142,9 @@ export default function WorkerResponseTimeChart({
         const timeGroups: { [key: string]: { [workerId: string]: number | null } } = {};
 
         siteStatuses.forEach(status => {
-            const timestamp = new Date(status.checkedAt).toLocaleTimeString([], {
+            const timestamp = new Date(status.checkedAt).toLocaleString([], {
+                month: '2-digit',
+                day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false
@@ -601,17 +603,17 @@ export default function WorkerResponseTimeChart({
 
                                 <XAxis
                                     dataKey="timestamp"
-                                    angle={0}
-                                    textAnchor="middle"
-                                    height={45}
+                                    angle={-45}
+                                    textAnchor="end"
+                                    height={80}
                                     tick={{
                                         fill: theme.palette.text.secondary,
                                         fontSize: 11,
                                         fontWeight: 500,
                                     }}
-                                    stroke={alpha(theme.palette.divider, 0.5)}
+                                    stroke={alpha(theme.palette.divider, 0.3)}
                                     strokeWidth={1}
-                                    tickMargin={12}
+                                    tickMargin={25}
                                     interval="preserveStartEnd"
                                     axisLine={true}
                                 />
@@ -650,16 +652,7 @@ export default function WorkerResponseTimeChart({
                                     }}
                                 />
 
-                                <Legend
-                                    verticalAlign="top"
-                                    height={40}
-                                    wrapperStyle={{
-                                        paddingBottom: '24px',
-                                        fontSize: '0.8rem',
-                                        fontWeight: 500,
-                                    }}
-                                    iconType="circle"
-                                />
+
 
                                 {/* Reference area for zoom selection */}
                                 {refAreaLeft && refAreaRight && (
@@ -680,7 +673,7 @@ export default function WorkerResponseTimeChart({
                                         dataKey={workerId}
                                         fill={`url(#gradient-${workerId})`}
                                         stroke="none"
-                                        connectNulls={false}
+                                        connectNulls={true}
                                         animationDuration={1200}
                                         animationEasing="ease-out"
                                     />
@@ -710,7 +703,7 @@ export default function WorkerResponseTimeChart({
                                                 filter: `drop-shadow(0 0 6px ${alpha(getWorkerColor(workerId, activeWorkers), 0.6)})`,
                                             }}
                                             name={getWorkerDisplayName(workerId)}
-                                            connectNulls={false}
+                                            connectNulls={true}
                                             animationDuration={1200}
                                             animationEasing="ease-out"
                                         />

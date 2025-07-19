@@ -540,7 +540,7 @@ const getSiteStatus = async (req: AuthenticatedRequest, res: Response) => {
 // Get site status history
 const getSiteStatusHistory = async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
-  const { hours = 24 } = req.query; // Default to 24 hours
+  const hours = parseInt(req.query.hours as string) || 24; // Default to 24 hours
 
   try {
     const site = await prisma.site.findUnique({
@@ -557,12 +557,14 @@ const getSiteStatusHistory = async (req: AuthenticatedRequest, res: Response) =>
       return;
     }
 
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    // Calculate the time range based on hours parameter
+    const timeRange = new Date(Date.now() - hours * 60 * 60 * 1000);
+    
     const statusHistory = await prisma.siteStatus.findMany({
       where: {
         siteId: id,
         checkedAt: {
-          gte: threeDaysAgo
+          gte: timeRange
         }
       },
       orderBy: {
