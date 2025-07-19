@@ -202,13 +202,13 @@ export class MonitorService {
       }
 
       const isDownCount = validResults.filter(result => !result.isUp).length;
-      const isUp = !(validResults.length >= 2 ? (isDownCount >= 2) : false);
+      const isUp = !(validResults.length >= 2 ? (isDownCount >= 2) : !validResults[0].isUp);
       const pingIsDownCount = validResults.filter(result => !result.pingIsUp).length;
-      const pingIsUp = !(validResults.length >= 2 ? (pingIsDownCount >= 2) : false);
+      const pingIsUp = !(validResults.length >= 2 ? (pingIsDownCount >= 2) : !validResults[0].pingIsUp);
       const httpIsDownCount = validResults.filter(result => !result.httpIsUp).length;
-      const httpIsUp = !(validResults.length >= 2 ? (httpIsDownCount >= 2) : false);
+      const httpIsUp = !(validResults.length >= 2 ? (httpIsDownCount >= 2) : !validResults[0].httpIsUp);
       const dnsIsDownCount = validResults.filter(result => !result.dnsIsUp).length;
-      const dnsIsUp = !(validResults.length >= 2 ? (dnsIsDownCount >= 2) : false);
+      const dnsIsUp = !(validResults.length >= 2 ? (dnsIsDownCount >= 2) : !validResults[0].dnsIsUp);
 
       // Get SSL info from first worker that has SSL data
       const sslWorker = validResults.find(status => status.hasSsl);
@@ -284,6 +284,8 @@ export class MonitorService {
         socketService.sendToUser(site.userId, 'site_status_update', { siteId: site.id, status: consensusSiteStatus });
         await notificationService.sendNotification(site.id,  `Your site ${site.name} (${site.url}) is ${isUp ? 'up' : 'down'} at ${checkedAt.toISOString()}`, 'SITE_STATUS_UPDATE');
         logger.info(`Sent status update via socket for site ${site.url} to user ${site.userId}`);
+      } else if (!previousConsensusStatus) {
+        socketService.sendToUser(site.userId, 'site_status_update', { siteId: site.id, status: consensusSiteStatus });
       }
 
     } catch (error) {
