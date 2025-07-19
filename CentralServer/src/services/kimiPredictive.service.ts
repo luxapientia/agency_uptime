@@ -283,21 +283,21 @@ Provide detailed analysis in JSON format:
    */
   async predictSiteStatus(siteId: string, timeframe: string = '24h'): Promise<StatusPrediction> {
     try {
-      // Get historical status data from the last 3 days for prediction
-      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      // Get historical status data from the last 7 days for more comprehensive analysis
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       
       const statuses = await prisma.siteStatus.findMany({
         where: { 
           siteId,
           checkedAt: {
-            gte: threeDaysAgo
+            gte: sevenDaysAgo
           }
         },
         orderBy: { checkedAt: 'desc' }
       });
 
       if (statuses.length === 0) {
-        throw new Error('No historical data available for this site in the last 3 days');
+        throw new Error('No historical data available for this site in the last 7 days');
       }
 
       // Get site info
@@ -318,12 +318,12 @@ Provide detailed analysis in JSON format:
         workers.get(status.workerId)!.push(status);
       });
 
-      // Analyze historical patterns for each worker
+      // Enhanced analysis for each worker
       const workerPredictions = Array.from(workers.entries()).map(([workerId, workerStatuses]) => {
-        const recent = workerStatuses.slice(0, 20);
-        const historical = workerStatuses.slice(0, 100);
+        const recent = workerStatuses.slice(0, 50); // Last 50 checks
+        const historical = workerStatuses.slice(0, 200); // Last 200 checks
 
-        // Calculate trend metrics
+        // Calculate comprehensive metrics
         const recentAvg = recent.reduce((sum, s) => sum + (s.httpResponseTime || 0), 0) / recent.length;
         const historicalAvg = historical.reduce((sum, s) => sum + (s.httpResponseTime || 0), 0) / historical.length;
         const responseTimeTrend = recentAvg - historicalAvg;
@@ -332,10 +332,19 @@ Provide detailed analysis in JSON format:
         const historicalUptime = (historical.filter(s => s.isUp).length / historical.length) * 100;
         const uptimeTrend = recentUptime - historicalUptime;
 
-        // Detect patterns
-        const failurePatterns = this.detectFailurePatterns(historical);
-        const performanceDegradation = responseTimeTrend > 100; // 100ms increase
-        const reliabilityDecline = uptimeTrend < -5; // 5% decline
+        // Enhanced pattern detection
+        const failurePatterns = this.detectDetailedFailurePatterns(historical);
+        const performanceDegradation = responseTimeTrend > 100;
+        const reliabilityDecline = uptimeTrend < -5;
+
+        // Time-based analysis
+        const hourlyPatterns = this.analyzeHourlyPatterns(historical);
+        const dailyPatterns = this.analyzeDailyPatterns(historical);
+        const weeklyPatterns = this.analyzeWeeklyPatterns(historical);
+
+        // DNS and SSL analysis
+        const dnsIssues = historical.filter(s => s.dnsResponseTime && s.dnsResponseTime > 5000).length;
+        const sslIssues = historical.filter(s => s.sslDaysUntilExpiry && s.sslDaysUntilExpiry < 30).length;
 
         return {
           workerId,
@@ -347,34 +356,36 @@ Provide detailed analysis in JSON format:
           failurePatterns,
           performanceDegradation,
           reliabilityDecline,
-          recentFailures: recent.filter(s => !s.isUp).length
+          recentFailures: recent.filter(s => !s.isUp).length,
+          hourlyPatterns,
+          dailyPatterns,
+          weeklyPatterns,
+          dnsIssues,
+          sslIssues,
+          lastFailureTime: recent.find(s => !s.isUp)?.checkedAt,
+          consecutiveFailures: this.getConsecutiveFailures(recent),
+          recoveryTime: this.calculateAverageRecoveryTime(historical)
         };
       });
 
-      // Calculate overall trends
+      // Calculate comprehensive overall trends
       const allWorkers = workerPredictions.filter(w => w.workerId !== 'consensus_worker');
       const overallResponseTimeTrend = allWorkers.reduce((sum, w) => sum + w.responseTimeTrend, 0) / allWorkers.length;
       const overallUptimeTrend = allWorkers.reduce((sum, w) => sum + w.uptimeTrend, 0) / allWorkers.length;
       const totalRecentFailures = allWorkers.reduce((sum, w) => sum + w.recentFailures, 0);
+      const totalDnsIssues = allWorkers.reduce((sum, w) => sum + w.dnsIssues, 0);
+      const totalSslIssues = allWorkers.reduce((sum, w) => sum + w.sslIssues, 0);
 
-      // Predict overall status
-      let predictedStatus: 'up' | 'down' | 'degraded' = 'up';
-      let confidence = 0.8;
-      let reasoning = '';
-
-      if (overallUptimeTrend < -10 || totalRecentFailures > 5) {
-        predictedStatus = 'down';
-        confidence = 0.9;
-        reasoning = 'Significant decline in uptime and multiple recent failures indicate potential downtime';
-      } else if (overallResponseTimeTrend > 200 || overallUptimeTrend < -5) {
-        predictedStatus = 'degraded';
-        confidence = 0.85;
-        reasoning = 'Performance degradation and slight uptime decline suggest service degradation';
-      } else {
-        predictedStatus = 'up';
-        confidence = 0.9;
-        reasoning = 'Stable performance and uptime patterns suggest continued availability';
-      }
+      // Enhanced prediction logic with specific failure reasons
+      const predictionAnalysis = this.analyzeDetailedPrediction(
+        workerPredictions,
+        overallResponseTimeTrend,
+        overallUptimeTrend,
+        totalRecentFailures,
+        totalDnsIssues,
+        totalSslIssues,
+        timeframe
+      );
 
       // Prepare comprehensive prediction data
       const predictionData = {
@@ -384,16 +395,21 @@ Provide detailed analysis in JSON format:
           id: siteId
         },
         timeframe,
-        dataPeriod: 'Last 3 days',
+        dataPeriod: 'Last 7 days',
         overallTrends: {
           responseTimeTrend: Math.round(overallResponseTimeTrend),
           uptimeTrend: Math.round(overallUptimeTrend),
           totalRecentFailures,
-          predictedStatus,
-          confidence
+          totalDnsIssues,
+          totalSslIssues,
+          predictedStatus: predictionAnalysis.predictedStatus,
+          confidence: predictionAnalysis.confidence
         },
         workerPredictions,
-        historicalPatterns: this.analyzeHistoricalPatterns(statuses)
+        historicalPatterns: this.analyzeHistoricalPatterns(statuses),
+        failureAnalysis: predictionAnalysis.failureAnalysis,
+        timeBasedRisks: predictionAnalysis.timeBasedRisks,
+        infrastructureRisks: predictionAnalysis.infrastructureRisks
       };
 
       const completion = await this.openai.chat.completions.create({
@@ -458,10 +474,10 @@ Provide detailed prediction in JSON format:
         result = JSON.parse(jsonMatch[1]);
       } catch (parseError) {
         result = {
-          predictedStatus,
-          confidence,
+          predictedStatus: predictionAnalysis.predictedStatus,
+          confidence: predictionAnalysis.confidence,
           timeframe,
-          reasoning,
+          reasoning: predictionAnalysis.reasoning,
           performancePrediction: { responseTime: 'stable', uptime: '95%', reliability: 'high' },
           riskFactors: ['Unable to parse AI response'],
           recommendations: ['Review the prediction manually'],
@@ -482,6 +498,250 @@ Provide detailed prediction in JSON format:
       logger.error('Site status prediction failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Enhanced failure pattern detection with detailed analysis
+   */
+  private detectDetailedFailurePatterns(statuses: SiteStatus[]): string[] {
+    const patterns: string[] = [];
+    const failures = statuses.filter(s => !s.isUp);
+    
+    if (failures.length === 0) return patterns;
+    
+    // Check for consecutive failures
+    let maxConsecutive = 0;
+    let currentConsecutive = 0;
+    
+    for (const status of statuses) {
+      if (!status.isUp) {
+        currentConsecutive++;
+        maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+      } else {
+        currentConsecutive = 0;
+      }
+    }
+    
+    if (maxConsecutive >= 3) {
+      patterns.push(`Consecutive failures: ${maxConsecutive} times`);
+    }
+    
+    // Check for time-based patterns
+    const failureHours = failures.map(f => new Date(f.checkedAt).getHours());
+    const hourCounts = new Map<number, number>();
+    
+    failureHours.forEach(hour => {
+      hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
+    });
+    
+    const mostCommonHour = Array.from(hourCounts.entries())
+      .sort((a, b) => b[1] - a[1])[0];
+    
+    if (mostCommonHour && mostCommonHour[1] >= 3) {
+      patterns.push(`Failures often occur at ${mostCommonHour[0]}:00`);
+    }
+    
+    return patterns;
+  }
+
+  /**
+   * Analyze hourly patterns in status data
+   */
+  private analyzeHourlyPatterns(statuses: SiteStatus[]): any {
+    const hourlyData = new Map<number, { failures: number, total: number, avgResponseTime: number }>();
+    
+    for (let hour = 0; hour < 24; hour++) {
+      const hourStatuses = statuses.filter(s => new Date(s.checkedAt).getHours() === hour);
+      const failures = hourStatuses.filter(s => !s.isUp).length;
+      const avgResponseTime = hourStatuses.reduce((sum, s) => sum + (s.httpResponseTime || 0), 0) / hourStatuses.length;
+      
+      hourlyData.set(hour, {
+        failures,
+        total: hourStatuses.length,
+        avgResponseTime: Math.round(avgResponseTime)
+      });
+    }
+    
+    return Object.fromEntries(hourlyData);
+  }
+
+  /**
+   * Analyze daily patterns in status data
+   */
+  private analyzeDailyPatterns(statuses: SiteStatus[]): any {
+    const dailyData = new Map<number, { failures: number, total: number, avgResponseTime: number }>();
+    
+    for (let day = 0; day < 7; day++) {
+      const dayStatuses = statuses.filter(s => new Date(s.checkedAt).getDay() === day);
+      const failures = dayStatuses.filter(s => !s.isUp).length;
+      const avgResponseTime = dayStatuses.reduce((sum, s) => sum + (s.httpResponseTime || 0), 0) / dayStatuses.length;
+      
+      dailyData.set(day, {
+        failures,
+        total: dayStatuses.length,
+        avgResponseTime: Math.round(avgResponseTime)
+      });
+    }
+    
+    return Object.fromEntries(dailyData);
+  }
+
+  /**
+   * Analyze weekly patterns in status data
+   */
+  private analyzeWeeklyPatterns(statuses: SiteStatus[]): any {
+    const weeklyData = new Map<number, { failures: number, total: number, avgResponseTime: number }>();
+    
+    // Group by week of year
+    statuses.forEach(status => {
+      const date = new Date(status.checkedAt);
+      const weekOfYear = Math.ceil((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+      
+      if (!weeklyData.has(weekOfYear)) {
+        weeklyData.set(weekOfYear, { failures: 0, total: 0, avgResponseTime: 0 });
+      }
+      
+      const data = weeklyData.get(weekOfYear)!;
+      data.total++;
+      if (!status.isUp) data.failures++;
+      data.avgResponseTime += status.httpResponseTime || 0;
+    });
+    
+    // Calculate averages
+    weeklyData.forEach((data, week) => {
+      data.avgResponseTime = Math.round(data.avgResponseTime / data.total);
+    });
+    
+    return Object.fromEntries(weeklyData);
+  }
+
+  /**
+   * Get consecutive failure count
+   */
+  private getConsecutiveFailures(statuses: SiteStatus[]): number {
+    let maxConsecutive = 0;
+    let currentConsecutive = 0;
+    
+    for (const status of statuses) {
+      if (!status.isUp) {
+        currentConsecutive++;
+        maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+      } else {
+        currentConsecutive = 0;
+      }
+    }
+    
+    return maxConsecutive;
+  }
+
+  /**
+   * Calculate average recovery time from failures
+   */
+  private calculateAverageRecoveryTime(statuses: SiteStatus[]): number {
+    const recoveryTimes: number[] = [];
+    let failureStart: Date | null = null;
+    
+    for (const status of statuses) {
+      if (!status.isUp && !failureStart) {
+        failureStart = status.checkedAt;
+      } else if (status.isUp && failureStart) {
+        const recoveryTime = status.checkedAt.getTime() - failureStart.getTime();
+        recoveryTimes.push(recoveryTime);
+        failureStart = null;
+      }
+    }
+    
+    if (recoveryTimes.length === 0) return 0;
+    return Math.round(recoveryTimes.reduce((sum, time) => sum + time, 0) / recoveryTimes.length);
+  }
+
+  /**
+   * Analyze detailed prediction with specific failure reasons
+   */
+  private analyzeDetailedPrediction(
+    workerPredictions: any[],
+    overallResponseTimeTrend: number,
+    overallUptimeTrend: number,
+    totalRecentFailures: number,
+    totalDnsIssues: number,
+    totalSslIssues: number,
+    timeframe: string
+  ): any {
+    let predictedStatus: 'up' | 'down' | 'degraded' = 'up';
+    let confidence = 0.8;
+    let reasoning = '';
+    
+    const failureAnalysis: string[] = [];
+    const timeBasedRisks: string[] = [];
+    const infrastructureRisks: string[] = [];
+
+    // Analyze failure patterns
+    if (overallUptimeTrend < -10 || totalRecentFailures > 5) {
+      predictedStatus = 'down';
+      confidence = 0.9;
+      reasoning = 'Significant decline in uptime and multiple recent failures indicate potential downtime';
+      failureAnalysis.push('High failure rate detected in recent checks');
+      failureAnalysis.push(`Uptime decline of ${Math.abs(overallUptimeTrend)}%`);
+    } else if (overallResponseTimeTrend > 200 || overallUptimeTrend < -5) {
+      predictedStatus = 'degraded';
+      confidence = 0.85;
+      reasoning = 'Performance degradation and slight uptime decline suggest service degradation';
+      failureAnalysis.push('Response time degradation detected');
+      failureAnalysis.push(`Average response time increased by ${overallResponseTimeTrend}ms`);
+    } else {
+      predictedStatus = 'up';
+      confidence = 0.9;
+      reasoning = 'Stable performance and uptime patterns suggest continued availability';
+    }
+
+    // Analyze infrastructure risks
+    if (totalDnsIssues > 0) {
+      infrastructureRisks.push(`DNS resolution issues detected: ${totalDnsIssues} instances`);
+      confidence = Math.max(0.7, confidence - 0.1);
+    }
+    
+    if (totalSslIssues > 0) {
+      infrastructureRisks.push(`SSL certificate expiring soon: ${totalSslIssues} instances`);
+      confidence = Math.max(0.7, confidence - 0.1);
+    }
+
+    // Analyze time-based risks
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentDay = now.getDay();
+    
+    workerPredictions.forEach(worker => {
+      if (worker.hourlyPatterns && worker.hourlyPatterns[currentHour]) {
+        const hourData = worker.hourlyPatterns[currentHour];
+        if (hourData.failures > 0 && hourData.failures / hourData.total > 0.3) {
+          timeBasedRisks.push(`High failure rate at ${currentHour}:00 (${Math.round((hourData.failures / hourData.total) * 100)}%)`);
+        }
+      }
+      
+      if (worker.dailyPatterns && worker.dailyPatterns[currentDay]) {
+        const dayData = worker.dailyPatterns[currentDay];
+        if (dayData.failures > 0 && dayData.failures / dayData.total > 0.2) {
+          timeBasedRisks.push(`Higher failure rate on ${this.getDayName(currentDay)} (${Math.round((dayData.failures / dayData.total) * 100)}%)`);
+        }
+      }
+    });
+
+    return {
+      predictedStatus,
+      confidence,
+      reasoning,
+      failureAnalysis,
+      timeBasedRisks,
+      infrastructureRisks
+    };
+  }
+
+  /**
+   * Get day name from day number
+   */
+  private getDayName(day: number): string {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[day];
   }
 
   /**

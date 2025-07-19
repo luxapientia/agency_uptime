@@ -120,6 +120,9 @@ interface StatusPrediction {
     confidence: number;
     reasoning: string;
   }>;
+  failureAnalysis?: string[];
+  timeBasedRisks?: string[];
+  infrastructureRisks?: string[];
   tokenUsage: TokenUsage;
 }
 
@@ -1070,6 +1073,189 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                       </Typography>
                                     </Box>
                                   )}
+                                </Stack>
+                              </Stack>
+                            </Card>
+                          )}
+
+                          {/* Failure Analysis */}
+                          {predictiveData.prediction.failureAnalysis && predictiveData.prediction.failureAnalysis.length > 0 && (
+                            <Card sx={{ 
+                              p: 3, 
+                              bgcolor: alpha(theme.palette.error.main, 0.05), 
+                              border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
+                              borderRadius: 2,
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: theme.shadows[4]
+                              }
+                            }}>
+                              <Stack spacing={3}>
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                  <Box sx={{
+                                    p: 1,
+                                    borderRadius: 1,
+                                    backgroundColor: alpha(theme.palette.error.main, 0.15),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}>
+                                    <WarningIcon sx={{ color: theme.palette.error.main, fontSize: 20 }} />
+                                  </Box>
+                                  <Typography variant="subtitle1" fontWeight={600} color="error.main">
+                                    Failure Analysis
+                                  </Typography>
+                                </Stack>
+                                
+                                <Stack spacing={2}>
+                                  {predictiveData.prediction.failureAnalysis.map((failure: string, index: number) => (
+                                    <Stack key={index} direction="row" spacing={2} alignItems="flex-start" sx={{
+                                      p: 2,
+                                      borderRadius: 1.5,
+                                      backgroundColor: alpha(theme.palette.error.main, 0.03),
+                                      border: `1px solid ${alpha(theme.palette.error.main, 0.1)}`
+                                    }}>
+                                      <Box sx={{
+                                        p: 0.5,
+                                        borderRadius: '50%',
+                                        backgroundColor: alpha(theme.palette.error.main, 0.2),
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: 24,
+                                        height: 24,
+                                        mt: 0.25
+                                      }}>
+                                        <WarningIcon sx={{ fontSize: 14, color: theme.palette.error.main }} />
+                                      </Box>
+                                      <Typography variant="body1" sx={{ lineHeight: 1.6, flex: 1 }}>
+                                        {failure}
+                                      </Typography>
+                                    </Stack>
+                                  ))}
+                                </Stack>
+                              </Stack>
+                            </Card>
+                          )}
+
+                          {/* Time-Based Risks */}
+                          {predictiveData.prediction.timeBasedRisks && predictiveData.prediction.timeBasedRisks.length > 0 && (
+                            <Card sx={{ 
+                              p: 3, 
+                              bgcolor: alpha(theme.palette.warning.main, 0.05), 
+                              border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
+                              borderRadius: 2,
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: theme.shadows[4]
+                              }
+                            }}>
+                              <Stack spacing={3}>
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                  <Box sx={{
+                                    p: 1,
+                                    borderRadius: 1,
+                                    backgroundColor: alpha(theme.palette.warning.main, 0.15),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}>
+                                    <TimeIcon sx={{ color: theme.palette.warning.main, fontSize: 20 }} />
+                                  </Box>
+                                  <Typography variant="subtitle1" fontWeight={600} color="warning.main">
+                                    Time-Based Risks
+                                  </Typography>
+                                </Stack>
+                                
+                                <Stack spacing={2}>
+                                  {predictiveData.prediction.timeBasedRisks.map((risk: string, index: number) => (
+                                    <Stack key={index} direction="row" spacing={2} alignItems="flex-start" sx={{
+                                      p: 2,
+                                      borderRadius: 1.5,
+                                      backgroundColor: alpha(theme.palette.warning.main, 0.03),
+                                      border: `1px solid ${alpha(theme.palette.warning.main, 0.1)}`
+                                    }}>
+                                      <Box sx={{
+                                        p: 0.5,
+                                        borderRadius: '50%',
+                                        backgroundColor: alpha(theme.palette.warning.main, 0.2),
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: 24,
+                                        height: 24,
+                                        mt: 0.25
+                                      }}>
+                                        <TimeIcon sx={{ fontSize: 14, color: theme.palette.warning.main }} />
+                                      </Box>
+                                      <Typography variant="body1" sx={{ lineHeight: 1.6, flex: 1 }}>
+                                        {risk}
+                                      </Typography>
+                                    </Stack>
+                                  ))}
+                                </Stack>
+                              </Stack>
+                            </Card>
+                          )}
+
+                          {/* Infrastructure Risks */}
+                          {predictiveData.prediction.infrastructureRisks && predictiveData.prediction.infrastructureRisks.length > 0 && (
+                            <Card sx={{ 
+                              p: 3, 
+                              bgcolor: alpha(theme.palette.info.main, 0.05), 
+                              border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                              borderRadius: 2,
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: theme.shadows[4]
+                              }
+                            }}>
+                              <Stack spacing={3}>
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                  <Box sx={{
+                                    p: 1,
+                                    borderRadius: 1,
+                                    backgroundColor: alpha(theme.palette.info.main, 0.15),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}>
+                                    <ShieldIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />
+                                  </Box>
+                                  <Typography variant="subtitle1" fontWeight={600} color="info.main">
+                                    Infrastructure Risks
+                                  </Typography>
+                                </Stack>
+                                
+                                <Stack spacing={2}>
+                                  {predictiveData.prediction.infrastructureRisks.map((risk: string, index: number) => (
+                                    <Stack key={index} direction="row" spacing={2} alignItems="flex-start" sx={{
+                                      p: 2,
+                                      borderRadius: 1.5,
+                                      backgroundColor: alpha(theme.palette.info.main, 0.03),
+                                      border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`
+                                    }}>
+                                      <Box sx={{
+                                        p: 0.5,
+                                        borderRadius: '50%',
+                                        backgroundColor: alpha(theme.palette.info.main, 0.2),
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: 24,
+                                        height: 24,
+                                        mt: 0.25
+                                      }}>
+                                        <ShieldIcon sx={{ fontSize: 14, color: theme.palette.info.main }} />
+                                      </Box>
+                                      <Typography variant="body1" sx={{ lineHeight: 1.6, flex: 1 }}>
+                                        {risk}
+                                      </Typography>
+                                    </Stack>
+                                  ))}
                                 </Stack>
                               </Stack>
                             </Card>
