@@ -462,11 +462,6 @@ export default function SiteDetails() {
                         <Typography variant="body2" fontWeight={600} color={getStatusColor(siteStatus?.pingIsUp)}>
                           {siteStatus?.pingIsUp === undefined ? 'Unknown' : (siteStatus.pingIsUp ? 'Online' : 'Offline')}
                         </Typography>
-                        {siteStatus?.pingResponseTime !== undefined && (
-                          <Typography variant="caption" color="text.secondary">
-                            {siteStatus.pingResponseTime}ms
-                          </Typography>
-                        )}
                       </Stack>
                     </Card>
 
@@ -495,11 +490,6 @@ export default function SiteDetails() {
                         <Typography variant="body2" fontWeight={600} color={getStatusColor(siteStatus?.httpIsUp)}>
                           {siteStatus?.httpIsUp === undefined ? 'Unknown' : (siteStatus.httpIsUp ? 'Online' : 'Offline')}
                         </Typography>
-                        {siteStatus?.httpResponseTime !== undefined && (
-                          <Typography variant="caption" color="text.secondary">
-                            {siteStatus.httpResponseTime}ms
-                          </Typography>
-                        )}
                       </Stack>
                     </Card>
 
@@ -528,11 +518,6 @@ export default function SiteDetails() {
                         <Typography variant="body2" fontWeight={600} color={getStatusColor(siteStatus?.dnsIsUp)}>
                           {siteStatus?.dnsIsUp === undefined ? 'Unknown' : (siteStatus.dnsIsUp ? 'Online' : 'Offline')}
                         </Typography>
-                        {siteStatus?.dnsResponseTime !== undefined && (
-                          <Typography variant="caption" color="text.secondary">
-                            {siteStatus.dnsResponseTime}ms
-                          </Typography>
-                        )}
                       </Stack>
                     </Card>
 
