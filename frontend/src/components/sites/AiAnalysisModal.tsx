@@ -1322,7 +1322,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                             </Card>
                           )}
                           
-                          {/* Regional Predictions */}
+                          {/* Regional Predictions
                           {predictiveData.prediction.perWorkerPredictions && predictiveData.prediction.perWorkerPredictions.length > 0 && (
                             <Card sx={{ 
                               p: 3, 
@@ -1439,7 +1439,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                 </Stack>
                               </Stack>
                             </Card>
-                          )}
+                          )} */}
                           
                           {/* Recommendations */}
                           {predictiveData.prediction.recommendations && predictiveData.prediction.recommendations.length > 0 && (

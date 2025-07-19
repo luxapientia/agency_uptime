@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -82,11 +82,14 @@ export default function SiteDetails() {
   useEffect(() => {
     const loadSiteData = async () => {
       if (!id) return;
-      if (!isLoading) {
+      
+      const isInitialLoad = isLoading;
+      if (!isInitialLoad) {
         setIsGraphLoading(true);
       } else {
         setIsLoading(true);
       }
+      
       try {
         await Promise.all([
           dispatch(fetchSiteStatus(id)),
@@ -95,48 +98,60 @@ export default function SiteDetails() {
       } catch (error) {
         console.error('Failed to fetch site data:', error);
       } finally {
-        setIsLoading(false);
+        if (isInitialLoad) {
+          setIsLoading(false);
+        }
         setIsGraphLoading(false);
       }
     };
 
     loadSiteData();
-  }, [id, dispatch, timeRange]);
+  }, [id, dispatch, timeRange, isLoading]);
 
-  const handleEditClick = () => {
+  const handleEditClick = useCallback(() => {
     if (site) {
       dispatch(setSelectedSite(site));
       setIsFormOpen(true);
     }
-  };
+  }, [site, dispatch]);
 
-  const handleFormSubmit = async (values: CreateSiteData) => {
+  const handleFormSubmit = useCallback(async (values: CreateSiteData) => {
     if (site) {
       await dispatch(updateSite({ id: site.id, data: values }));
     }
     setIsFormOpen(false);
-  };
+  }, [site, dispatch]);
 
-  const handleFormClose = () => {
+  const handleFormClose = useCallback(() => {
     dispatch(setSelectedSite(null));
     setIsFormOpen(false);
-  };
+  }, [dispatch]);
 
-  const handleAiAnalysis = () => {
+  const handleAiAnalysis = useCallback(() => {
     setIsAiDialogOpen(true);
-  };
+  }, []);
 
-  const handleCloseAiDialog = () => {
+  const handleCloseAiDialog = useCallback(() => {
     setIsAiDialogOpen(false);
-  };
+  }, []);
 
-  const handleTimeRangeChange = (event: any) => {
+  const handleTimeRangeChange = useCallback((event: any) => {
     setTimeRange(event.target.value);
-    // The useEffect will automatically trigger a reload with the new time range
-  };
+  }, []);
 
-  // Get unique TCP ports from the status history
-  const getTcpPorts = () => {
+  const handleRefresh = useCallback(() => {
+    setIsGraphLoading(true);
+    Promise.all([
+      dispatch(fetchSiteStatus(id || '')),
+      dispatch(fetchSiteStatusHistory({ siteId: id || '', hours: timeRange }))
+    ]).then(() => setIsGraphLoading(false));
+  }, [id, dispatch, timeRange]);
+
+  // Memoized status history to prevent unnecessary re-renders
+  const memoizedStatusHistory = useMemo(() => statusHistory || [], [statusHistory]);
+
+  // Memoized TCP ports calculation
+  const tcpPorts = useMemo(() => {
     if (!statusHistory || !statusHistory.length) return [];
 
     const portsSet = new Set<number>();
@@ -154,23 +169,23 @@ export default function SiteDetails() {
     });
 
     return Array.from(portsSet).sort((a, b) => a - b);
-  };
+  }, [statusHistory]);
 
-  // Helper function to get status color
-  const getStatusColor = (isUp: boolean | undefined) => {
+  // Memoized helper function to get status color
+  const getStatusColor = useCallback((isUp: boolean | undefined) => {
     if (isUp === undefined) return theme.palette.grey[500];
     return isUp ? theme.palette.success.main : theme.palette.error.main;
-  };
+  }, [theme.palette.grey, theme.palette.success.main, theme.palette.error.main]);
 
-  // Helper function to get status icon
-  const getStatusIcon = (isUp: boolean | undefined, size = 20) => {
+  // Memoized helper function to get status icon
+  const getStatusIcon = useCallback((isUp: boolean | undefined, size = 20) => {
     if (isUp === undefined) {
       return <InfoIcon sx={{ fontSize: size, color: theme.palette.grey[500] }} />;
     }
     return isUp
       ? <CheckIcon sx={{ fontSize: size, color: theme.palette.success.main }} />
       : <CancelIcon sx={{ fontSize: size, color: theme.palette.error.main }} />;
-  };
+  }, [theme.palette.grey, theme.palette.success.main, theme.palette.error.main]);
 
   if (!site) {
     return (
@@ -355,13 +370,7 @@ export default function SiteDetails() {
                   >
                     <MuiTooltip title="Refresh Status">
                       <IconButton
-                        onClick={() => {
-                          setIsGraphLoading(true);
-                          Promise.all([
-                            dispatch(fetchSiteStatus(id || '')),
-                            dispatch(fetchSiteStatusHistory({ siteId: id || '', hours: timeRange }))
-                          ]).then(() => setIsGraphLoading(false));
-                        }}
+                        onClick={handleRefresh}
                         sx={{
                           color: theme.palette.primary.main,
                           backgroundColor: alpha(theme.palette.primary.main, 0.1),
@@ -560,7 +569,7 @@ export default function SiteDetails() {
                           {siteStatus?.tcpChecks?.length || 0} Open
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {getTcpPorts().join(', ') || 'None'}
+                          {tcpPorts.join(', ') || 'None'}
                         </Typography>
                       </Stack>
                     </Card>
@@ -896,70 +905,71 @@ export default function SiteDetails() {
           </Card>
 
           {/* Worker Response Time Graphs */}
-          <Stack spacing={3}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-              <TimelineIcon
-                color="primary"
-                sx={{
-                  fontSize: { xs: 24, sm: 28 },
-                  animation: 'pulse 2s infinite',
-                  '@keyframes pulse': {
-                    '0%': { opacity: 0.6 },
-                    '50%': { opacity: 1 },
-                    '100%': { opacity: 0.6 },
-                  },
-                }}
-              />
-              <Typography
-                variant="h5"
-                sx={{
-                  fontSize: { xs: '1.2rem', sm: '1.5rem' },
-                  fontWeight: 600,
-                }}
-              >
-                Worker Response Times
-              </Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              
-              {/* Time Range Selector */}
-              <Stack direction="row" spacing={1} alignItems="center">
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel id="time-range-label">Time Range</InputLabel>
-                  <Select
-                    labelId="time-range-label"
-                    value={timeRange}
-                    label="Time Range"
-                    onChange={handleTimeRangeChange}
-                    disabled={isGraphLoading}
-                    sx={{
-                      backgroundColor: alpha(theme.palette.background.paper, 0.8),
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: alpha(theme.palette.primary.main, 0.3),
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.primary.main,
-                      },
-                    }}
-                  >
-                    <MenuItem value={1}>1 Hour</MenuItem>
-                    <MenuItem value={6}>6 Hours</MenuItem>
-                    <MenuItem value={12}>12 Hours</MenuItem>
-                    <MenuItem value={24}>24 Hours</MenuItem>
-                    <MenuItem value={48}>48 Hours</MenuItem>
-                    <MenuItem value={72}>3 Days</MenuItem>
-                    <MenuItem value={168}>7 Days</MenuItem>
-                  </Select>
-                </FormControl>
-                {isGraphLoading && (
-                  <CircularProgress size={20} sx={{ color: theme.palette.primary.main }} />
-                )}
+          {memoizedStatusHistory.length > 0 && (
+            <Stack spacing={3}>
+              <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+                <TimelineIcon
+                  color="primary"
+                  sx={{
+                    fontSize: { xs: 24, sm: 28 },
+                    animation: 'pulse 2s infinite',
+                    '@keyframes pulse': {
+                      '0%': { opacity: 0.6 },
+                      '50%': { opacity: 1 },
+                      '100%': { opacity: 0.6 },
+                    },
+                  }}
+                />
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontSize: { xs: '1.2rem', sm: '1.5rem' },
+                    fontWeight: 600,
+                  }}
+                >
+                  Worker Response Times
+                </Typography>
+                <Box sx={{ flexGrow: 1 }} />
+                
+                {/* Time Range Selector */}
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel id="time-range-label">Time Range</InputLabel>
+                    <Select
+                      labelId="time-range-label"
+                      value={timeRange}
+                      label="Time Range"
+                      onChange={handleTimeRangeChange}
+                      disabled={isGraphLoading}
+                      sx={{
+                        backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: alpha(theme.palette.primary.main, 0.3),
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                        },
+                      }}
+                    >
+                      <MenuItem value={1}>1 Hour</MenuItem>
+                      <MenuItem value={6}>6 Hours</MenuItem>
+                      <MenuItem value={12}>12 Hours</MenuItem>
+                      <MenuItem value={24}>24 Hours</MenuItem>
+                      <MenuItem value={48}>48 Hours</MenuItem>
+                      <MenuItem value={72}>3 Days</MenuItem>
+                      <MenuItem value={168}>7 Days</MenuItem>
+                    </Select>
+                  </FormControl>
+                  {isGraphLoading && (
+                    <CircularProgress size={20} sx={{ color: theme.palette.primary.main }} />
+                  )}
+                </Stack>
               </Stack>
-            </Stack>
 
             {/* Ping Response Time Chart */}
             <WorkerResponseTimeChart
               title="Ping Response Times"
-              siteStatuses={statusHistory || []}
+              siteStatuses={memoizedStatusHistory}
               responseTimeField="pingResponseTime"
               icon={<PingIcon color="primary" />}
               height={300}
@@ -968,7 +978,7 @@ export default function SiteDetails() {
             {/* HTTP Response Time Chart */}
             <WorkerResponseTimeChart
               title="HTTP Response Times"
-              siteStatuses={statusHistory || []}
+              siteStatuses={memoizedStatusHistory}
               responseTimeField="httpResponseTime"
               icon={<HttpIcon color="info" />}
               height={300}
@@ -977,18 +987,18 @@ export default function SiteDetails() {
             {/* DNS Response Time Chart */}
             <WorkerResponseTimeChart
               title="DNS Response Times"
-              siteStatuses={statusHistory || []}
+              siteStatuses={memoizedStatusHistory}
               responseTimeField="dnsResponseTime"
               icon={<DnsIcon color="secondary" />}
               height={300}
             />
 
             {/* TCP Response Time Charts for each port */}
-            {getTcpPorts().map(port => (
+            {tcpPorts.map((port: number) => (
               <WorkerResponseTimeChart
                 key={`tcp-${port}`}
                 title={`TCP Port ${port} Response Times`}
-                siteStatuses={statusHistory || []}
+                siteStatuses={memoizedStatusHistory}
                 responseTimeField="pingResponseTime" // This will be overridden by tcpPort prop
                 tcpPort={port}
                 icon={<TcpIcon color="warning" />}
@@ -996,6 +1006,7 @@ export default function SiteDetails() {
               />
             ))}
           </Stack>
+          )}
         </Stack>
       )}
 
