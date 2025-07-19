@@ -798,11 +798,6 @@ export default function SiteDetails() {
                                   >
                                     {check.isUp ? 'Open' : 'Closed'}
                                   </Typography>
-                                  {check.responseTime !== undefined && (
-                                    <Typography variant="caption" color="text.secondary">
-                                      Response: {check.responseTime}ms
-                                    </Typography>
-                                  )}
                                   {check.error && (
                                     <Typography variant="caption" color="error">
                                       Error: {check.error}
