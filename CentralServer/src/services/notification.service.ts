@@ -83,7 +83,7 @@ class NotificationService {
         }
       });
 
-      socketService.sendToUser(site.userId, 'notification', notification);
+      socketService.sendToUser(site.userId, 'notification', message);
       
       for (const notificationSetting of notificationSettings) {
         if (notificationSetting.type === 'EMAIL' && notificationSetting.contactInfo && notificationSetting.enabled) {
