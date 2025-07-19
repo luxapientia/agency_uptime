@@ -32,7 +32,6 @@ import {
   AccessTime as TimeIcon,
   Shield as ShieldIcon,
   Schedule as ScheduleIcon,
-  TrendingDown as RiskIcon,
   Lightbulb as InsightIcon,
   Recommend as RecommendIcon,
 } from '@mui/icons-material';
@@ -60,21 +59,21 @@ interface TokenUsage {
   cacheHits?: number;
 }
 
-interface UpcomingRisk {
-  risk: string;
-  probability: number;
-  timeframe: string;
-  mitigation: string;
-}
+// interface UpcomingRisk {
+//   risk: string;
+//   probability: number;
+//   timeframe: string;
+//   mitigation: string;
+// }
 
-interface PredictiveSummary {
-  period: string;
-  overallHealth: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
-  keyInsights: string[];
-  upcomingRisks: UpcomingRisk[];
-  recommendations: string[];
-  tokenUsage: TokenUsage;
-}
+// interface PredictiveSummary {
+//   period: string;
+//   overallHealth: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+//   keyInsights: string[];
+//   upcomingRisks: UpcomingRisk[];
+//   recommendations: string[];
+//   tokenUsage: TokenUsage;
+// }
 
 interface DiagnosticResult {
   diagnosis: string;

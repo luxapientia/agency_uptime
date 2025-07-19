@@ -26,7 +26,6 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     ReferenceArea,
 } from 'recharts';
 import type { SiteStatus } from '../../types/site.types';
