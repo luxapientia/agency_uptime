@@ -6,6 +6,7 @@ import { authenticate } from '../middleware/auth.middleware';
 import settingsRoutes from './settings.route';
 import notificationRoutes from './notification.route';
 import aiRoutes from './ai.routes';
+import reportsRoutes from './reports.routes';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use(`/workers`, authenticate, workersRoutes);
 router.use(`/settings`, settingsRoutes);
 router.use(`/notifications`, authenticate, notificationRoutes);
 router.use(`/ai`, authenticate, aiRoutes);
+router.use(`/reports`, authenticate, reportsRoutes);
 
 export default router; 
