@@ -46,9 +46,7 @@ export const markNotificationsAsSeen = createAsyncThunk(
   async (notificationIds: string[], { rejectWithValue }) => {
     try {
       await axios.post('/notifications/seen', {
-        body: {
-          notificationIds
-        }
+        notificationIds
       });
       return notificationIds;
     } catch (error: any) {
