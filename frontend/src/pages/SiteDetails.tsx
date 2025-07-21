@@ -352,17 +352,6 @@ export default function SiteDetails() {
                             }}
                           />
                         )}
-                        {isGraphLoading && (
-                          <CircularProgress
-                            size={52}
-                            sx={{
-                              position: 'absolute',
-                              top: -2,
-                              left: -2,
-                              color: theme.palette.primary.main,
-                            }}
-                          />
-                        )}
                       </Box>
 
                       <Stack spacing={0.5} sx={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
