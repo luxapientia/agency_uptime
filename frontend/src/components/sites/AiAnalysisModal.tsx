@@ -59,22 +59,6 @@ interface TokenUsage {
   cacheHits?: number;
 }
 
-// interface UpcomingRisk {
-//   risk: string;
-//   probability: number;
-//   timeframe: string;
-//   mitigation: string;
-// }
-
-// interface PredictiveSummary {
-//   period: string;
-//   overallHealth: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
-//   keyInsights: string[];
-//   upcomingRisks: UpcomingRisk[];
-//   recommendations: string[];
-//   tokenUsage: TokenUsage;
-// }
-
 interface DiagnosticResult {
   diagnosis: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
