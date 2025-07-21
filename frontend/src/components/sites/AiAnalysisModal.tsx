@@ -947,31 +947,31 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                       ) : predictiveData.prediction && typeof predictiveData.prediction === 'object' ? (
                         <Stack spacing={3}>
                           {/* Predicted Status */}
-                          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                            <Typography variant="subtitle2" fontWeight={600}>
+                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                          <Typography variant="subtitle2" fontWeight={600}>
                               Predicted Status:
-                            </Typography>
-                            <Chip
+                          </Typography>
+                          <Chip
                               label={predictiveData.prediction.predictedStatus.toUpperCase()}
-                              sx={{
-                                backgroundColor: 
+                            sx={{
+                              backgroundColor: 
                                   predictiveData.prediction.predictedStatus === 'up' ? theme.palette.success.main :
                                   predictiveData.prediction.predictedStatus === 'degraded' ? theme.palette.warning.main :
                                   theme.palette.error.main,
-                                color: 'white',
-                                fontWeight: 600,
-                              }}
-                            />
+                              color: 'white',
+                              fontWeight: 600,
+                            }}
+                          />
                             <Chip
                               label={`${Math.round(predictiveData.prediction.confidence * 100)}% confidence`}
                               size="small"
                               sx={{
                                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
                                 color: theme.palette.primary.main,
-                                fontWeight: 600,
-                              }}
-                            />
-                          </Stack>
+                              fontWeight: 600,
+                            }}
+                          />
+                        </Stack>
 
                           {/* Reasoning */}
                           {predictiveData.prediction.reasoning && (
@@ -1036,10 +1036,10 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                   </Box>
                                   <Typography variant="subtitle1" fontWeight={600} color="primary.main">
                                     Performance Prediction
-                                  </Typography>
+                        </Typography>
                                 </Stack>
                                 
-                                <Stack spacing={3}>
+                        <Stack spacing={3}>
                                   {predictiveData.prediction.performancePrediction.responseTime && (
                                     <Box>
                                       <Typography variant="subtitle2" fontWeight={600} color="text.primary" gutterBottom>
@@ -1259,7 +1259,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                               </Stack>
                             </Card>
                           )}
-
+                          
                           {/* Risk Factors */}
                           {predictiveData.prediction.riskFactors && predictiveData.prediction.riskFactors.length > 0 && (
                             <Card sx={{ 
@@ -1274,23 +1274,23 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                               }
                             }}>
                               <Stack spacing={3}>
-                                <Stack direction="row" spacing={2} alignItems="center">
-                                  <Box sx={{
-                                    p: 1,
-                                    borderRadius: 1,
+                              <Stack direction="row" spacing={2} alignItems="center">
+                                <Box sx={{
+                                  p: 1,
+                                  borderRadius: 1,
                                     backgroundColor: alpha(theme.palette.info.main, 0.15),
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                  }}>
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}>
                                     <InsightIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />
-                                  </Box>
-                                  <Typography variant="subtitle1" fontWeight={600} color="error.main">
+                                </Box>
+                                <Typography variant="subtitle1" fontWeight={600} color="error.main">
                                     Risk Factors
-                                  </Typography>
-                                </Stack>
+                                </Typography>
+                              </Stack>
                                 
-                                <Stack spacing={2}>
+                                    <Stack spacing={2}>
                                   {predictiveData.prediction.riskFactors.map((risk: string, index: number) => (
                                     <Stack key={index} direction="row" spacing={2} alignItems="flex-start" sx={{
                                       p: 2,
@@ -1298,9 +1298,9 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                       backgroundColor: alpha(theme.palette.info.main, 0.03),
                                       border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`
                                     }}>
-                                      <Box sx={{
-                                        p: 0.5,
-                                        borderRadius: '50%',
+                                        <Box sx={{
+                                          p: 0.5,
+                                          borderRadius: '50%',
                                         backgroundColor: alpha(theme.palette.info.main, 0.2),
                                         display: 'flex',
                                         alignItems: 'center',
@@ -1396,7 +1396,7 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                               ? 'Combined Prediction (All Regions)' 
                                               : `Monitoring Region: ${worker.workerId}`
                                             }
-                                          </Typography>
+                                        </Typography>
                                           {worker.workerId === 'consensus_worker' && (
                                             <Typography variant="caption" color="text.secondary">
                                               Overall prediction combining all regional data
@@ -1404,10 +1404,10 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                           )}
                                         </Stack>
                                         <Stack direction="row" spacing={1}>
-                                          <Chip
+                                        <Chip
                                             label={worker.predictedStatus.toUpperCase()}
-                                            size="small"
-                                            sx={{
+                                          size="small"
+                                          sx={{
                                               backgroundColor: 
                                                 worker.predictedStatus === 'up' ? theme.palette.success.main :
                                                 worker.predictedStatus === 'degraded' ? theme.palette.warning.main :
@@ -1422,22 +1422,22 @@ export default function AiAnalysisModal({ open, onClose, siteId, siteName }: AiA
                                             sx={{
                                               backgroundColor: alpha(theme.palette.primary.main, 0.1),
                                               color: theme.palette.primary.main,
-                                              fontWeight: 600,
-                                            }}
-                                          />
+                                            fontWeight: 600,
+                                          }}
+                                        />
                                         </Stack>
                                       </Stack>
                                       
                                       {worker.reasoning && (
                                         <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
                                           {worker.reasoning}
-                                        </Typography>
+                                            </Typography>
                                       )}
-                                    </Box>
+                                        </Box>
                                   ))}
-                                </Stack>
-                              </Stack>
-                            </Card>
+                                      </Stack>
+                                    </Stack>
+                                  </Card>
                           )} */}
                           
                           {/* Recommendations */}

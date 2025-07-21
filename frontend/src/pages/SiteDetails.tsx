@@ -30,7 +30,6 @@ import {
   AccessTime as TimeIcon,
   CheckCircleOutline as CheckIcon,
   CancelOutlined as CancelIcon,
-  Refresh as RefreshIcon,
   Security as SecurityIcon,
   VerifiedUser as VerifiedIcon,
   GppBad as UnverifiedIcon,
@@ -82,14 +81,14 @@ export default function SiteDetails() {
   useEffect(() => {
     const loadSiteData = async () => {
       if (!id) return;
-      
+
       const isInitialLoad = isLoading;
       if (!isInitialLoad) {
         setIsGraphLoading(true);
       } else {
         setIsLoading(true);
       }
-      
+
       try {
         await Promise.all([
           dispatch(fetchSiteStatus(id)),
@@ -139,14 +138,6 @@ export default function SiteDetails() {
     setTimeRange(event.target.value);
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    setIsGraphLoading(true);
-    Promise.all([
-      dispatch(fetchSiteStatus(id || '')),
-      dispatch(fetchSiteStatusHistory({ siteId: id || '', hours: timeRange }))
-    ]).then(() => setIsGraphLoading(false));
-  }, [id, dispatch, timeRange]);
-
   // Memoized status history to prevent unnecessary re-renders
   const memoizedStatusHistory = useMemo(() => statusHistory || [], [statusHistory]);
 
@@ -170,6 +161,45 @@ export default function SiteDetails() {
 
     return Array.from(portsSet).sort((a, b) => a - b);
   }, [statusHistory]);
+
+  // Memoize all chart components (Ping, HTTP, DNS, TCP)
+  const chartComponents = useMemo(() => [
+    <WorkerResponseTimeChart
+      key="ping"
+      title="Ping Response Times"
+      siteStatuses={memoizedStatusHistory}
+      responseTimeField="pingResponseTime"
+      icon={<PingIcon color="primary" />}
+      height={300}
+    />,
+    <WorkerResponseTimeChart
+      key="http"
+      title="HTTP Response Times"
+      siteStatuses={memoizedStatusHistory}
+      responseTimeField="httpResponseTime"
+      icon={<HttpIcon color="info" />}
+      height={300}
+    />,
+    <WorkerResponseTimeChart
+      key="dns"
+      title="DNS Response Times"
+      siteStatuses={memoizedStatusHistory}
+      responseTimeField="dnsResponseTime"
+      icon={<DnsIcon color="secondary" />}
+      height={300}
+    />,
+    ...tcpPorts.map((port: number) => (
+      <WorkerResponseTimeChart
+        key={`tcp-${port}`}
+        title={`TCP Port ${port} Response Times`}
+        siteStatuses={memoizedStatusHistory}
+        responseTimeField="pingResponseTime" // This will be overridden by tcpPort prop
+        tcpPort={port}
+        icon={<TcpIcon color="warning" />}
+        height={300}
+      />
+    ))
+  ], [memoizedStatusHistory, tcpPorts]);
 
   // Memoized helper function to get status color
   const getStatusColor = useCallback((isUp: boolean | undefined) => {
@@ -269,158 +299,199 @@ export default function SiteDetails() {
                   spacing={2}
                   alignItems={{ xs: 'flex-start', sm: 'center' }}
                 >
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
-                    <Box
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    alignItems="flex-start"
+                    justifyContent="space-between"
+                    flexWrap="wrap"
+                    sx={{ width: '100%' }}
+                  >
+                    {/* Status Indicator + Label + Time */}
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="flex-start"
+                      flexWrap="nowrap"
                       sx={{
-                        position: 'relative',
-                        display: 'inline-flex',
+                        flexGrow: 1,
+                        minWidth: 0,
+                        overflow: 'hidden',
                       }}
                     >
-                      {siteStatus?.isUp ? (
-                        <CheckIcon
-                          sx={{
-                            fontSize: { xs: 40, sm: 48 },
-                            color: theme.palette.success.main,
-                            animation: 'fadeIn 0.5s ease-in',
-                            '@keyframes fadeIn': {
-                              '0%': { opacity: 0, transform: 'scale(0.8)' },
-                              '100%': { opacity: 1, transform: 'scale(1)' },
-                            },
-                          }}
-                        />
-                      ) : (
-                        <CancelIcon
-                          sx={{
-                            fontSize: { xs: 40, sm: 48 },
-                            color: theme.palette.error.main,
-                            animation: 'fadeIn 0.5s ease-in',
-                            '@keyframes fadeIn': {
-                              '0%': { opacity: 0, transform: 'scale(0.8)' },
-                              '100%': { opacity: 1, transform: 'scale(1)' },
-                            },
-                          }}
-                        />
-                      )}
-                      {isGraphLoading && (
-                        <CircularProgress
-                          size={52}
-                          sx={{
-                            position: 'absolute',
-                            top: -2,
-                            left: -2,
-                            color: theme.palette.primary.main,
-                          }}
-                        />
-                      )}
-                    </Box>
-                    <Stack spacing={0.5}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            fontSize: { xs: '1.3rem', sm: '1.5rem' },
-                            fontWeight: 700,
-                            color: siteStatus?.isUp ? theme.palette.success.main : theme.palette.error.main,
-                          }}
-                        >
-                          {siteStatus?.isUp ? 'Site is Online' : 'Site is Offline'}
-                        </Typography>
-                        <Badge
-                          badgeContent={<ConsensusIcon sx={{ fontSize: 12 }} />}
-                          sx={{
-                            '& .MuiBadge-badge': {
-                              backgroundColor: theme.palette.primary.main,
-                              color: theme.palette.primary.contrastText,
-                            }
-                          }}
-                        >
-                          <Chip
-                            label={siteStatus?.workerId === 'consensus_worker' ? 'Consensus Status' : `Worker: ${siteStatus?.workerId}`}
-                            size="small"
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          display: 'inline-flex',
+                          flexShrink: 0,
+                          pt: 2
+                        }}
+                      >
+                        {siteStatus?.isUp ? (
+                          <CheckIcon
                             sx={{
-                              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                              color: theme.palette.primary.main,
-                              fontWeight: 600,
+                              fontSize: { xs: 40, sm: 48 },
+                              color: theme.palette.success.main,
+                              animation: 'fadeIn 0.5s ease-in',
+                              '@keyframes fadeIn': {
+                                '0%': { opacity: 0, transform: 'scale(0.8)' },
+                                '100%': { opacity: 1, transform: 'scale(1)' },
+                              },
                             }}
                           />
-                        </Badge>
+                        ) : (
+                          <CancelIcon
+                            sx={{
+                              fontSize: { xs: 40, sm: 48 },
+                              color: theme.palette.error.main,
+                              animation: 'fadeIn 0.5s ease-in',
+                              '@keyframes fadeIn': {
+                                '0%': { opacity: 0, transform: 'scale(0.8)' },
+                                '100%': { opacity: 1, transform: 'scale(1)' },
+                              },
+                            }}
+                          />
+                        )}
+                        {isGraphLoading && (
+                          <CircularProgress
+                            size={52}
+                            sx={{
+                              position: 'absolute',
+                              top: -2,
+                              left: -2,
+                              color: theme.palette.primary.main,
+                            }}
+                          />
+                        )}
+                      </Box>
+
+                      <Stack spacing={0.5} sx={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                          flexWrap="nowrap"
+                          sx={{ overflow: 'hidden', pt: 2 }}
+                        >
+                          <Typography
+                            variant="h5"
+                            sx={{
+                              fontSize: { xs: '1.2rem', sm: '1.5rem' },
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                              color: siteStatus?.isUp
+                                ? theme.palette.success.main
+                                : theme.palette.error.main,
+                            }}
+                          >
+                            {siteStatus?.isUp ? 'Site is Online' : 'Site is Offline'}
+                          </Typography>
+                          <Badge
+                            badgeContent={<ConsensusIcon sx={{ fontSize: 12 }} />}
+                            sx={{
+                              '& .MuiBadge-badge': {
+                                backgroundColor: theme.palette.primary.main,
+                                color: theme.palette.primary.contrastText,
+                              },
+                            }}
+                          >
+                            <Chip
+                              label={
+                                siteStatus?.workerId === 'consensus_worker'
+                                  ? 'Consensus Status'
+                                  : `Worker: ${siteStatus?.workerId}`
+                              }
+                              size="small"
+                              sx={{
+                                whiteSpace: 'nowrap',
+                                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                color: theme.palette.primary.main,
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Badge>
+                        </Stack>
+
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          <TimeIcon sx={{ fontSize: 16 }} />
+                          Last checked:{' '}
+                          {siteStatus?.checkedAt
+                            ? new Date(siteStatus.checkedAt).toLocaleString()
+                            : 'Never'}
+                        </Typography>
                       </Stack>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                    </Stack>
+
+                    {/* Action Buttons */}
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={1}
+                      justifyContent="space-around"
+                      alignItems={{ xs: 'stretch', sm: 'center' }}
+                      sx={{
+                        width: { xs: '100%', sm: 'auto' },
+                        pt: 2,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <MuiTooltip title="AI Health Analysis">
+                        <Button
+                          onClick={handleAiAnalysis}
+                          startIcon={<AiIcon />}
+                          variant="outlined"
+                          sx={{
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            minWidth: 0,
+                            maxWidth: '100%',
+                            borderColor: theme.palette.info.main,
+                            color: theme.palette.info.main,
+                            '&:hover': {
+                              borderColor: theme.palette.info.dark,
+                              backgroundColor: alpha(theme.palette.info.main, 0.1),
+                            },
+                          }}
+                        >
+                          AI Analysis
+                        </Button>
+                      </MuiTooltip>
+
+                      <Button
+                        component="a"
+                        href={site.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        startIcon={<NetworkIcon />}
+                        variant="contained"
+                        sx={{
+                          whiteSpace: 'nowrap',
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          borderRadius: 1,
+                          background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+                          '&:hover': {
+                            background: `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
+                          },
+                        }}
                       >
-                        <TimeIcon sx={{ fontSize: 16 }} />
-                        Last checked: {siteStatus?.checkedAt ?
-                          new Date(siteStatus.checkedAt).toLocaleString() :
-                          'Never'}
-                      </Typography>
+                        Visit Site
+                      </Button>
                     </Stack>
                   </Stack>
 
-                  <Box sx={{ flexGrow: 1 }} />
 
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{
-                      width: { xs: '100%', sm: 'auto' },
-                      justifyContent: { xs: 'space-between', sm: 'flex-end' }
-                    }}
-                  >
-                    <MuiTooltip title="Refresh Status">
-                      <IconButton
-                        onClick={handleRefresh}
-                        sx={{
-                          color: theme.palette.primary.main,
-                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                          '&:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.2),
-                          }
-                        }}
-                      >
-                        <RefreshIcon />
-                      </IconButton>
-                    </MuiTooltip>
-                    <MuiTooltip title="AI Health Analysis">
-                      <Button
-                        onClick={handleAiAnalysis}
-                        startIcon={<AiIcon />}
-                        variant="outlined"
-                        sx={{
-                          borderColor: theme.palette.info.main,
-                          color: theme.palette.info.main,
-                          '&:hover': {
-                            borderColor: theme.palette.info.dark,
-                            backgroundColor: alpha(theme.palette.info.main, 0.1),
-                          }
-                        }}
-                      >
-                        AI Analysis
-                      </Button>
-                    </MuiTooltip>
-                    <Button
-                      component="a"
-                      href={site.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      startIcon={<NetworkIcon />}
-                      variant="contained"
-                      sx={{
-                        borderRadius: 1,
-                        background: theme.palette.mode === 'dark'
-                          ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
-                          : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-                        '&:hover': {
-                          background: theme.palette.mode === 'dark'
-                            ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
-                            : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
-                        }
-                      }}
-                    >
-                      Visit Site
-                    </Button>
-                  </Stack>
                 </Stack>
 
                 <Divider />
@@ -567,21 +638,23 @@ export default function SiteDetails() {
                 <Stack spacing={2}>
                   <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <SpeedIcon color="primary" />
-                    {timeRange === 1 ? '1-Hour' : 
-                     timeRange === 6 ? '6-Hour' :
-                     timeRange === 12 ? '12-Hour' :
-                     timeRange === 24 ? '24-Hour' :
-                     timeRange === 48 ? '48-Hour' :
-                     timeRange === 72 ? '3-Day' :
-                     timeRange === 168 ? '7-Day' : `${timeRange}-Hour`} Uptime Statistics
+                    {timeRange === 1 ? '1-Hour' :
+                      timeRange === 6 ? '6-Hour' :
+                        timeRange === 12 ? '12-Hour' :
+                          timeRange === 24 ? '24-Hour' :
+                            timeRange === 48 ? '48-Hour' :
+                              timeRange === 72 ? '3-Day' :
+                                timeRange === 168 ? '7-Day' : `${timeRange}-Hour`} Uptime Statistics
                   </Typography>
 
                   <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={3}
+                    direction="row"
+                    spacing={2}
+                    useFlexGap
+                    flexWrap="wrap"
                     sx={{ width: '100%' }}
                   >
-                    <Stack spacing={1} sx={{ flex: 1 }}>
+                    <Stack spacing={1} sx={{ flex: '1 1 250px', minWidth: 250 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography variant="subtitle2" color="text.secondary">
                           Overall
@@ -605,7 +678,7 @@ export default function SiteDetails() {
                       />
                     </Stack>
 
-                    <Stack spacing={1} sx={{ flex: 1 }}>
+                    <Stack spacing={1} sx={{ flex: '1 1 250px', minWidth: 250 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography variant="subtitle2" color="text.secondary">
                           Ping
@@ -629,7 +702,7 @@ export default function SiteDetails() {
                       />
                     </Stack>
 
-                    <Stack spacing={1} sx={{ flex: 1 }}>
+                    <Stack spacing={1} sx={{ flex: '1 1 250px', minWidth: 250 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography variant="subtitle2" color="text.secondary">
                           HTTP
@@ -653,7 +726,7 @@ export default function SiteDetails() {
                       />
                     </Stack>
 
-                    <Stack spacing={1} sx={{ flex: 1 }}>
+                    <Stack spacing={1} sx={{ flex: '1 1 250px', minWidth: 250 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography variant="subtitle2" color="text.secondary">
                           DNS
@@ -678,6 +751,7 @@ export default function SiteDetails() {
                     </Stack>
                   </Stack>
                 </Stack>
+
 
                 {/* Advanced Details Toggle */}
                 <Stack direction="row" justifyContent="center">
@@ -910,7 +984,7 @@ export default function SiteDetails() {
                   Worker Response Times
                 </Typography>
                 <Box sx={{ flexGrow: 1 }} />
-                
+
                 {/* Time Range Selector */}
                 <Stack direction="row" spacing={1} alignItems="center">
                   <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -946,46 +1020,9 @@ export default function SiteDetails() {
                 </Stack>
               </Stack>
 
-            {/* Ping Response Time Chart */}
-            <WorkerResponseTimeChart
-              title="Ping Response Times"
-              siteStatuses={memoizedStatusHistory}
-              responseTimeField="pingResponseTime"
-              icon={<PingIcon color="primary" />}
-              height={300}
-            />
-
-            {/* HTTP Response Time Chart */}
-            <WorkerResponseTimeChart
-              title="HTTP Response Times"
-              siteStatuses={memoizedStatusHistory}
-              responseTimeField="httpResponseTime"
-              icon={<HttpIcon color="info" />}
-              height={300}
-            />
-
-            {/* DNS Response Time Chart */}
-            <WorkerResponseTimeChart
-              title="DNS Response Times"
-              siteStatuses={memoizedStatusHistory}
-              responseTimeField="dnsResponseTime"
-              icon={<DnsIcon color="secondary" />}
-              height={300}
-            />
-
-            {/* TCP Response Time Charts for each port */}
-            {tcpPorts.map((port: number) => (
-              <WorkerResponseTimeChart
-                key={`tcp-${port}`}
-                title={`TCP Port ${port} Response Times`}
-                siteStatuses={memoizedStatusHistory}
-                responseTimeField="pingResponseTime" // This will be overridden by tcpPort prop
-                tcpPort={port}
-                icon={<TcpIcon color="warning" />}
-                height={300}
-              />
-            ))}
-          </Stack>
+              {/* Ping Response Time Chart */}
+              {chartComponents}
+            </Stack>
           )}
         </Stack>
       )}
