@@ -59,7 +59,7 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
     const tz = typeof req.query.tz === 'string' ? req.query.tz : 'UTC';
     const reportType = (req.query.type as string) || 'current'; // 'current' or 'history'
     const historyDays = parseInt(req.query.days as string) || 7;
-    
+
     if (!siteId) {
       return res.status(400).json({ message: 'Missing siteId query parameter' });
     }
@@ -104,9 +104,9 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
     if (reportType === 'history') {
       const dateFrom = new Date();
       dateFrom.setDate(dateFrom.getDate() - historyDays);
-      
+
       statusData = await prisma.siteStatus.findMany({
-        where: { 
+        where: {
           siteId,
           checkedAt: {
             gte: dateFrom
@@ -139,9 +139,9 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
         statusByWorker[status.workerId] = [];
       }
       statusByWorker[status.workerId].push(status);
-      
-      if (!latestByWorker[status.workerId] || 
-          status.checkedAt > latestByWorker[status.workerId].checkedAt) {
+
+      if (!latestByWorker[status.workerId] ||
+        status.checkedAt > latestByWorker[status.workerId].checkedAt) {
         latestByWorker[status.workerId] = status;
       }
     });
@@ -149,16 +149,16 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
     // Calculate uptime statistics
     const calculateUptimeStats = (statuses: SiteStatusWithMetrics[]) => {
       if (statuses.length === 0) return { uptime: 0, totalChecks: 0, avgResponseTime: 0 };
-      
+
       const upCount = statuses.filter(s => s.isUp).length;
       const totalChecks = statuses.length;
       const uptime = (upCount / totalChecks) * 100;
-      
+
       const responseTimes = statuses
         .filter(s => s.httpResponseTime !== null)
         .map(s => s.httpResponseTime as number);
-      const avgResponseTime = responseTimes.length > 0 
-        ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length 
+      const avgResponseTime = responseTimes.length > 0
+        ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
         : 0;
 
       return { uptime: Math.round(uptime * 100) / 100, totalChecks, avgResponseTime: Math.round(avgResponseTime) };
@@ -177,13 +177,13 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
           day: '2-digit',
           timeZone: tz || 'UTC'
         };
-        
+
         if (includeTime) {
           options.hour = '2-digit';
           options.minute = '2-digit';
           options.hour12 = false;
         }
-        
+
         return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
       } catch {
         return new Date(date).toLocaleString();
@@ -216,11 +216,11 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
     let aiAnalysis = null;
     let aiPrediction = null;
     let aiHealthStatus = null;
-    
+
     try {
       // Get AI service health status
       aiHealthStatus = await kimiPredictiveService.getHealthStatus();
-      
+
       // Only fetch analysis if AI service is available
       if (aiHealthStatus.available) {
         try {
@@ -228,7 +228,7 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
         } catch (error) {
           console.log('AI analysis failed:', error);
         }
-        
+
         try {
           aiPrediction = await kimiPredictiveService.predictSiteStatus(siteId, '24h');
         } catch (error) {
@@ -656,10 +656,10 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
       <body>
         <div class="header">
           <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-            ${themeSettings.logo && themeSettings.logo !== 'logo.png' ? 
-              `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">` : 
-              `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">`
-            }
+            ${themeSettings.logo && themeSettings.logo !== 'logo.png' ?
+        `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">` :
+        `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">`
+      }
             <div>
               <h1 style="margin: 0; color: white;">${reportTitle}</h1>
               <div class="subtitle">${reportSubtitle}</div>
@@ -695,12 +695,117 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
             </div>
             <div class="info-item">
               <div class="label">Notifications</div>
-              <div class="value">${site.notificationSettings.length > 0 ? 
-                site.notificationSettings.map(n => n.type).join(', ') : 
-                'None configured'}</div>
+              <div class="value">${site.notificationSettings.length > 0 ?
+        site.notificationSettings.map(n => n.type).join(', ') :
+        'None configured'}</div>
             </div>
           </div>
         </div>
+
+        ${aiHealthStatus && aiHealthStatus.available ? `
+          <div class="section keep-together">
+            <h2 class="section-title"><span class="icon">🤖</span>AI-Powered Analysis</h2>
+            
+            ${aiAnalysis ? `
+            <div style="margin-bottom: 30px;">
+              <h3 style="color: ${themeSettings.primaryColor}; margin-bottom: 20px; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">🔍</span>Health Diagnosis
+              </h3>
+              
+              <div class="info-grid" style="margin-bottom: 20px;">
+                <div class="info-item">
+                  <div class="label">AI Service Status</div>
+                  <div class="value status-up">✅ Available (${aiHealthStatus.model})</div>
+                </div>
+                <div class="info-item">
+                  <div class="label">Analysis Confidence</div>
+                  <div class="value">${Math.round(aiAnalysis.confidence * 100)}%</div>
+                </div>
+                <div class="info-item">
+                  <div class="label">Severity Level</div>
+                  <div class="value ${aiAnalysis.severity === 'critical' ? 'status-down' : aiAnalysis.severity === 'high' ? 'ssl-warning' : aiAnalysis.severity === 'medium' ? 'response-time-slow' : 'status-up'}">
+                    ${aiAnalysis.severity === 'critical' ? '🔴 Critical' :
+            aiAnalysis.severity === 'high' ? '🟠 High' :
+              aiAnalysis.severity === 'medium' ? '🟡 Medium' : '🟢 Low'}
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="label">AI Tokens Used</div>
+                  <div class="value">${aiAnalysis.tokenUsage.total} tokens</div>
+                </div>
+              </div>
+              
+              <div style="background: ${aiAnalysis.severity === 'critical' ? '#f8d7da' : aiAnalysis.severity === 'high' ? '#fff3cd' : aiAnalysis.severity === 'medium' ? '#e3f2fd' : '#d4edda'}; padding: 20px; border-radius: 8px; border-left: 4px solid ${aiAnalysis.severity === 'critical' ? themeSettings.errorColor : aiAnalysis.severity === 'high' ? themeSettings.warningColor : aiAnalysis.severity === 'medium' ? themeSettings.infoColor : themeSettings.successColor}; margin-bottom: 20px;">
+                <strong>🤖 AI Diagnosis:</strong><br>
+                ${aiAnalysis.diagnosis}
+              </div>
+              
+              ${aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 ? `
+              <div style="margin-bottom: 20px;">
+                <h4 style="color: ${themeSettings.primaryColor}; margin-bottom: 15px;">💡 AI Recommendations</h4>
+                <ul style="padding-left: 20px; margin: 0;">
+                  ${aiAnalysis.recommendations.map((rec: string) => `<li style="margin-bottom: 8px;">${rec}</li>`).join('')}
+                </ul>
+              </div>
+              ` : ''}
+            </div>
+            ` : ''}
+            
+            ${aiPrediction ? `
+            <div style="page-break-before: always;">
+              <h3 style="color: ${themeSettings.primaryColor}; margin-bottom: 20px; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">🔮</span>24-Hour Prediction
+              </h3>
+              
+              <div class="info-grid" style="margin-bottom: 20px;">
+                <div class="info-item">
+                  <div class="label">Predicted Status</div>
+                  <div class="value ${aiPrediction.predictedStatus === 'up' ? 'status-up' : aiPrediction.predictedStatus === 'degraded' ? 'ssl-warning' : 'status-down'}">
+                    ${aiPrediction.predictedStatus === 'up' ? '✅ Up' :
+            aiPrediction.predictedStatus === 'degraded' ? '⚠️ Degraded' : '❌ Down'}
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="label">Prediction Confidence</div>
+                  <div class="value">${Math.round(aiPrediction.confidence * 100)}%</div>
+                </div>
+                <div class="info-item">
+                  <div class="label">Timeframe</div>
+                  <div class="value">${aiPrediction.timeframe}</div>
+                </div>
+                <div class="info-item">
+                  <div class="label">AI Tokens Used</div>
+                  <div class="value">${aiPrediction.tokenUsage.total} tokens</div>
+                </div>
+              </div>
+              
+              <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; border-left: 4px solid ${themeSettings.infoColor}; margin-bottom: 20px;">
+                <strong>🔮 AI Prediction Reasoning:</strong><br>
+                ${aiPrediction.reasoning}
+              </div>
+              
+              ${aiPrediction.recommendations && aiPrediction.recommendations.length > 0 ? `
+              <div>
+                <h4 style="color: ${themeSettings.primaryColor}; margin-bottom: 15px;">🚀 Predictive Recommendations</h4>
+                <ul style="padding-left: 20px; margin: 0;">
+                  ${aiPrediction.recommendations.map((rec: string) => `<li style="margin-bottom: 8px;">${rec}</li>`).join('')}
+                </ul>
+              </div>
+              ` : ''}
+            </div>
+            ` : ''}
+          </div>
+          ` : `
+          <div class="section keep-together">
+            <h2 class="section-title"><span class="icon">🤖</span>AI-Powered Analysis</h2>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid ${themeSettings.textSecondary};">
+              <strong>ℹ️ AI Service Status:</strong><br>
+              AI-powered analysis is currently unavailable. This may be due to service configuration or temporary unavailability.
+            </div>
+          </div>
+          `}
+  
+          
 
         ${consensus ? `
         <div class="section keep-together" style="margin-top: 10px;">
@@ -755,12 +860,12 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                   ${formatResponseTime(consensus.pingResponseTime)}
                 </td>
                 <td>
-                  ${consensus.pingResponseTime ? 
-                    consensus.pingResponseTime < 50 ? '🟢 Excellent' :
-                    consensus.pingResponseTime < 100 ? '🟡 Good' :
-                    consensus.pingResponseTime < 200 ? '🟠 Fair' :
-                    '🔴 Poor' : 'N/A'
-                  }
+                  ${consensus.pingResponseTime ?
+          consensus.pingResponseTime < 50 ? '🟢 Excellent' :
+            consensus.pingResponseTime < 100 ? '🟡 Good' :
+              consensus.pingResponseTime < 200 ? '🟠 Fair' :
+                '🔴 Poor' : 'N/A'
+        }
                 </td>
                 <td>Network connectivity and latency test</td>
               </tr>
@@ -773,12 +878,12 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                   ${formatResponseTime(consensus.httpResponseTime)}
                 </td>
                 <td>
-                  ${consensus.httpResponseTime ? 
-                    consensus.httpResponseTime < 500 ? '🟢 Excellent' :
-                    consensus.httpResponseTime < 1000 ? '🟡 Good' :
-                    consensus.httpResponseTime < 2000 ? '🟠 Fair' :
-                    '🔴 Poor' : 'N/A'
-                  }
+                  ${consensus.httpResponseTime ?
+          consensus.httpResponseTime < 500 ? '🟢 Excellent' :
+            consensus.httpResponseTime < 1000 ? '🟡 Good' :
+              consensus.httpResponseTime < 2000 ? '🟠 Fair' :
+                '🔴 Poor' : 'N/A'
+        }
                 </td>
                 <td>Web server response time and availability</td>
               </tr>
@@ -791,12 +896,12 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                   ${formatResponseTime(consensus.dnsResponseTime)}
                 </td>
                 <td>
-                  ${consensus.dnsResponseTime ? 
-                    consensus.dnsResponseTime < 50 ? '🟢 Excellent' :
-                    consensus.dnsResponseTime < 100 ? '🟡 Good' :
-                    consensus.dnsResponseTime < 200 ? '🟠 Fair' :
-                    '🔴 Poor' : 'N/A'
-                  }
+                  ${consensus.dnsResponseTime ?
+          consensus.dnsResponseTime < 50 ? '🟢 Excellent' :
+            consensus.dnsResponseTime < 100 ? '🟡 Good' :
+              consensus.dnsResponseTime < 200 ? '🟠 Fair' :
+                '🔴 Poor' : 'N/A'
+        }
                 </td>
                 <td>Domain name resolution speed</td>
               </tr>
@@ -805,24 +910,24 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
           
           <div class="performance-analysis" style="margin-top: 15px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid ${themeSettings.infoColor};">
             <strong>📈 Performance Analysis:</strong><br>
-            • <strong>Network Latency:</strong> ${consensus.pingResponseTime ? 
-              consensus.pingResponseTime < 50 ? 'Excellent - Very low latency' :
-              consensus.pingResponseTime < 100 ? 'Good - Acceptable latency' :
+            • <strong>Network Latency:</strong> ${consensus.pingResponseTime ?
+          consensus.pingResponseTime < 50 ? 'Excellent - Very low latency' :
+            consensus.pingResponseTime < 100 ? 'Good - Acceptable latency' :
               consensus.pingResponseTime < 200 ? 'Fair - Higher than ideal latency' :
-              'Poor - High latency affecting performance' : 'Unknown'
-            }<br>
-            • <strong>Server Response:</strong> ${consensus.httpResponseTime ? 
-              consensus.httpResponseTime < 500 ? 'Excellent - Fast server response' :
-              consensus.httpResponseTime < 1000 ? 'Good - Normal server response' :
+                'Poor - High latency affecting performance' : 'Unknown'
+        }<br>
+            • <strong>Server Response:</strong> ${consensus.httpResponseTime ?
+          consensus.httpResponseTime < 500 ? 'Excellent - Fast server response' :
+            consensus.httpResponseTime < 1000 ? 'Good - Normal server response' :
               consensus.httpResponseTime < 2000 ? 'Fair - Slow server response' :
-              'Poor - Very slow server response' : 'Unknown'
-            }<br>
-            • <strong>DNS Performance:</strong> ${consensus.dnsResponseTime ? 
-              consensus.dnsResponseTime < 50 ? 'Excellent - Fast DNS resolution' :
-              consensus.dnsResponseTime < 100 ? 'Good - Normal DNS resolution' :
+                'Poor - Very slow server response' : 'Unknown'
+        }<br>
+            • <strong>DNS Performance:</strong> ${consensus.dnsResponseTime ?
+          consensus.dnsResponseTime < 50 ? 'Excellent - Fast DNS resolution' :
+            consensus.dnsResponseTime < 100 ? 'Good - Normal DNS resolution' :
               consensus.dnsResponseTime < 200 ? 'Fair - Slow DNS resolution' :
-              'Poor - Very slow DNS resolution' : 'Unknown'
-            }
+                'Poor - Very slow DNS resolution' : 'Unknown'
+        }
           </div>
 
           ${consensus.hasSsl ? `
@@ -857,27 +962,27 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
               <div class="info-item">
                 <div class="label">Certificate Age</div>
                 <div class="value">
-                  ${consensus.sslValidFrom ? 
-                    `${Math.floor((new Date().getTime() - new Date(consensus.sslValidFrom).getTime()) / (1000 * 60 * 60 * 24))} days old` : 
-                    'Unknown'
-                  }
+                  ${consensus.sslValidFrom ?
+            `${Math.floor((new Date().getTime() - new Date(consensus.sslValidFrom).getTime()) / (1000 * 60 * 60 * 24))} days old` :
+            'Unknown'
+          }
                 </div>
               </div>
             </div>
             
             <div style="margin-top: 15px; padding: 15px; background: ${consensus.sslDaysUntilExpiry && consensus.sslDaysUntilExpiry < 30 ? '#f8d7da' : '#d4edda'}; border-radius: 8px; border-left: 4px solid ${consensus.sslDaysUntilExpiry && consensus.sslDaysUntilExpiry < 30 ? themeSettings.errorColor : themeSettings.successColor};">
               <strong>🔍 SSL Certificate Analysis:</strong><br>
-              ${consensus.sslDaysUntilExpiry && consensus.sslDaysUntilExpiry < 30 ? 
-                `⚠️ <strong>Certificate expires in ${consensus.sslDaysUntilExpiry} days!</strong> Please renew the SSL certificate to avoid service interruption.` :
-                consensus.sslDaysUntilExpiry && consensus.sslDaysUntilExpiry < 90 ?
-                `⚠️ <strong>Certificate expires in ${consensus.sslDaysUntilExpiry} days.</strong> Consider planning for renewal.` :
-                `✅ <strong>Certificate is valid for ${consensus.sslDaysUntilExpiry} more days.</strong> No immediate action required.`
-              }<br>
+              ${consensus.sslDaysUntilExpiry && consensus.sslDaysUntilExpiry < 30 ?
+            `⚠️ <strong>Certificate expires in ${consensus.sslDaysUntilExpiry} days!</strong> Please renew the SSL certificate to avoid service interruption.` :
+            consensus.sslDaysUntilExpiry && consensus.sslDaysUntilExpiry < 90 ?
+              `⚠️ <strong>Certificate expires in ${consensus.sslDaysUntilExpiry} days.</strong> Consider planning for renewal.` :
+              `✅ <strong>Certificate is valid for ${consensus.sslDaysUntilExpiry} more days.</strong> No immediate action required.`
+          }<br>
               • <strong>Issuer:</strong> ${consensus.sslIssuer || 'Unknown'}<br>
-              • <strong>Security Level:</strong> ${consensus.sslIssuer && consensus.sslIssuer.includes('Let\'s Encrypt') ? 'Standard (Let\'s Encrypt)' : 
-                                                  consensus.sslIssuer && consensus.sslIssuer.includes('DigiCert') ? 'Premium (DigiCert)' :
-                                                  consensus.sslIssuer && consensus.sslIssuer.includes('Comodo') ? 'Premium (Comodo)' :
-                                                  'Standard Certificate Authority'}
+              • <strong>Security Level:</strong> ${consensus.sslIssuer && consensus.sslIssuer.includes('Let\'s Encrypt') ? 'Standard (Let\'s Encrypt)' :
+            consensus.sslIssuer && consensus.sslIssuer.includes('DigiCert') ? 'Premium (DigiCert)' :
+              consensus.sslIssuer && consensus.sslIssuer.includes('Comodo') ? 'Premium (Comodo)' :
+                'Standard Certificate Authority'}
             </div>
           </div>
           ` : `
@@ -914,9 +1019,9 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
               <div class="label">Nameservers</div>
               <div class="value">
                 <ul class="dns-list">
-                  ${consensus.dnsNameservers.map((ns: string, index: number) => 
-                    `<li><strong>NS${index + 1}:</strong> ${ns}</li>`
-                  ).join('')}
+                  ${consensus.dnsNameservers.map((ns: string, index: number) =>
+                  `<li><strong>NS${index + 1}:</strong> ${ns}</li>`
+                ).join('')}
                 </ul>
               </div>
             </div>
@@ -961,8 +1066,8 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 <div class="value">${formatResponseTime(
                   consensus.tcpChecks
                     .filter((tcp: any) => tcp.responseTime)
-                    .reduce((sum: number, tcp: any) => sum + (tcp.responseTime || 0), 0) / 
-                    consensus.tcpChecks.filter((tcp: any) => tcp.responseTime).length
+                    .reduce((sum: number, tcp: any) => sum + (tcp.responseTime || 0), 0) /
+                  consensus.tcpChecks.filter((tcp: any) => tcp.responseTime).length
                 )}</div>
               </div>
             </div>
@@ -1001,13 +1106,13 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                     8080: { name: 'HTTP-ALT', desc: 'Alternative HTTP Port', security: '❌ Unencrypted' },
                     8443: { name: 'HTTPS-ALT', desc: 'Alternative HTTPS Port', security: '🔒 Encrypted' }
                   };
-                  
-                  const service = serviceInfo[port] || { 
-                    name: 'Custom', 
-                    desc: 'Custom Application Port', 
-                    security: '❓ Unknown' 
+
+                  const service = serviceInfo[port] || {
+                    name: 'Custom',
+                    desc: 'Custom Application Port',
+                    security: '❓ Unknown'
                   };
-                  
+
                   return `
                   <tr>
                     <td><strong>${port}</strong></td>
@@ -1052,9 +1157,9 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
           <h2 class="section-title"><span class="icon">🌍</span>Regional Worker Status</h2>
           <div class="worker-grid">
             ${workerIds.map(workerId => {
-              const status = latestByWorker[workerId];
-              const workerStats = calculateUptimeStats(statusByWorker[workerId] || []);
-              return `
+                  const status = latestByWorker[workerId];
+                  const workerStats = calculateUptimeStats(statusByWorker[workerId] || []);
+                  return `
               <div class="worker-card">
                 <div class="worker-title">
                   <span class="icon">📍</span>
@@ -1102,121 +1207,17 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 </div>
               </div>
               `;
-            }).join('')}
+                }).join('')}
           </div>
         </div>
         ` : ''}
-
-        ${aiHealthStatus && aiHealthStatus.available ? `
-        <div class="section keep-together">
-          <h2 class="section-title"><span class="icon">🤖</span>AI-Powered Analysis</h2>
-          
-          ${aiAnalysis ? `
-          <div style="margin-bottom: 30px;">
-            <h3 style="color: ${themeSettings.primaryColor}; margin-bottom: 20px; display: flex; align-items: center;">
-              <span style="margin-right: 10px;">🔍</span>Health Diagnosis
-            </h3>
-            
-            <div class="info-grid" style="margin-bottom: 20px;">
-              <div class="info-item">
-                <div class="label">AI Service Status</div>
-                <div class="value status-up">✅ Available (${aiHealthStatus.model})</div>
-              </div>
-              <div class="info-item">
-                <div class="label">Analysis Confidence</div>
-                <div class="value">${Math.round(aiAnalysis.confidence * 100)}%</div>
-              </div>
-              <div class="info-item">
-                <div class="label">Severity Level</div>
-                <div class="value ${aiAnalysis.severity === 'critical' ? 'status-down' : aiAnalysis.severity === 'high' ? 'ssl-warning' : aiAnalysis.severity === 'medium' ? 'response-time-slow' : 'status-up'}">
-                  ${aiAnalysis.severity === 'critical' ? '🔴 Critical' : 
-                    aiAnalysis.severity === 'high' ? '🟠 High' : 
-                    aiAnalysis.severity === 'medium' ? '🟡 Medium' : '🟢 Low'}
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="label">AI Tokens Used</div>
-                <div class="value">${aiAnalysis.tokenUsage.total} tokens</div>
-              </div>
-            </div>
-            
-            <div style="background: ${aiAnalysis.severity === 'critical' ? '#f8d7da' : aiAnalysis.severity === 'high' ? '#fff3cd' : aiAnalysis.severity === 'medium' ? '#e3f2fd' : '#d4edda'}; padding: 20px; border-radius: 8px; border-left: 4px solid ${aiAnalysis.severity === 'critical' ? themeSettings.errorColor : aiAnalysis.severity === 'high' ? themeSettings.warningColor : aiAnalysis.severity === 'medium' ? themeSettings.infoColor : themeSettings.successColor}; margin-bottom: 20px;">
-              <strong>🤖 AI Diagnosis:</strong><br>
-              ${aiAnalysis.diagnosis}
-            </div>
-            
-            ${aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 ? `
-            <div style="margin-bottom: 20px;">
-              <h4 style="color: ${themeSettings.primaryColor}; margin-bottom: 15px;">💡 AI Recommendations</h4>
-              <ul style="padding-left: 20px; margin: 0;">
-                ${aiAnalysis.recommendations.map((rec: string) => `<li style="margin-bottom: 8px;">${rec}</li>`).join('')}
-              </ul>
-            </div>
-            ` : ''}
-          </div>
-          ` : ''}
-          
-          ${aiPrediction ? `
-          <div style="page-break-before: always;">
-            <h3 style="color: ${themeSettings.primaryColor}; margin-bottom: 20px; display: flex; align-items: center;">
-              <span style="margin-right: 10px;">🔮</span>24-Hour Prediction
-            </h3>
-            
-            <div class="info-grid" style="margin-bottom: 20px;">
-              <div class="info-item">
-                <div class="label">Predicted Status</div>
-                <div class="value ${aiPrediction.predictedStatus === 'up' ? 'status-up' : aiPrediction.predictedStatus === 'degraded' ? 'ssl-warning' : 'status-down'}">
-                  ${aiPrediction.predictedStatus === 'up' ? '✅ Up' : 
-                    aiPrediction.predictedStatus === 'degraded' ? '⚠️ Degraded' : '❌ Down'}
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="label">Prediction Confidence</div>
-                <div class="value">${Math.round(aiPrediction.confidence * 100)}%</div>
-              </div>
-              <div class="info-item">
-                <div class="label">Timeframe</div>
-                <div class="value">${aiPrediction.timeframe}</div>
-              </div>
-              <div class="info-item">
-                <div class="label">AI Tokens Used</div>
-                <div class="value">${aiPrediction.tokenUsage.total} tokens</div>
-              </div>
-            </div>
-            
-            <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; border-left: 4px solid ${themeSettings.infoColor}; margin-bottom: 20px;">
-              <strong>🔮 AI Prediction Reasoning:</strong><br>
-              ${aiPrediction.reasoning}
-            </div>
-            
-            ${aiPrediction.recommendations && aiPrediction.recommendations.length > 0 ? `
-            <div>
-              <h4 style="color: ${themeSettings.primaryColor}; margin-bottom: 15px;">🚀 Predictive Recommendations</h4>
-              <ul style="padding-left: 20px; margin: 0;">
-                ${aiPrediction.recommendations.map((rec: string) => `<li style="margin-bottom: 8px;">${rec}</li>`).join('')}
-              </ul>
-            </div>
-            ` : ''}
-          </div>
-          ` : ''}
-        </div>
-        ` : `
-        <div class="section keep-together">
-          <h2 class="section-title"><span class="icon">🤖</span>AI-Powered Analysis</h2>
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid ${themeSettings.textSecondary};">
-            <strong>ℹ️ AI Service Status:</strong><br>
-            AI-powered analysis is currently unavailable. This may be due to service configuration or temporary unavailability.
-          </div>
-        </div>
-        `}
-
-        <div class="footer" style="page-break-inside: avoid; break-inside: avoid;">
+      <div class="footer" style="page-break-inside: avoid; break-inside: avoid;">
           <div style="border-top: 2px solid ${themeSettings.primaryColor}; padding-top: 20px; margin-top: 30px;">
             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-              ${themeSettings.logo && themeSettings.logo !== 'logo.png' ? 
-                `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">` : 
-                `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">`
-              }
+              ${themeSettings.logo && themeSettings.logo !== 'logo.png' ?
+        `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">` :
+        `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">`
+      }
               <span style="font-weight: bold; color: ${themeSettings.primaryColor};">${site.user.companyName}</span>
             </div>
             <p style="text-align: center; margin: 0; color: ${themeSettings.textSecondary};">
@@ -1227,7 +1228,8 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
               For technical support or questions about this report, please contact your monitoring provider.
             </p>
           </div>
-        </div>
+      </div>
+        
       </body>
       </html>
     `;
@@ -1272,7 +1274,7 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error('PDF generation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Failed to generate PDF report',
       error: process.env.NODE_ENV === 'development' ? error : undefined
     });
