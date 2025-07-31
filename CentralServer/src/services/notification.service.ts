@@ -75,10 +75,10 @@ class NotificationService {
         }
       }
 
-      const notification = await prisma.notification.create({
+      await prisma.notification.create({
         data: {
           userId: site.userId,
-          message: enhancedMessage,
+          message: message,
           type: type,
         }
       });
