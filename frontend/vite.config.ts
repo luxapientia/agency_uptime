@@ -17,6 +17,9 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true, // Clean the output directory before build
     },
     server: {
+      host: '0.0.0.0', // Allow external connections
+      port: 5173, // Default Vite port
+      strictPort: false, // Allow fallback to next available port
       proxy: {
         '/api': {
           target: env.VITE_API_URL || 'http://localhost:3000',
