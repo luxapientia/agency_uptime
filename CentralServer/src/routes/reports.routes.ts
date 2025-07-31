@@ -1061,15 +1061,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 <div class="label">Closed Ports</div>
                 <div class="value">${consensus.tcpChecks.filter((tcp: any) => !tcp.isUp).length} closed</div>
               </div>
-              <div class="info-item">
-                <div class="label">Average Response</div>
-                <div class="value">${formatResponseTime(
-                  consensus.tcpChecks
-                    .filter((tcp: any) => tcp.responseTime)
-                    .reduce((sum: number, tcp: any) => sum + (tcp.responseTime || 0), 0) /
-                  consensus.tcpChecks.filter((tcp: any) => tcp.responseTime).length
-                )}</div>
-              </div>
             </div>
             
             <table>
@@ -1077,7 +1068,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 <tr>
                   <th>Port</th>
                   <th>Status</th>
-                  <th>Response Time</th>
                   <th>Service</th>
                   <th>Description</th>
                   <th>Security</th>
@@ -1119,9 +1109,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                     <td><span class="${tcp.isUp ? 'status-up' : 'status-down'}">
                       ${tcp.isUp ? '✅ Open' : '❌ Closed'}
                     </span></td>
-                    <td class="${tcp.responseTime && tcp.responseTime < 100 ? 'response-time-good' : tcp.responseTime && tcp.responseTime < 500 ? 'response-time-slow' : 'response-time-bad'}">
-                      ${formatResponseTime(tcp.responseTime)}
-                    </td>
                     <td><strong>${service.name}</strong></td>
                     <td>${service.desc}</td>
                     <td>${service.security}</td>
@@ -1205,6 +1192,41 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                     ${status.hasSsl ? '🔒 Valid' : '🔓 None'}
                   </span>
                 </div>
+                ${status.tcpChecks && Array.isArray(status.tcpChecks) && status.tcpChecks.length > 0 ? `
+                <div class="metric-row">
+                  <span class="metric-label">TCP Ports:</span>
+                  <span class="metric-value">
+                    ${status.tcpChecks.filter((tcp: any) => tcp.isUp).length} open / ${status.tcpChecks.length} total
+                  </span>
+                </div>
+                ${status.tcpChecks.slice(0, 3).map((tcp: any) => {
+                  const serviceInfo: Record<number, string> = {
+                    20: 'FTP-DATA', 21: 'FTP', 22: 'SSH', 23: 'TELNET', 25: 'SMTP', 53: 'DNS',
+                    80: 'HTTP', 110: 'POP3', 143: 'IMAP', 443: 'HTTPS', 993: 'IMAPS', 995: 'POP3S',
+                    3306: 'MySQL', 5432: 'PostgreSQL', 27017: 'MongoDB', 6379: 'Redis',
+                    8080: 'HTTP-ALT', 8443: 'HTTPS-ALT'
+                  };
+                  const service = serviceInfo[tcp.port] || 'Custom';
+                  return `
+                <div class="metric-row" style="margin-left: 15px; font-size: 0.9em;">
+                  <span class="metric-label">Port ${tcp.port} (${service}):</span>
+                  <span class="metric-value ${tcp.isUp ? 'status-up' : 'status-down'}">
+                    ${tcp.isUp ? '✅' : '❌'} ${formatResponseTime(tcp.responseTime)}
+                  </span>
+                </div>
+                `;
+                }).join('')}
+                ${status.tcpChecks.length > 3 ? `
+                <div class="metric-row" style="margin-left: 15px; font-size: 0.9em; color: ${themeSettings.textSecondary};">
+                  <span class="metric-label">+${status.tcpChecks.length - 3} more ports</span>
+                </div>
+                ` : ''}
+                ` : `
+                <div class="metric-row">
+                  <span class="metric-label">TCP Ports:</span>
+                  <span class="metric-value">No data</span>
+                </div>
+                `}
               </div>
               `;
                 }).join('')}
