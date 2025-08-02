@@ -351,6 +351,93 @@ router.delete('/logo', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// Reset all theme settings to default
+router.delete('/theme', authenticate, async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthRequest;
+    const themeSettings = await prisma.themeSettings.findUnique({
+      where: { userId: authReq.user.id }
+    });
+
+    // Delete old favicon and logo if they exist and are not default
+    if (themeSettings?.favicon && themeSettings.favicon !== 'favicon.png') {
+      await fileService.deleteFavicon(themeSettings.favicon);
+    }
+    if (themeSettings?.logo && themeSettings.logo !== 'logo.png') {
+      await fileService.deleteLogo(themeSettings.logo);
+    }
+
+    // Reset all theme settings to default values
+    const defaultSettings = await prisma.themeSettings.upsert({
+      where: { userId: authReq.user.id },
+      update: {
+        // Colors
+        primaryColor: '#1976d2',
+        secondaryColor: '#9c27b0',
+        errorColor: '#d32f2f',
+        warningColor: '#ed6c02',
+        infoColor: '#0288d1',
+        successColor: '#2e7d32',
+        textPrimary: '#000000',
+        textSecondary: '#666666',
+        // Other settings
+        isDarkMode: false,
+        borderRadius: 4,
+        fontPrimary: 'Roboto',
+        fontSecondary: 'Roboto',
+        favicon: 'favicon.png',
+        logo: 'logo.png'
+      },
+      create: {
+        userId: authReq.user.id,
+        // Colors
+        primaryColor: '#1976d2',
+        secondaryColor: '#9c27b0',
+        errorColor: '#d32f2f',
+        warningColor: '#ed6c02',
+        infoColor: '#0288d1',
+        successColor: '#2e7d32',
+        textPrimary: '#000000',
+        textSecondary: '#666666',
+        // Other settings
+        isDarkMode: false,
+        borderRadius: 4,
+        fontPrimary: 'Roboto',
+        fontSecondary: 'Roboto',
+        favicon: 'favicon.png',
+        logo: 'logo.png'
+      }
+    });
+
+    // Return the reset settings in the expected format
+    res.json({
+      colors: {
+        primary: defaultSettings.primaryColor,
+        secondary: defaultSettings.secondaryColor,
+        error: defaultSettings.errorColor,
+        warning: defaultSettings.warningColor,
+        info: defaultSettings.infoColor,
+        success: defaultSettings.successColor,
+        text: {
+          primary: defaultSettings.textPrimary,
+          secondary: defaultSettings.textSecondary
+        }
+      },
+      isDarkMode: defaultSettings.isDarkMode,
+      borderRadius: defaultSettings.borderRadius,
+      fontFamily: {
+        primary: defaultSettings.fontPrimary,
+        secondary: defaultSettings.fontSecondary
+      },
+      favicon: defaultSettings.favicon,
+      logo: defaultSettings.logo
+    });
+  } catch (error) {
+    console.error('Error resetting theme settings:', error);
+    res.status(500).json({ error: 'Failed to reset theme settings' });
+  }
+});
+
 // Get custom domain
 router.get('/domain', authenticate, async (req: Request, res: Response) => {
   try {

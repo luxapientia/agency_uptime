@@ -91,6 +91,15 @@ export const updateDomainSettings = createAsyncThunk(
   }
 );
 
+// Reset theme settings to default
+export const resetThemeSettings = createAsyncThunk(
+  'settings/resetThemeSettings',
+  async () => {
+    const response = await axios.delete('/settings/theme');
+    return response.data;
+  }
+);
+
 const initialState: SettingState = {
   settings: {
     colors: {
@@ -128,14 +137,6 @@ const settingsSlice = createSlice({
       state.settings = {
         ...state.settings,
         ...action.payload
-      };
-    },
-    resetTheme(state) {
-      const { favicon, logo } = state.settings;
-      state.settings = {
-        ...initialState.settings,
-        favicon,
-        logo
       };
     }
   },
@@ -277,12 +278,32 @@ const settingsSlice = createSlice({
         state.error = action.error.message || 'Failed to update domain settings';
         showToast.error('Failed to update domain settings');
       });
+
+    // Reset theme settings
+    builder
+      .addCase(resetThemeSettings.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resetThemeSettings.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.settings = {
+          ...state.settings,
+          ...action.payload,
+          hasUnsavedChanges: false
+        };
+        showToast.success('Theme settings reset to default');
+      })
+      .addCase(resetThemeSettings.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to reset theme settings';
+        showToast.error('Failed to reset theme settings');
+      });
   }
 });
 
 export const {
-  setThemeSettings,
-  resetTheme
+  setThemeSettings
 } = settingsSlice.actions;
 
 export default settingsSlice.reducer; 
