@@ -31,7 +31,7 @@ import {
 import type { RootState, AppDispatch } from '../../store';
 import {
   updateThemeSettings,
-  resetTheme,
+  resetThemeSettings,
   uploadFavicon,
   uploadLogo,
   resetLogo,
@@ -127,7 +127,7 @@ export default function ThemeSettings() {
   };
 
   const handleReset = () => {
-    dispatch(resetTheme());
+    dispatch(resetThemeSettings());
   };
 
   const handleBorderRadiusChange = (_event: Event, value: number | number[]) => {
