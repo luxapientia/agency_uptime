@@ -1,0 +1,38 @@
+[
+    {
+        "name": "Branded PDF Reports",
+        "price": 19,
+        "title": "Branded PDF Reports",
+        "description": "Professional PDF reports with your agency branding and custom analytics."
+    },
+    {
+        "name": "Multi-User Logins",
+        "price": 25,
+        "title": "Multi-User Logins",
+        "description": "Allow client team members to access their dashboards with role-based permissions."
+    },
+    {
+        "name": "60-Second Checks",
+        "price": 39,
+        "title": "60-Second Checks",
+        "description": "Ultra-fast monitoring with 1-minute intervals for mission-critical sites."
+    },
+    {
+        "name": "30-Second Checks",
+        "price": 29,
+        "title": "30-Second Checks",
+        "description": "Enterprise-grade monitoring with 30-second intervals for maximum uptime."
+    },
+    {
+        "name": "Webhook & API Access",
+        "price": 25,
+        "title": "Webhook & API Access",
+        "description": "Integrate with your existing tools and workflows through our comprehensive API."
+    },
+    {
+        "name": "Predictive Monitoring",
+        "price": 69,
+        "title": "Predictive Monitoring",
+        "description": "AI that predicts and prevents downtime before it happens with automated mitigation."
+    }
+]
