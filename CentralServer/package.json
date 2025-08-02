@@ -11,7 +11,8 @@
     "test": "jest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "db:init-plans": "ts-node src/data/init.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
@@ -41,7 +42,7 @@
     "pdfkit": "^0.14.0",
     "puppeteer": "^24.14.0",
     "socket.io": "^4.8.1",
-    "stripe": "^14.18.0",
+    "stripe": "^14.25.0",
     "winston": "^3.11.0",
     "zod": "^3.25.67"
   },
