@@ -3,7 +3,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Button,
   Typography,
   Box,
@@ -92,8 +91,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ plan, clientSecret, onSuccess
         // Payment was successful, trigger success callback
         onSuccess();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Payment failed. Please try again.');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Payment failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -175,7 +175,7 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (): void => {
     setPaymentStatus('success');
     setTimeout(() => {
       onPaymentSuccess();
@@ -185,12 +185,12 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
     }, 2000);
   };
 
-  const handlePaymentError = (errorMessage: string) => {
+  const handlePaymentError = (errorMessage: string): void => {
     setError(errorMessage);
     setPaymentStatus('error');
   };
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     if (paymentStatus === 'pending') {
       onClose();
     }
@@ -212,8 +212,9 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
             amount: plan.price * 100, // Convert to cents for Stripe
           });
           setClientSecret(response.data.clientSecret);
-        } catch (err: any) {
-          setError(err.response?.data?.error || 'Failed to initialize payment');
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
+          setError(errorMessage);
           setPaymentStatus('error');
         } finally {
           setIsLoading(false);
@@ -222,7 +223,7 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
 
       createPaymentIntent();
     }
-  }, [open, plan, clientSecret]);
+  }, [open, plan, clientSecret, setError, setPaymentStatus, setIsLoading]);
 
   if (!plan) return null;
 

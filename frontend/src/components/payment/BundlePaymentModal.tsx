@@ -62,13 +62,9 @@ interface BundlePaymentFormProps {
 }
 
 const BundlePaymentForm: React.FC<BundlePaymentFormProps> = ({
-  plans,
   bundlePrice,
-  totalPrice,
-  savings,
   clientSecret,
   onSuccess,
-  onError,
   onClose,
 }) => {
   const stripe = useStripe();
@@ -110,8 +106,9 @@ const BundlePaymentForm: React.FC<BundlePaymentFormProps> = ({
       } else {
         onSuccess();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Payment failed. Please try again.');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Payment failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -196,7 +193,7 @@ const BundlePaymentModal: React.FC<BundlePaymentModalProps> = ({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (): void => {
     setPaymentStatus('success');
     setTimeout(() => {
       onPaymentSuccess();
@@ -206,12 +203,12 @@ const BundlePaymentModal: React.FC<BundlePaymentModalProps> = ({
     }, 2000);
   };
 
-  const handlePaymentError = (errorMessage: string) => {
+  const handlePaymentError = (errorMessage: string): void => {
     setError(errorMessage);
     setPaymentStatus('error');
   };
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     if (paymentStatus === 'pending') {
       onClose();
     }
@@ -235,8 +232,9 @@ const BundlePaymentModal: React.FC<BundlePaymentModalProps> = ({
             planIds: plans.map(plan => plan.id),
           });
           setClientSecret(response.data.clientSecret);
-        } catch (err: any) {
-          setError(err.response?.data?.error || 'Failed to initialize payment');
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
+          setError(errorMessage);
           setPaymentStatus('error');
         } finally {
           setIsLoading(false);
@@ -245,7 +243,7 @@ const BundlePaymentModal: React.FC<BundlePaymentModalProps> = ({
 
       createPaymentIntent();
     }
-  }, [open, plans, bundlePrice, clientSecret]);
+  }, [open, plans, bundlePrice, clientSecret, setError, setPaymentStatus, setIsLoading]);
 
   if (plans.length === 0) return null;
 
