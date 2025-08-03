@@ -21,6 +21,7 @@ model User {
   themeSettings ThemeSettings?
   customDomain  String?
   notifications Notification[]
+  userMemberships UserMembership[]
   @@map("users")
 }
 
@@ -122,14 +123,14 @@ model ThemeSettings {
   user         User     @relation(fields: [userId], references: [id])
   
   // Theme Colors
-  primaryColor   String   @default("#1976d2")
-  secondaryColor String   @default("#9c27b0")
-  errorColor     String   @default("#d32f2f")
-  warningColor   String   @default("#ed6c02")
-  infoColor      String   @default("#0288d1")
-  successColor   String   @default("#2e7d32")
-  textPrimary    String   @default("#000000")
-  textSecondary  String   @default("#666666")
+  primaryColor   String   @default("#2563eb")
+  secondaryColor String   @default("#4f46e5")
+  errorColor     String   @default("#dc2626")
+  warningColor   String   @default("#f59e0b")
+  infoColor      String   @default("#3b82f6")
+  successColor   String   @default("#10b981")
+  textPrimary    String   @default("#111827")
+  textSecondary  String   @default("#4b5563")
   
   // Other Theme Settings
   isDarkMode     Boolean  @default(false)
@@ -144,4 +145,28 @@ model ThemeSettings {
 
   @@index([userId])
   @@map("theme_settings")
+}
+
+model MembershipPlan {
+  id String @id @default(uuid())
+  name String
+  price Int
+  title String
+  description String
+  userMemberships UserMembership[]
+
+  @@map("membership_plans")
+}
+
+model UserMembership {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  membershipPlanId String
+  membershipPlan MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+  startDate DateTime @default(now())
+  endDate DateTime
+
+  @@unique([userId, membershipPlanId])
+  @@map("user_memberships")
 }
