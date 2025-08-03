@@ -50,7 +50,7 @@ interface PaymentFormProps {
   onClose: () => void;
 }
 
-const PaymentForm: React.FC<PaymentFormProps> = ({ plan, clientSecret, onSuccess, onError, onClose }) => {
+const PaymentForm: React.FC<PaymentFormProps> = ({ plan, clientSecret, onSuccess, onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
   const theme = useTheme();
