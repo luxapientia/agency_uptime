@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Sites from './pages/Sites';
 import SiteDetails from './pages/SiteDetails';
 import Settings from './pages/Settings';
+import MembershipPlans from './pages/MembershipPlans';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
@@ -116,6 +117,11 @@ function AppContent() {
               <Route path="/notifications" element={
                 <ProtectedRoute>
                   <Notifications />
+                </ProtectedRoute>
+              } />
+              <Route path="/membership-plans" element={
+                <ProtectedRoute>
+                  <MembershipPlans />
                 </ProtectedRoute>
               } />
               <Route path="/login" element={<Login />} />
