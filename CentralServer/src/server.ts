@@ -20,6 +20,11 @@ const prisma = new PrismaClient();
 
 // Middleware
 app.use(cors());
+
+// Raw body parsing for Stripe webhooks (MUST come before JSON parsing)
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
+
+// JSON parsing for other routes
 app.use(express.json());
 
 // Static file serving
