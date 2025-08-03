@@ -309,8 +309,6 @@ export default function MembershipPlans() {
     // Check if all plans are purchased
     const allPlansPurchased = plans.length > 0 && plans.every(plan => isPlanActive(plan.id));
 
-    const selectedPlanTotal = selectedPlan ? selectedPlan.price : 0;
-
     if (isLoading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
