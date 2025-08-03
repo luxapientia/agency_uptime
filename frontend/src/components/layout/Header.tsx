@@ -30,6 +30,7 @@ import {
   Business,
   DashboardOutlined,
   KeyboardArrowDown,
+  Payment,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -78,6 +79,7 @@ export default function Header() {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardOutlined />, path: '/dashboard' },
     { text: 'Sites', icon: <Business />, path: '/sites' },
+    { text: 'Membership Plans', icon: <Payment />, path: '/membership-plans' },
   ];
 
   const drawer = (
