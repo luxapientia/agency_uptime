@@ -48,7 +48,10 @@ export interface Config {
   };
   moonshot: {
     apiKey: string;
-  }
+  };
+  membership: {
+    bundlePrice: number;
+  };
 }
 
 export const config: Config = {
@@ -96,5 +99,8 @@ export const config: Config = {
   },
   moonshot: {
     apiKey: process.env.MOONSHOT_API_KEY || '',
+  },
+  membership: {
+    bundlePrice: parseInt(process.env.BUNDLE_PLANS_PRICE || '149', 10),
   }
 }; 
