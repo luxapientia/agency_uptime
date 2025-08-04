@@ -105,6 +105,7 @@ export default function Sites() {
 
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [selectedSiteForNotification, setSelectedSiteForNotification] = useState<Site | null>(null);
+  const [downloadingPdfSiteId, setDownloadingPdfSiteId] = useState<string | null>(null);
 
   const handleAddClick = () => {
     dispatch(setSelectedSite(null));
@@ -202,6 +203,36 @@ export default function Sites() {
   const handleNotificationClick = (site: Site) => {
     setSelectedSiteForNotification(site);
     setNotificationDialogOpen(true);
+  };
+
+  const handleDownloadSitePdf = async (site: Site) => {
+    try {
+      setDownloadingPdfSiteId(site.id);
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const response = await axios.get(`/reports/pdf?siteId=${site.id}&tz=${encodeURIComponent(tz)}`, {
+        responseType: 'blob',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${site.name}-report.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showToast.success(`${site.name} report downloaded successfully`);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      showToast.error(`Failed to download ${site.name} report. Please try again.`);
+    } finally {
+      setDownloadingPdfSiteId(null);
+    }
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -510,6 +541,32 @@ export default function Sites() {
                       }}
                     >
                       <StatsIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Download PDF Report">
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadSitePdf(site);
+                      }}
+                      size="small"
+                      disabled={downloadingPdfSiteId === site.id}
+                      sx={{
+                        mr: 1,
+                        color: theme.palette.success.main,
+                        '&:hover': { 
+                          background: alpha(theme.palette.success.main, 0.1) 
+                        },
+                        '&:disabled': {
+                          color: theme.palette.text.disabled
+                        }
+                      }}
+                    >
+                      {downloadingPdfSiteId === site.id ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : (
+                        <PdfIcon />
+                      )}
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Notification Settings">
