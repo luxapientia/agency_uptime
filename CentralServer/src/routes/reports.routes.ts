@@ -845,7 +845,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
               <tr>
                 <th>Test Type</th>
                 <th>Status</th>
-                <th>Response Time</th>
                 <th>Performance Rating</th>
                 <th>Description</th>
               </tr>
@@ -856,9 +855,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 <td><span class="${consensus.pingIsUp ? 'status-up' : 'status-down'}">
                   ${consensus.pingIsUp ? '✅ Up' : '❌ Down'}
                 </span></td>
-                <td class="${consensus.pingResponseTime && consensus.pingResponseTime < 100 ? 'response-time-good' : consensus.pingResponseTime && consensus.pingResponseTime < 500 ? 'response-time-slow' : 'response-time-bad'}">
-                  ${formatResponseTime(consensus.pingResponseTime)}
-                </td>
                 <td>
                   ${consensus.pingResponseTime ?
           consensus.pingResponseTime < 50 ? '🟢 Excellent' :
@@ -874,9 +870,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 <td><span class="${consensus.httpIsUp ? 'status-up' : 'status-down'}">
                   ${consensus.httpIsUp ? '✅ Up' : '❌ Down'}
                 </span></td>
-                <td class="${consensus.httpResponseTime && consensus.httpResponseTime < 1000 ? 'response-time-good' : consensus.httpResponseTime && consensus.httpResponseTime < 3000 ? 'response-time-slow' : 'response-time-bad'}">
-                  ${formatResponseTime(consensus.httpResponseTime)}
-                </td>
                 <td>
                   ${consensus.httpResponseTime ?
           consensus.httpResponseTime < 500 ? '🟢 Excellent' :
@@ -892,9 +885,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 <td><span class="${consensus.dnsIsUp ? 'status-up' : 'status-down'}">
                   ${consensus.dnsIsUp ? '✅ Up' : '❌ Down'}
                 </span></td>
-                <td class="${consensus.dnsResponseTime && consensus.dnsResponseTime < 100 ? 'response-time-good' : consensus.dnsResponseTime && consensus.dnsResponseTime < 500 ? 'response-time-slow' : 'response-time-bad'}">
-                  ${formatResponseTime(consensus.dnsResponseTime)}
-                </td>
                 <td>
                   ${consensus.dnsResponseTime ?
           consensus.dnsResponseTime < 50 ? '🟢 Excellent' :
@@ -1001,12 +991,6 @@ router.get('/pdf', (async (req: AuthenticatedRequest, res: Response) => {
                 <div class="label">DNS Resolution Status</div>
                 <div class="value ${consensus.dnsIsUp ? 'status-up' : 'status-down'}">
                   ${consensus.dnsIsUp ? '✅ Resolved Successfully' : '❌ Resolution Failed'}
-                </div>
-              </div>
-              <div class="info-item">
-                <div class="label">DNS Response Time</div>
-                <div class="value ${consensus.dnsResponseTime && consensus.dnsResponseTime < 100 ? 'response-time-good' : consensus.dnsResponseTime && consensus.dnsResponseTime < 500 ? 'response-time-slow' : 'response-time-bad'}">
-                  ${formatResponseTime(consensus.dnsResponseTime)}
                 </div>
               </div>
               <div class="info-item">
