@@ -280,6 +280,22 @@ export class MonitorService {
         }
       });
 
+      // Clean up old site statuses (older than 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const deletedCount = await this.prisma.siteStatus.deleteMany({
+        where: {
+          checkedAt: {
+            lt: sevenDaysAgo
+          }
+        }
+      });
+
+      if (deletedCount.count > 0) {
+        logger.info(`Cleaned up ${deletedCount.count} old site statuses older than 7 days`);
+      }
+
       if (previousConsensusStatus && previousConsensusStatus.isUp !== isUp) {
         socketService.sendToUser(site.userId, 'site_status_update', { siteId: site.id, status: consensusSiteStatus });
         await notificationService.sendNotification(site.id,  `Your site ${site.name} (${site.url}) is ${isUp ? 'up' : 'down'} at ${checkedAt.toISOString()}`, 'SITE_STATUS_UPDATE');
