@@ -41,6 +41,7 @@ import {
   NotificationsOutlined as NotificationIcon,
   HttpsOutlined as HttpsIcon,
   SignalWifiStatusbar4Bar as OnlineIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../store';
 import {
@@ -410,6 +411,7 @@ export default function Sites() {
               <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">URL</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Check Interval</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Last Updated</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">View Details</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -525,6 +527,33 @@ export default function Sites() {
                   </Box>
                 </TableCell>
                 <TableCell align="center">
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<VisibilityIcon />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/sites/${site.id}`);
+                    }}
+                    sx={{
+                      borderRadius: theme.shape.borderRadius,
+                      px: 2,
+                      py: 0.5,
+                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.primary.main,
+                      fontWeight: 'medium',
+                      '&:hover': {
+                        borderColor: theme.palette.primary.dark,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        transform: 'translateY(-1px)',
+                        boxShadow: `0 2px 4px ${alpha(theme.palette.primary.main, 0.2)}`
+                      }
+                    }}
+                  >
+                    Advanced Report
+                  </Button>
+                </TableCell>
+                <TableCell align="center">
                   <Tooltip title="View Statistics">
                     <IconButton
                       onClick={(e) => {
@@ -593,9 +622,9 @@ export default function Sites() {
                       }}
                       size="small"
                       sx={{
-                        color: theme.palette.primary.main,
+                        color: theme.palette.secondary.main,
                         '&:hover': {
-                          background: alpha(theme.palette.primary.main, 0.1)
+                          background: alpha(theme.palette.secondary.main, 0.1)
                         }
                       }}
                     >
