@@ -27,19 +27,32 @@ const updateMembershipSchema = z.object({
 // GET /api/membership-plans - Get all membership plans (public)
 const getMembershipPlans = async (req: any, res: Response) => {
   try {
+    const { type } = req.query;
+    
+    // Build where clause for filtering
+    const whereClause: any = {};
+    if (type && (type === 'main' || type === 'upgrade')) {
+      whereClause.type = type;
+    }
+
     const plans = await prisma.membershipPlan.findMany({
-      orderBy: { price: 'asc' }
+      where: whereClause,
+      orderBy: [
+        { type: 'asc' }, // Main plans first, then upgrade plans
+        { price: 'asc' }
+      ]
     });
 
-    // Calculate total price of all plans
-    const totalPrice = plans.reduce((sum, plan) => sum + plan.price, 0);
+    // Calculate total price of upgrade plans only (for bundle pricing)
+    const upgradePlans = plans.filter(plan => plan.type === 'upgrade');
+    const totalUpgradePrice = upgradePlans.reduce((sum, plan) => sum + plan.price, 0);
 
     logger.info('Membership plans fetched successfully');
     res.json({
       plans,
       bundlePrice: config.membership.bundlePrice,
-      totalPrice,
-      savings: totalPrice - config.membership.bundlePrice
+      totalPrice: totalUpgradePrice,
+      savings: totalUpgradePrice - config.membership.bundlePrice
     });
   } catch (error) {
     logger.error('Failed to fetch membership plans:', error);
@@ -197,8 +210,52 @@ const deleteUserMembership = async (req: AuthenticatedRequest, res: Response) =>
   }
 };
 
+// GET /api/membership-plans/main - Get main membership plans only
+const getMainMembershipPlans = async (req: any, res: Response) => {
+  try {
+    const plans = await prisma.membershipPlan.findMany({
+      where: { type: 'main' },
+      orderBy: { price: 'asc' }
+    });
+
+    logger.info('Main membership plans fetched successfully');
+    res.json({ plans });
+  } catch (error) {
+    logger.error('Failed to fetch main membership plans:', error);
+    res.status(500).json({ error: 'Failed to fetch main membership plans' });
+  }
+};
+
+// GET /api/membership-plans/upgrade - Get upgrade membership plans only
+const getUpgradeMembershipPlans = async (req: any, res: Response) => {
+  try {
+    const plans = await prisma.membershipPlan.findMany({
+      where: { type: 'upgrade' },
+      orderBy: { price: 'asc' }
+    });
+
+    // Calculate bundle pricing for upgrade plans
+    const totalPrice = plans.reduce((sum, plan) => sum + plan.price, 0);
+    const bundlePrice = config.membership.bundlePrice;
+    const savings = totalPrice - bundlePrice;
+
+    logger.info('Upgrade membership plans fetched successfully');
+    res.json({
+      plans,
+      bundlePrice,
+      totalPrice,
+      savings
+    });
+  } catch (error) {
+    logger.error('Failed to fetch upgrade membership plans:', error);
+    res.status(500).json({ error: 'Failed to fetch upgrade membership plans' });
+  }
+};
+
 // Route definitions
 router.get('/membership-plans', getMembershipPlans as any);
+router.get('/membership-plans/main', getMainMembershipPlans as any);
+router.get('/membership-plans/upgrade', getUpgradeMembershipPlans as any);
 router.get('/user-memberships', getUserMemberships as any);
 router.post('/user-memberships', validateRequest(createMembershipSchema), createUserMembership as any);
 router.put('/user-memberships/:id', validateRequest(updateMembershipSchema), updateUserMembership as any);
