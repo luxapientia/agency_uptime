@@ -140,7 +140,7 @@ export class WorkerService {
       this.scheduledTasks.delete(site.id);
     }
 
-    const cronExpression = `*/${site.checkInterval} * * * *`;
+    const cronExpression = site.checkInterval === 0.5 ? `*/30 * * * * *` : `*/${site.checkInterval} * * * *`;
 
     this.performCheck(site).catch((error) => {
       logger.error(`Initial check failed for ${site.url}:`, error);
