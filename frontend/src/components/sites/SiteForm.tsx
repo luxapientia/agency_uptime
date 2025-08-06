@@ -36,7 +36,7 @@ interface SiteFormProps {
   isLoading?: boolean;
 }
 
-const INTERVAL_OPTIONS = [1, 5];
+const INTERVAL_OPTIONS = [0.5, 1, 5];
 
 export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: SiteFormProps) {
   const theme = useTheme();
@@ -225,7 +225,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
               >
                 {INTERVAL_OPTIONS.map((interval) => (
                   <MenuItem key={interval} value={interval}>
-                    Every {interval} minute{interval > 1 ? 's' : ''}
+                    {interval === 0.5 ? 'Every 30 seconds' : `Every ${interval} minute${interval > 1 ? 's' : ''}`}
                   </MenuItem>
                 ))}
               </Select>
