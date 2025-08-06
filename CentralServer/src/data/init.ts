@@ -10,6 +10,8 @@ interface MembershipPlanData {
   price: number;
   title: string;
   description: string;
+  type: 'main' | 'upgrade';
+  features: string[];
 }
 
 /**
@@ -60,7 +62,9 @@ export async function initializeMembershipPlans(): Promise<void> {
             name: plan.name,
             price: plan.price,
             title: plan.title,
-            description: plan.description
+            description: plan.description,
+            type: plan.type,
+            features: plan.features
           }
         });
 
