@@ -4,6 +4,8 @@ export interface MembershipPlan {
   price: number;
   title: string;
   description: string;
+  type: 'main' | 'upgrade';
+  features: string[];
   createdAt?: string;
   updatedAt?: string;
 }
