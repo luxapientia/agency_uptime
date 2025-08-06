@@ -59,7 +59,8 @@ export class MonitorService {
   async addSiteSchedule(site: Site): Promise<void> {
     if (!site.isActive) return;
 
-    const cronExpression = `* * * * *`;
+    const cronExpression = site.checkInterval === 0.5 ? `*/30 * * * * *` : `*/${site.checkInterval} * * * *`;
+
     const task = cron.schedule(cronExpression, () => this.checkSite(site));
 
     this.scheduledTasks.set(site.id, task);
