@@ -1,38 +1,107 @@
 [
     {
+        "name": "Kick-Start Plan",
+        "price": 29,
+        "title": "Kick-Start Plan",
+        "description": "Perfect for small agencies",
+        "type": "main",
+        "features": [
+            "10 monitored websites",
+            "5-minute checks",
+            "Basic AI diagnostics",
+            "Email/SMS alerts",
+            "White-label dashboard",
+            "AU-branded reports"
+        ]
+    },
+    {
+        "name": "Agency",
+        "price": 79,
+        "title": "Agency",
+        "description": "Best for growing agencies",
+        "type": "main",
+        "features": [
+            "50 monitored websites",
+            "1-minute checks",
+            "Advanced AI diagnostics",
+            "Email/SMS/Slack alerts",
+            "Full white-label solution",
+            "Client sub-accounts"
+        ]
+    },
+    {
+        "name": "Enterprise",
+        "price": 199,
+        "title": "Enterprise",
+        "description": "For large agencies & resellers",
+        "type": "main",
+        "features": [
+            "200 monitored websites",
+            "30-second checks",
+            "Premium AI diagnostics",
+            "Multi-channel alerts",
+            "Complete white-label",
+            "API access included"
+        ]
+    },
+    {
         "name": "Branded PDF Reports",
         "price": 19,
         "title": "Branded PDF Reports",
-        "description": "Professional PDF reports with your agency branding and custom analytics."
+        "description": "Professional PDF reports with your agency branding and custom analytics.",
+        "type": "upgrade",
+        "features": [
+            "Custom branding"
+        ]
     },
     {
         "name": "Multi-User Logins",
         "price": 25,
         "title": "Multi-User Logins",
-        "description": "Allow client team members to access their dashboards with role-based permissions."
+        "description": "Allow client team members to access their dashboards with role-based permissions.",
+        "type": "upgrade",
+        "features": [
+            "Multi-User Logins"
+        ]
     },
     {
         "name": "60-Second Checks",
         "price": 39,
         "title": "60-Second Checks",
-        "description": "Ultra-fast monitoring with 1-minute intervals for mission-critical sites."
+        "description": "Ultra-fast monitoring with 1-minute intervals for mission-critical sites.",
+        "type": "upgrade",
+        "features": [
+            "1-minute checks"
+        ]
     },
     {
         "name": "30-Second Checks",
         "price": 29,
         "title": "30-Second Checks",
-        "description": "Enterprise-grade monitoring with 30-second intervals for maximum uptime."
+        "description": "Enterprise-grade monitoring with 30-second intervals for maximum uptime.",
+        "type": "upgrade",
+        "features": [
+            "30-second checks"
+        ]
     },
     {
         "name": "Webhook & API Access",
         "price": 25,
         "title": "Webhook & API Access",
-        "description": "Integrate with your existing tools and workflows through our comprehensive API."
+        "description": "Integrate with your existing tools and workflows through our comprehensive API.",
+        "type": "upgrade",
+        "features": [
+            "API access"
+        ]
     },
     {
         "name": "Predictive Monitoring",
         "price": 69,
         "title": "Predictive Monitoring",
-        "description": "AI that predicts and prevents downtime before it happens with automated mitigation."
+        "description": "AI that predicts and prevents downtime before it happens with automated mitigation.",
+        "type": "upgrade",
+        "features": [
+            "Predictive monitoring"
+        ]
     }
 ]
