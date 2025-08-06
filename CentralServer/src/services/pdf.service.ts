@@ -326,7 +326,6 @@ class PDFService {
                                 `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${user?.companyName || 'Company'} Logo">` :
                                 `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${user?.companyName || 'Company'} Logo">`
                             }
-                            <span style="font-weight: bold; color: ${themeSettings.primaryColor}; font-size: 24px;">${user?.companyName || 'Monitoring System'}</span>
                         </div>
                         <h1>Sites Status Report</h1>
                         <p>Comprehensive Monitoring Overview</p>
@@ -393,10 +392,9 @@ class PDFService {
                     <div class="footer">
                         <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                             ${themeSettings.logo && themeSettings.logo !== 'logo.png' ?
-                                `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${user?.companyName || 'Company'} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">` :
-                                `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${user?.companyName || 'Company'} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">`
+                                `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${user?.companyName || 'Company'} Logo" style="max-height: 30px; max-width: 100px;">` :
+                                `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${user?.companyName || 'Company'} Logo" style="max-height: 30px; max-width: 100px;">`
                             }
-                            <span style="font-weight: bold; color: ${themeSettings.primaryColor};">${user?.companyName || 'Monitoring System'}</span>
                         </div>
                         <p>This report contains monitoring data for ${totalSites} sites</p>
                         <p>For technical support or questions about this report, please contact your monitoring provider.</p>
