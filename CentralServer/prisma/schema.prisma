@@ -153,6 +153,8 @@ model MembershipPlan {
   price Int
   title String
   description String
+  type String @default("upgrade") // "main" or "upgrade"
+  features String[] // Array of feature strings
   userMemberships UserMembership[]
 
   @@map("membership_plans")
