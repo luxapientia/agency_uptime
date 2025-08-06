@@ -42,9 +42,11 @@ interface PlanCardProps {
     isSelected?: boolean;
     isActive?: boolean;
     endDate?: Date | null;
+    disabled?: boolean;
+    disabledReason?: string;
 }
 
-const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, endDate }: PlanCardProps) => {
+const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, endDate, disabled = false, disabledReason }: PlanCardProps) => {
     const theme = useTheme();
     const [ref, inView] = useInView({
         triggerOnce: true,
@@ -185,6 +187,46 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                             </Typography>
                         </Box>
 
+                        {/* Features */}
+                        {plan.features && plan.features.length > 0 && (
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                    Features:
+                                </Typography>
+                                <Stack spacing={1}>
+                                    {plan.features.map((feature, index) => (
+                                        <Box key={index} sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Box
+                                                sx={{
+                                                    width: 16,
+                                                    height: 16,
+                                                    borderRadius: '50%',
+                                                    backgroundColor: theme.palette.success.main,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    mr: 1,
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                <Box
+                                                    sx={{
+                                                        width: 6,
+                                                        height: 6,
+                                                        borderRadius: '50%',
+                                                        backgroundColor: 'white',
+                                                    }}
+                                                />
+                                            </Box>
+                                            <Typography variant="body2" color="text.primary" sx={{ fontSize: '0.875rem' }}>
+                                                {feature}
+                                            </Typography>
+                                        </Box>
+                                    ))}
+                                </Stack>
+                            </Box>
+                        )}
+
                         {/* Membership Status - Always render to maintain consistent height */}
                         <Box sx={{ textAlign: 'center', mb: 2, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {isActive && endDate ? (
@@ -209,7 +251,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                     e.stopPropagation();
                                     onSelect(plan);
                                 }}
-                                disabled={isActive}
+                                disabled={isActive || disabled}
                                 sx={{
                                     fontWeight: 'bold',
                                     py: 1.5,
@@ -220,6 +262,14 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                             borderColor: theme.palette.success.dark,
                                             backgroundColor: alpha(theme.palette.success.main, 0.1),
                                         },
+                                    } : disabled ? {
+                                        borderColor: theme.palette.grey[400],
+                                        color: theme.palette.grey[400],
+                                        backgroundColor: theme.palette.grey[100],
+                                        '&:hover': {
+                                            borderColor: theme.palette.grey[400],
+                                            backgroundColor: theme.palette.grey[100],
+                                        },
                                     } : {
                                         background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                                         '&:hover': {
@@ -228,7 +278,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                     }),
                                 }}
                             >
-                                {isActive ? 'Already Subscribed' : 'Subscribe Now'}
+                                {isActive ? 'Current Plan' : disabled ? disabledReason || 'Unavailable' : 'Subscribe Now'}
                             </Button>
                         </Box>
                     </Stack>
@@ -304,10 +354,18 @@ export default function MembershipPlans() {
         return selectedPlan?.id === plan.id;
     };
 
-    const allPlans = plans;
+    // Separate main plans and upgrade plans
+    const mainPlans = plans.filter(plan => plan.type === 'main');
+    const upgradePlans = plans.filter(plan => plan.type === 'upgrade');
 
-    // Check if all plans are purchased
-    const allPlansPurchased = plans.length > 0 && plans.every(plan => isPlanActive(plan.id));
+    // Check if user has any active main plan
+    const hasActiveMainPlan = mainPlans.some(plan => isPlanActive(plan.id));
+    
+    // Get the active main plan (user can only have one)
+    const activeMainPlan = mainPlans.find(plan => isPlanActive(plan.id));
+
+    // Check if all upgrade plans are purchased
+    const allUpgradePlansPurchased = upgradePlans.length > 0 && upgradePlans.every(plan => isPlanActive(plan.id));
 
     if (isLoading) {
         return (
@@ -384,56 +442,150 @@ export default function MembershipPlans() {
                 </motion.div>
             )}
 
-            {/* Available Plans */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-            >
-                <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
-                    Available Plans
-                </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                    Enhance your monitoring with these powerful add-ons
-                </Typography>
-
-                <Box
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                            xs: '1fr',
-                            sm: 'repeat(2, 1fr)',
-                            md: 'repeat(3, 1fr)',
-                            lg: 'repeat(3, 1fr)'
-                        },
-                        gap: 3,
-                        mb: 6,
-                        alignItems: 'stretch'
-                    }}
+            {/* Main Plans */}
+            {mainPlans.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    {allPlans.map((plan, index) => (
-                        <Box
-                            key={plan.id}
-                            sx={{
-                                display: 'flex',
-                                height: '100%'
-                            }}
+                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
+                            {hasActiveMainPlan ? 'Your Main Plan' : 'Choose Your Main Plan'}
+                        </Typography>
+                        <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+                            {hasActiveMainPlan 
+                                ? `You are currently subscribed to the ${activeMainPlan?.title} plan`
+                                : 'Start with a main plan to unlock monitoring features'
+                            }
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            {hasActiveMainPlan 
+                                ? 'You can only have one main plan at a time. Contact support to change plans.'
+                                : 'Select a main plan to get started with website monitoring. You can add upgrade plans later.'
+                            }
+                        </Typography>
+                        {hasActiveMainPlan && activeMainPlan && (
+                            <Alert 
+                                severity="success" 
+                                sx={{ mt: 3, borderRadius: 2, maxWidth: 600, mx: 'auto' }}
+                            >
+                                <Typography variant="body2">
+                                    <strong>Active Plan:</strong> {activeMainPlan.title} - ${activeMainPlan.price}/month
+                                </Typography>
+                            </Alert>
+                        )}
+                    </Box>
+
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                            gap: 3,
+                            mb: 6
+                        }}
+                    >
+                        {mainPlans.map((plan, index) => (
+                            <Box
+                                key={plan.id}
+                                sx={{
+                                    flex: '1 1 320px',
+                                    maxWidth: 380,
+                                    minWidth: 320
+                                }}
+                            >
+                                <PlanCard
+                                    plan={plan}
+                                    isPopular={plan.name === 'Agency'}
+                                    delay={index * 0.1}
+                                    onSelect={handlePlanSelect}
+                                    isSelected={isPlanSelected(plan)}
+                                    isActive={isPlanActive(plan.id)}
+                                    endDate={getMembershipEndDate(plan.id)}
+                                    disabled={hasActiveMainPlan && !isPlanActive(plan.id)}
+                                    disabledReason={hasActiveMainPlan && !isPlanActive(plan.id) ? "One Main Plan Only" : undefined}
+                                />
+                            </Box>
+                        ))}
+                    </Box>
+                </motion.div>
+            )}
+
+            {/* Upgrade Plans */}
+            {upgradePlans.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                >
+                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', color: theme.palette.secondary.main }}>
+                            Upgrade Plans
+                        </Typography>
+                        <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+                            {hasActiveMainPlan 
+                                ? 'Enhance your monitoring with these powerful add-ons'
+                                : 'Unlock additional features after subscribing to a main plan'
+                            }
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            {hasActiveMainPlan 
+                                ? 'Add these features to your existing monitoring setup'
+                                : 'You need to subscribe to a main plan first to access these upgrades'
+                            }
+                        </Typography>
+                    </Box>
+
+                    {!hasActiveMainPlan && (
+                        <Alert 
+                            severity="info" 
+                            sx={{ mb: 4, borderRadius: 2 }}
                         >
-                            <PlanCard
-                                plan={plan}
-                                delay={index * 0.1}
-                                onSelect={handlePlanSelect}
-                                isSelected={isPlanSelected(plan)}
-                                isActive={isPlanActive(plan.id)}
-                                endDate={getMembershipEndDate(plan.id)}
-                            />
-                        </Box>
-                    ))}
-                </Box>
-            </motion.div>
+                            <Typography variant="body2">
+                                <strong>Note:</strong> You need to subscribe to a main plan first before you can purchase upgrade plans. 
+                                This ensures you have the basic monitoring infrastructure in place.
+                            </Typography>
+                        </Alert>
+                    )}
+
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                            gap: 3,
+                            mb: 6,
+                            opacity: hasActiveMainPlan ? 1 : 0.6
+                        }}
+                    >
+                        {upgradePlans.map((plan, index) => (
+                            <Box
+                                key={plan.id}
+                                sx={{
+                                    flex: '1 1 280px',
+                                    maxWidth: 320,
+                                    minWidth: 280
+                                }}
+                            >
+                                <PlanCard
+                                    plan={plan}
+                                    delay={index * 0.1}
+                                    onSelect={handlePlanSelect}
+                                    isSelected={isPlanSelected(plan)}
+                                    isActive={isPlanActive(plan.id)}
+                                    endDate={getMembershipEndDate(plan.id)}
+                                    disabled={!hasActiveMainPlan}
+                                    disabledReason="Requires Main Plan"
+                                />
+                            </Box>
+                        ))}
+                    </Box>
+                </motion.div>
+            )}
 
                         {/* Bundle Option */}
-            {plans.length > 0 && (
+            {upgradePlans.length > 0 && hasActiveMainPlan && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -443,37 +595,37 @@ export default function MembershipPlans() {
                         sx={{
                             p: 3,
                             mb: 4,
-                            background: allPlansPurchased 
+                            background: allUpgradePlansPurchased 
                                 ? `linear-gradient(135deg, ${alpha(theme.palette.grey[400], 0.05)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`
                                 : `linear-gradient(135deg, ${alpha(theme.palette.success.main, 0.05)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-                            border: `2px solid ${allPlansPurchased ? theme.palette.grey[400] : theme.palette.success.main}`,
-                            opacity: allPlansPurchased ? 0.6 : 1,
+                            border: `2px solid ${allUpgradePlansPurchased ? theme.palette.grey[400] : theme.palette.success.main}`,
+                            opacity: allUpgradePlansPurchased ? 0.6 : 1,
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                             <CelebrationIcon sx={{ 
                                 fontSize: 32, 
-                                color: allPlansPurchased ? 'grey.400' : 'success.main', 
+                                color: allUpgradePlansPurchased ? 'grey.400' : 'success.main', 
                                 mr: 1 
                             }} />
                             <Typography 
                                 variant="h5" 
                                 component="h3" 
                                 fontWeight="bold" 
-                                color={allPlansPurchased ? 'grey.400' : 'success.main'}
+                                color={allUpgradePlansPurchased ? 'grey.400' : 'success.main'}
                             >
-                                {allPlansPurchased ? 'All Plans Already Purchased!' : 'Bundle All Plans & Save!'}
+                                {allUpgradePlansPurchased ? 'All Upgrade Plans Already Purchased!' : 'Bundle All Upgrade Plans & Save!'}
                             </Typography>
                         </Box>
 
                         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                            {allPlansPurchased 
-                                ? 'You have already purchased all available plans. Enjoy your premium features!'
-                                : `Get all plans together and save $${savings} per month!`
+                            {allUpgradePlansPurchased 
+                                ? 'You have already purchased all available upgrade plans. Enjoy your premium features!'
+                                : `Get all upgrade plans together and save $${savings} per month!`
                             }
                         </Typography>
 
-                        {!allPlansPurchased && (
+                        {!allUpgradePlansPurchased && (
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                                 <Box>
                                     <Typography variant="body2" color="text.secondary">
@@ -503,15 +655,15 @@ export default function MembershipPlans() {
                         )}
 
                         <Button
-                            variant={allPlansPurchased ? "outlined" : "contained"}
+                            variant={allUpgradePlansPurchased ? "outlined" : "contained"}
                             size="large"
                             fullWidth
-                            disabled={allPlansPurchased}
+                            disabled={allUpgradePlansPurchased}
                             onClick={handleBundlePayment}
                             sx={{
                                 py: 1.5,
                                 fontWeight: 'bold',
-                                ...(allPlansPurchased ? {
+                                ...(allUpgradePlansPurchased ? {
                                     borderColor: theme.palette.grey[400],
                                     color: theme.palette.grey[400],
                                     '&:hover': {
@@ -526,11 +678,41 @@ export default function MembershipPlans() {
                                 }),
                             }}
                         >
-                            {allPlansPurchased 
-                                ? 'All Plans Purchased' 
-                                : `Select All Plans ($${bundlePrice}/month)`
+                            {allUpgradePlansPurchased 
+                                ? 'All Upgrade Plans Purchased' 
+                                : `Select All Upgrade Plans ($${bundlePrice}/month)`
                             }
                         </Button>
+                    </Paper>
+                </motion.div>
+            )}
+
+            {/* No Main Plan Alert */}
+            {!hasActiveMainPlan && mainPlans.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                >
+                    <Paper
+                        sx={{
+                            p: 4,
+                            mb: 4,
+                            background: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.05)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
+                            border: `2px solid ${theme.palette.info.main}`,
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 'bold', color: theme.palette.info.main }}>
+                            Get Started with Monitoring
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                            Choose a main plan above to start monitoring your websites. Once you have a main plan, 
+                            you'll be able to access upgrade plans and additional features.
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Main plans provide the foundation for website monitoring, while upgrade plans add specialized features.
+                        </Typography>
                     </Paper>
                 </motion.div>
             )}
