@@ -11,6 +11,7 @@ import monitorService from './services/monitor.service';
 import telegramService from './services/telegram.service';
 import discordService from './services/discord.service';
 import socketService from './services/socket.service';
+import { monthlyReportCronService } from './services/monthlyReportCron.service';
 import { config } from './config';
 
 const app = express();
@@ -99,7 +100,9 @@ async function startServer() {
     monitorService.start();
     telegramService.start();
     discordService.start();
-    
+
+    // monthlyReportCronService.initializeCronJob();
+    monthlyReportCronService.initializeCronJob();
     // Use httpServer instead of app.listen
     httpServer.listen(port, () => {
       logger.info(`Server is running on port ${port}`);
