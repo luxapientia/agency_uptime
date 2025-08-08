@@ -9,16 +9,23 @@ const prisma = new PrismaClient();
 async function getBase64FromPath(filePath: string): Promise<string> {
   try {
     const fullPath = path.join(__dirname, '../../public', filePath);
+    console.log(`Trying logo path: ${fullPath}`);
     if (fs.existsSync(fullPath)) {
       const imageBuffer = fs.readFileSync(fullPath);
-      return imageBuffer.toString('base64');
+      const base64 = imageBuffer.toString('base64');
+      console.log(`Logo loaded successfully: ${filePath} (${base64.length} chars)`);
+      return base64;
     } else {
       // Fallback to default logo if file doesn't exist
       const defaultLogoPath = path.join(__dirname, '../../public/logo.png');
+      console.log(`Trying default logo path: ${defaultLogoPath}`);
       if (fs.existsSync(defaultLogoPath)) {
         const imageBuffer = fs.readFileSync(defaultLogoPath);
-        return imageBuffer.toString('base64');
+        const base64 = imageBuffer.toString('base64');
+        console.log(`Default logo loaded successfully: logo.png (${base64.length} chars)`);
+        return base64;
       }
+      console.warn(`Logo file not found: ${filePath} or logo.png`);
       return '';
     }
   } catch (error) {
