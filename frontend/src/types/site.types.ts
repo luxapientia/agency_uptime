@@ -4,6 +4,7 @@ export interface Site {
   url: string;
   checkInterval: number;
   isActive: boolean;
+  monthlyReport: boolean;
   createdAt: string;
   updatedAt: string;
   notificationSettings: NotificationSetting[];
@@ -80,10 +81,12 @@ export interface CreateSiteData {
   name: string;
   url: string;
   checkInterval: number;
+  monthlyReport?: boolean;
 }
 
 export interface UpdateSiteData extends Partial<CreateSiteData> {
   isActive?: boolean;
+  monthlyReport?: boolean;
 }
 
 export interface SiteState {
