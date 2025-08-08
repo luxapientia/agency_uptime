@@ -18,6 +18,8 @@ import {
   FormHelperText,
   Alert,
   alpha,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -25,6 +27,7 @@ import {
   Schedule as ScheduleIcon,
   Info as InfoIcon,
   Link as LinkIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 import type { Site, CreateSiteData } from '../../types/site.types';
 
@@ -45,6 +48,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
     url: '',
     checkInterval: 1,
     isActive: true,
+    monthlyReport: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -55,6 +59,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
         url: site.url,
         checkInterval: site.checkInterval,
         isActive: site.isActive,
+        monthlyReport: site.monthlyReport,
       });
     } else {
       setFormData({
@@ -234,6 +239,36 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                 Choose how often the site should be checked
               </FormHelperText>
             </FormControl>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.monthlyReport || false}
+                  onChange={(e) => setFormData({ ...formData, monthlyReport: e.target.checked })}
+                  color="primary"
+                />
+              }
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AssessmentIcon sx={{ color: theme.palette.primary.main }} />
+                  <Typography variant="body2">
+                    Include in Monthly Reports
+                  </Typography>
+                </Box>
+              }
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.05),
+                borderRadius: '12px',
+                p: 2,
+                m: 0,
+                width: '100%',
+                justifyContent: 'space-between',
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                '& .MuiFormControlLabel-label': {
+                  flex: 1,
+                },
+              }}
+            />
 
             <Alert
               severity="info"
