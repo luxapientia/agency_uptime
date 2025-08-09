@@ -5,34 +5,7 @@ import fs from 'fs';
 
 const prisma = new PrismaClient();
 
-// Helper function to convert image file to base64
-async function getBase64FromPath(filePath: string): Promise<string> {
-  try {
-    const fullPath = path.join(__dirname, '../../public', filePath);
-    console.log(`Trying logo path: ${fullPath}`);
-    if (fs.existsSync(fullPath)) {
-      const imageBuffer = fs.readFileSync(fullPath);
-      const base64 = imageBuffer.toString('base64');
-      console.log(`Logo loaded successfully: ${filePath} (${base64.length} chars)`);
-      return base64;
-    } else {
-      // Fallback to default logo if file doesn't exist
-      const defaultLogoPath = path.join(__dirname, '../../public/logo.png');
-      console.log(`Trying default logo path: ${defaultLogoPath}`);
-      if (fs.existsSync(defaultLogoPath)) {
-        const imageBuffer = fs.readFileSync(defaultLogoPath);
-        const base64 = imageBuffer.toString('base64');
-        console.log(`Default logo loaded successfully: logo.png (${base64.length} chars)`);
-        return base64;
-      }
-      console.warn(`Logo file not found: ${filePath} or logo.png`);
-      return '';
-    }
-  } catch (error) {
-    console.error('Error reading logo file:', error);
-    return '';
-  }
-}
+const domain = process.env.DOMAIN || 'report.agencyuptime.com';
 
 interface MonthlyReportOptions {
   userId: string;
@@ -391,10 +364,7 @@ class MonthlyReportService {
       <div class="container">
         <div class="header">
           <div style="display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-            ${themeSettings.logo && themeSettings.logo !== 'logo.png' ?
-              `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${themeUser?.companyName || 'Company'} Logo" style="max-height: 50px; max-width: 180px; margin-right: 14px;">` :
-              `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${themeUser?.companyName || 'Company'} Logo" style="max-height: 50px; max-width: 180px; margin-right: 14px;">`
-            }
+            <img src="https://${domain}/${themeSettings.logo || 'logo.png'}" alt="${themeUser?.companyName || 'Company'} Logo" style="max-height: 50px; max-width: 180px; margin-right: 14px;">
             <div>
               <h1 style="margin:0;">Monthly Report</h1>
               <div class="subtitle">${period} • Generated: ${new Date().toLocaleString()}</div>
@@ -573,10 +543,7 @@ class MonthlyReportService {
 
         <div class="footer">
           <div style="border-top:2px solid ${themeSettings.primaryColor}; padding-top: 16px;">
-            ${themeSettings.logo && themeSettings.logo !== 'logo.png' ?
-              `<img src="data:image/png;base64,${await getBase64FromPath(themeSettings.logo)}" alt="${themeUser?.companyName || 'Company'} Logo" style="max-height: 28px; max-width: 100px; margin-right: 8px;">` :
-              `<img src="data:image/png;base64,${await getBase64FromPath('logo.png')}" alt="${themeUser?.companyName || 'Company'} Logo" style="max-height: 28px; max-width: 100px; margin-right: 8px;">`
-            }
+            <img src="https://${domain}/${themeSettings.logo || 'logo.png'}" alt="${themeUser?.companyName || 'Company'} Logo" style="max-height: 28px; max-width: 100px; margin-right: 8px;">
             <div><strong>${themeUser?.companyName || ''}</strong> • Monthly Report • ${period}</div>
           </div>
         </div>
