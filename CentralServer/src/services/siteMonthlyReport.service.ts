@@ -1,28 +1,9 @@
 import { PrismaClient, SiteStatus } from '@prisma/client'
-import fs from 'fs'
-import path from 'path'
 import { kimiPredictiveService } from './kimiPredictive.service'
 
+const domain = process.env.DOMAIN || 'report.agencyuptime.com'
 const prisma = new PrismaClient()
 const SLA_TARGET = 99.9
-
-// Reuse base64-logo approach like reports.routes.ts
-async function getBase64FromPath(filePath: string): Promise<string> {
-  try {
-    const fullPath = path.join(__dirname, '../../public', filePath)
-    if (fs.existsSync(fullPath)) {
-      const imageBuffer = fs.readFileSync(fullPath)
-      return imageBuffer.toString('base64')
-    }
-    const fallback = path.join(__dirname, '../../public/logo.png')
-    if (fs.existsSync(fallback)) {
-      return fs.readFileSync(fallback).toString('base64')
-    }
-    return ''
-  } catch {
-    return ''
-  }
-}
 
 function clampDate(value: Date, min: Date, max: Date): Date {
   return new Date(Math.min(Math.max(value.getTime(), min.getTime()), max.getTime()))
@@ -174,6 +155,8 @@ export async function generateSiteMonthlyReportHTML(siteId: string): Promise<str
     primaryColor: '#1976d2', secondaryColor: '#9c27b0', successColor: '#2e7d32', errorColor: '#d32f2f', warningColor: '#ed6c02', infoColor: '#0288d1', textPrimary: '#111827', textSecondary: '#6b7280', logo: 'logo.png', fontPrimary: 'Roboto'
   }
 
+  console.log(theme, '---------------')
+
   // Fetch comprehensive status data for the month
   const [prev] = await prisma.siteStatus.findMany({ where: { siteId, checkedAt: { lt: startDate } }, orderBy: { checkedAt: 'desc' }, take: 1 })
   let monthStatuses = await prisma.siteStatus.findMany({ 
@@ -259,7 +242,6 @@ export async function generateSiteMonthlyReportHTML(siteId: string): Promise<str
     }
   } catch {}
 
-  const logoBase64 = await getBase64FromPath(theme.logo || 'logo.png')
   const slaIcon = overallUptime == null ? '⚪' : (overallUptime >= SLA_TARGET ? '🟢' : (overallUptime >= (SLA_TARGET - 1) ? '🟡' : '🔴'))
 
   const html = `
@@ -640,7 +622,7 @@ export async function generateSiteMonthlyReportHTML(siteId: string): Promise<str
 <body>
   <div class="header">
     <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-      <img src="data:image/png;base64,${logoBase64}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">
+      <img src="https://${domain}/${theme.logo}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">
       <div>
         <h1 style="margin: 0; color: white;">Monthly Uptime Report</h1>
         <div class="subtitle">${site.name} • ${periodStr} • Generated: ${formatDate(new Date(), false)}</div>
@@ -1297,7 +1279,7 @@ export async function generateSiteMonthlyReportHTML(siteId: string): Promise<str
 
   <div class="footer">
     <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-      <img src="data:image/png;base64,${logoBase64}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">
+      <img src="https://${domain}/${theme.logo}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">
       <span style="font-weight: bold; color: ${theme.primaryColor};">${site.user.companyName}</span>
     </div>
     <p style="text-align: center; margin: 0; color: ${theme.textSecondary};">
