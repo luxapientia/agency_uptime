@@ -22,6 +22,8 @@ const createSiteSchema = z.object({
     name: z.string().min(1, 'Site name is required'),
     url: z.string().url('Must be a valid URL'),
     checkInterval: z.number().min(1).max(60).default(5),
+    monthlyReport: z.boolean().optional(),
+    monthlyReportSendAt: z.string().datetime().optional(),
   }),
 });
 
@@ -31,6 +33,8 @@ const updateSiteSchema = z.object({
     url: z.string().url('Must be a valid URL').optional(),
     checkInterval: z.number().min(1).max(60).optional(),
     isActive: z.boolean().optional(),
+    monthlyReport: z.boolean().optional(),
+    monthlyReportSendAt: z.string().datetime().optional(),
   }),
 });
 
@@ -67,11 +71,15 @@ const getSites = async (req: AuthenticatedRequest, res: Response) => {
 // Create a new site
 const createSite = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const { monthlyReportSendAt, ...rest } = req.body as any;
+    const parsedSendAt = typeof monthlyReportSendAt === 'string' && monthlyReportSendAt ? new Date(monthlyReportSendAt) : undefined;
+
     const site = await prisma.site.create({
-      data: {
-        ...req.body,
+      data: ({
+        ...rest,
+        ...(parsedSendAt ? { monthlyReportSendAt: parsedSendAt } : {}),
         userId: req.user.id,
-      },
+      } as any),
     });
 
     // Sync the new site to Redis
@@ -103,9 +111,15 @@ const updateSite = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   try {
+    const { monthlyReportSendAt, ...rest } = req.body as any;
+    const parsedSendAt = typeof monthlyReportSendAt === 'string' && monthlyReportSendAt ? new Date(monthlyReportSendAt) : undefined;
+
     const site = await prisma.site.update({
       where: { id },
-      data: req.body,
+      data: ({
+        ...rest,
+        ...(parsedSendAt !== undefined ? { monthlyReportSendAt: parsedSendAt } : {}),
+      } as any),
     });
 
     // Sync the updated site to Redis
