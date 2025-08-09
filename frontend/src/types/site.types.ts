@@ -82,11 +82,13 @@ export interface CreateSiteData {
   url: string;
   checkInterval: number;
   monthlyReport?: boolean;
+  monthlyReportSendAt?: string; // ISO string or 'YYYY-MM-DDTHH:mm' from input
 }
 
 export interface UpdateSiteData extends Partial<CreateSiteData> {
   isActive?: boolean;
   monthlyReport?: boolean;
+  monthlyReportSendAt?: string;
 }
 
 export interface SiteState {
