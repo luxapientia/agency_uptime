@@ -32,6 +32,7 @@ model Site {
   checkInterval Int            @default(5)
   isActive      Boolean        @default(true)
   monthlyReport Boolean        @default(false)
+  monthlyReportSendAt DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   userId        String
