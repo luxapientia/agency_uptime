@@ -28,6 +28,8 @@ import {
   Info as InfoIcon,
   Link as LinkIcon,
   Assessment as AssessmentIcon,
+  CalendarMonth as CalendarMonthIcon,
+  AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
 import type { Site, CreateSiteData } from '../../types/site.types';
 
@@ -43,12 +45,21 @@ const INTERVAL_OPTIONS = [0.5, 1, 5];
 
 export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: SiteFormProps) {
   const theme = useTheme();
-  const [formData, setFormData] = useState<Partial<Site>>({
+  const getNowUtcDay = () => String(new Date().getUTCDate());
+  const getNowUtcTime = () => {
+    const now = new Date();
+    const hh = String(now.getUTCHours()).padStart(2, '0');
+    const mm = String(now.getUTCMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+  const [formData, setFormData] = useState<Partial<Site & { monthlyReportDay?: string; monthlyReportTime?: string }>>({
     name: '',
     url: '',
     checkInterval: 1,
     isActive: true,
     monthlyReport: false,
+    monthlyReportDay: getNowUtcDay(),
+    monthlyReportTime: getNowUtcTime(),
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -60,6 +71,8 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
         checkInterval: site.checkInterval,
         isActive: site.isActive,
         monthlyReport: site.monthlyReport,
+        monthlyReportDay: getNowUtcDay(),
+        monthlyReportTime: getNowUtcTime(),
       });
     } else {
       setFormData({
@@ -67,6 +80,9 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
         url: '',
         checkInterval: 1,
         isActive: true,
+        monthlyReport: false,
+        monthlyReportDay: getNowUtcDay(),
+        monthlyReportTime: getNowUtcTime(),
       });
     }
     setErrors({});
@@ -89,6 +105,15 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
       }
     }
 
+    if (formData.monthlyReport) {
+      if (!formData.monthlyReportDay) {
+        newErrors.monthlyReportDay = 'Select the day of month.';
+      }
+      if (!formData.monthlyReportTime) {
+        newErrors.monthlyReportTime = 'Select the time (UTC).';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -96,7 +121,30 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData as CreateSiteData);
+      let monthlyReportSendAt: string | undefined;
+      if (formData.monthlyReport) {
+        const now = new Date();
+        const year = now.getUTCFullYear();
+        const monthIndex = now.getUTCMonth(); // 0-based
+        const dayInt = Math.max(1, Math.min(31, parseInt(formData.monthlyReportDay || '1', 10)));
+        const [hhStr = '00', mmStr = '00'] = (formData.monthlyReportTime || '00:00').split(':');
+        const hh = Math.max(0, Math.min(23, parseInt(hhStr, 10)));
+        const mm = Math.max(0, Math.min(59, parseInt(mmStr, 10)));
+        // Clamp day to last day of current month
+        const lastDay = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+        const day = Math.min(dayInt, lastDay);
+        const dt = new Date(Date.UTC(year, monthIndex, day, hh, mm, 0));
+        monthlyReportSendAt = dt.toISOString();
+      }
+
+      const payload: CreateSiteData = {
+        name: formData.name || '',
+        url: formData.url || '',
+        checkInterval: (formData.checkInterval as number) || 1,
+        monthlyReport: !!formData.monthlyReport,
+        monthlyReportSendAt,
+      };
+      onSubmit(payload);
     }
   };
 
@@ -244,7 +292,15 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
               control={
                 <Switch
                   checked={formData.monthlyReport || false}
-                  onChange={(e) => setFormData({ ...formData, monthlyReport: e.target.checked })}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFormData((prev) => ({
+                      ...prev,
+                      monthlyReport: checked,
+                      monthlyReportDay: checked && !prev.monthlyReportDay ? getNowUtcDay() : prev.monthlyReportDay,
+                      monthlyReportTime: checked && !prev.monthlyReportTime ? getNowUtcTime() : prev.monthlyReportTime,
+                    }));
+                  }}
                   color="primary"
                 />
               }
@@ -269,6 +325,66 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                 },
               }}
             />
+
+            {formData.monthlyReport && (
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <FormControl fullWidth>
+                  <Select
+                    value={formData.monthlyReportDay || ''}
+                    displayEmpty
+                    onChange={(e) => setFormData({ ...formData, monthlyReportDay: e.target.value as string })}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <CalendarMonthIcon sx={{ color: theme.palette.action.active, ml: 1 }} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      borderRadius: '12px',
+                      '&.Mui-focused': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Day of month
+                    </MenuItem>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                      <MenuItem key={d} value={String(d)}>
+                        {d}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText error={!!errors.monthlyReportDay}>
+                    {errors.monthlyReportDay || 'Choose the day of the month'}
+                  </FormHelperText>
+                </FormControl>
+
+                <TextField
+                  label="Time (UTC)"
+                  type="time"
+                  fullWidth
+                  value={formData.monthlyReportTime || ''}
+                  onChange={(e) => setFormData({ ...formData, monthlyReportTime: e.target.value })}
+                  error={!!errors.monthlyReportTime}
+                  helperText={errors.monthlyReportTime || 'HH:MM in 24-hour format'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccessTimeIcon sx={{ color: theme.palette.action.active }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                    },
+                  }}
+                  inputProps={{ step: 60 }}
+                />
+              </Box>
+            )}
 
             <Alert
               severity="info"
