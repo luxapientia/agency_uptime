@@ -101,7 +101,6 @@ async function startServer() {
     telegramService.start();
     discordService.start();
 
-    // monthlyReportCronService.initializeCronJob();
     monthlyReportCronService.initializeCronJob();
     // Use httpServer instead of app.listen
     httpServer.listen(port, () => {
