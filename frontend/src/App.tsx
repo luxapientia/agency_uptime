@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider, useDispatch } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
@@ -12,6 +12,9 @@ import Sites from './pages/Sites';
 import SiteDetails from './pages/SiteDetails';
 import Settings from './pages/Settings';
 import MembershipPlans from './pages/MembershipPlans';
+import FAQ from './pages/FAQ';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
@@ -125,6 +128,9 @@ function AppContent() {
                   <MembershipPlans />
                 </ProtectedRoute>
               } />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
             </Routes>
