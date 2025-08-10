@@ -6,6 +6,7 @@ import { BadRequestError, NotFoundError } from '../utils/errors';
 import type { AuthenticatedRequest } from '../types/express';
 import logger from '../utils/logger';
 import { config } from '../config';
+import { authenticate } from '../middleware/auth.middleware';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -256,9 +257,9 @@ const getUpgradeMembershipPlans = async (req: any, res: Response) => {
 router.get('/membership-plans', getMembershipPlans as any);
 router.get('/membership-plans/main', getMainMembershipPlans as any);
 router.get('/membership-plans/upgrade', getUpgradeMembershipPlans as any);
-router.get('/user-memberships', getUserMemberships as any);
-router.post('/user-memberships', validateRequest(createMembershipSchema), createUserMembership as any);
-router.put('/user-memberships/:id', validateRequest(updateMembershipSchema), updateUserMembership as any);
-router.delete('/user-memberships/:id', deleteUserMembership as any);
+router.get('/user-memberships', authenticate, getUserMemberships as any);
+router.post('/user-memberships', authenticate, validateRequest(createMembershipSchema), createUserMembership as any);
+router.put('/user-memberships/:id', authenticate, validateRequest(updateMembershipSchema), updateUserMembership as any);
+router.delete('/user-memberships/:id', authenticate, deleteUserMembership as any);
 
 export default router; 
