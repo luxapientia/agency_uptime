@@ -214,6 +214,455 @@ export default function Home() {
         </Container>
       </Box>
 
+      {/* AI Features Section */}
+      <Box sx={{ py: { xs: 6, md: 8 }, background: theme.palette.background.default }}>
+        <Container maxWidth="lg">
+          {/* Header Section */}
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            {/* AI-POWERED Label */}
+            <Box
+              sx={{
+                display: 'inline-block',
+                background: theme.palette.primary.main,
+                color: 'white',
+                px: 2,
+                py: 0.5,
+                borderRadius: 2,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                mb: 2,
+              }}
+            >
+              AI-POWERED
+            </Box>
+            
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                mb: 3,
+                color: theme.palette.text.primary,
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              }}
+            >
+              AI That Works For Your Agency
+            </Typography>
+            
+            <Typography
+              variant="h6"
+              sx={{
+                color: theme.palette.text.secondary,
+                maxWidth: '700px',
+                mx: 'auto',
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                lineHeight: 1.6,
+              }}
+            >
+              Our AI doesn't just monitor - it predicts, explains, and helps prevent downtime before it happens.
+            </Typography>
+          </Box>
+
+          {/* Feature Cards Grid */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+              gap: 4,
+            }}
+          >
+            {/* Card 1: Predictive Monitoring */}
+            <Box
+              sx={{
+                background: 'white',
+                borderRadius: 3,
+                p: 4,
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    background: 'white',
+                    borderRadius: '2px',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '2px',
+                      background: 'white',
+                      borderRadius: '1px',
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      width: '60%',
+                      height: '2px',
+                      background: 'white',
+                      borderRadius: '1px',
+                      transform: 'translateY(-4px)',
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                Predictive Monitoring
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                Our AI analyzes patterns to predict potential outages before they occur, giving you time to prevent them.
+              </Typography>
+            </Box>
+
+            {/* Card 2: Plain English Reports */}
+            <Box
+              sx={{
+                background: 'white',
+                borderRadius: 3,
+                p: 4,
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 20,
+                    height: 24,
+                    background: 'white',
+                    borderRadius: '2px',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 2,
+                      left: 2,
+                      right: 2,
+                      height: 1,
+                      background: 'white',
+                      borderRadius: '1px',
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 6,
+                      left: 2,
+                      right: 2,
+                      height: 1,
+                      background: 'white',
+                      borderRadius: '1px',
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                Plain English Reports
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                No technical jargon. AI generates client-friendly reports that explain downtime in simple terms.
+              </Typography>
+            </Box>
+
+            {/* Card 3: Automated Mitigation */}
+            <Box
+              sx={{
+                background: 'white',
+                borderRadius: 3,
+                p: 4,
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    background: 'white',
+                    borderRadius: '50%',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 12,
+                      height: 12,
+                      background: theme.palette.primary.main,
+                      borderRadius: '50%',
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                Automated Mitigation
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                For common issues, our AI can automatically implement fixes or suggest solutions to your team.
+              </Typography>
+            </Box>
+
+            {/* Card 4: Performance Insights */}
+            <Box
+              sx={{
+                background: 'white',
+                borderRadius: 3,
+                p: 4,
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    background: 'white',
+                    borderRadius: '50%',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 8,
+                      height: 8,
+                      background: theme.palette.primary.main,
+                      borderRadius: '50%',
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 16,
+                      height: 16,
+                      border: '2px solid white',
+                      borderRadius: '50%',
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                Performance Insights
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                AI identifies performance trends and optimization opportunities across all client sites.
+              </Typography>
+            </Box>
+
+            {/* Card 5: Root Cause Analysis */}
+            <Box
+              sx={{
+                background: 'white',
+                borderRadius: 3,
+                p: 4,
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    background: 'white',
+                    borderRadius: '50%',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 16,
+                      height: 2,
+                      background: theme.palette.primary.main,
+                      borderRadius: '1px',
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 2,
+                      height: 16,
+                      background: theme.palette.primary.main,
+                      borderRadius: '1px',
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                Root Cause Analysis
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                When downtime occurs, our AI pinpoints the likely cause and provides detailed diagnostics.
+              </Typography>
+            </Box>
+
+            {/* Card 6: 100% White-Label */}
+            <Box
+              sx={{
+                background: 'white',
+                borderRadius: 3,
+                p: 4,
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3,
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 24,
+                    height: 16,
+                    background: 'white',
+                    borderRadius: '2px',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: -2,
+                      right: -2,
+                      width: 8,
+                      height: 8,
+                      background: 'white',
+                      borderRadius: '50%',
+                    },
+                  }}
+                />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                100% White-Label
+              </Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                Full customization with your branding. Clients will think you built this AI technology.
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
       {/* Footer */}
       <Footer variant="public" />
     </Box>
