@@ -5,7 +5,6 @@ import {
   Link,
   IconButton,
   useTheme,
-  useMediaQuery,
   alpha,
   Divider,
 } from '@mui/material';
@@ -17,6 +16,7 @@ import {
   LinkedIn,
   Twitter,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 interface FooterProps {
   variant?: 'default' | 'public';
@@ -24,7 +24,7 @@ interface FooterProps {
 
 export default function Footer({ variant = 'default' }: FooterProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
   const footerContent = {
     contact: {
@@ -35,9 +35,9 @@ export default function Footer({ variant = 'default' }: FooterProps) {
     resources: {
       title: 'Additional Resources',
       links: [
-        { text: 'FAQ', href: '/faq' },
-        { text: 'Privacy Policy', href: '/privacy' },
-        { text: 'Terms and Conditions', href: '/terms' },
+        { text: 'FAQ', path: '/faq' },
+        { text: 'Privacy Policy', path: '/privacy-policy' },
+        { text: 'Terms and Conditions', path: '/terms' },
       ],
     },
     about: {
@@ -212,14 +212,15 @@ export default function Footer({ variant = 'default' }: FooterProps) {
             
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {footerContent.resources.links.map((link, index) => (
-                <Link
+                <Box
                   key={index}
-                  href={link.href}
+                  onClick={() => navigate(link.path)}
                   sx={{
                     color: variant === 'public' ? 'white' : theme.palette.text.secondary,
                     textDecoration: 'none',
                     fontWeight: 500,
                     fontSize: { xs: '0.9rem', sm: '1rem' },
+                    cursor: 'pointer',
                     transition: theme.transitions.create(['color', 'transform'], {
                       duration: theme.transitions.duration.standard,
                     }),
@@ -251,7 +252,7 @@ export default function Footer({ variant = 'default' }: FooterProps) {
                   }}
                 >
                   {link.text}
-                </Link>
+                </Box>
               ))}
             </Box>
           </Box>
