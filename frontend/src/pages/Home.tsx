@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Box,
   Container,
@@ -9,9 +10,19 @@ import {
   Cancel,
 } from '@mui/icons-material';
 import Footer from '../components/layout/Footer';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../store';
+import { fetchMembershipPlans } from '../store/slices/membershipSlice';
+import type { MembershipPlan } from '../types/membership.types';
 
 export default function Home() {
   const theme = useTheme();
+  const dispatch = useDispatch<AppDispatch>();
+  const { plans, isLoading } = useSelector((state: RootState) => state.membership);
+
+  useEffect(() => {
+    dispatch(fetchMembershipPlans());
+  }, [dispatch]);
 
   return (
     <Box>
@@ -660,6 +671,207 @@ export default function Home() {
               </Typography>
             </Box>
           </Box>
+        </Container>
+      </Box>
+
+      {/* Membership Plans Section */}
+      <Box sx={{ py: { xs: 6, md: 8 }, background: theme.palette.grey[50] }}>
+        <Container maxWidth="lg">
+          {/* Header */}
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                mb: 3,
+                color: theme.palette.text.primary,
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              }}
+            >
+              Choose Your Plan
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                color: theme.palette.text.secondary,
+                maxWidth: '700px',
+                mx: 'auto',
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                lineHeight: 1.6,
+              }}
+            >
+              Start with our free trial and scale as your agency grows. All plans include our AI-powered monitoring technology.
+            </Typography>
+          </Box>
+
+          {/* Plans Grid */}
+          {!isLoading && plans.length > 0 && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                gap: 4,
+                mb: 6,
+              }}
+            >
+              {plans
+                .filter((plan: MembershipPlan) => plan.type === 'main')
+                .map((plan: MembershipPlan) => (
+                  <Box
+                    key={plan.id}
+                    sx={{
+                      background: 'white',
+                      borderRadius: 3,
+                      p: 4,
+                      textAlign: 'center',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                      border: plan.name === 'Agency' ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
+                      position: 'relative',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+                      },
+                    }}
+                  >
+                    {/* Popular Badge */}
+                    {plan.name === 'Agency' && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: -12,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          background: theme.palette.primary.main,
+                          color: 'white',
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: 2,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Most Popular
+                      </Box>
+                    )}
+
+                    {/* Plan Header */}
+                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                      {plan.title}
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mb: 3 }}>
+                      {plan.description}
+                    </Typography>
+
+                    {/* Price */}
+                    <Box sx={{ mb: 4 }}>
+                      <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                        ${plan.price}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                        per month
+                      </Typography>
+                    </Box>
+
+                    {/* Features */}
+                    <Box sx={{ mb: 4 }}>
+                      {plan.features.map((feature, index) => (
+                        <Box
+                          key={index}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mb: 2,
+                            textAlign: 'left',
+                          }}
+                        >
+                          <CheckCircle
+                            sx={{
+                              color: theme.palette.success.main,
+                              fontSize: 20,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                            {feature}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+
+
+                  </Box>
+                ))}
+            </Box>
+          )}
+
+          {/* Upgrade Plans Section */}
+          {!isLoading && plans.length > 0 && (
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  mb: 3,
+                  color: theme.palette.text.primary,
+                }}
+              >
+                Add-On Features
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  mb: 4,
+                  maxWidth: '600px',
+                  mx: 'auto',
+                }}
+              >
+                Enhance your monitoring with powerful add-ons. Buy individually or bundle for savings.
+              </Typography>
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                  gap: 3,
+                  mb: 4,
+                }}
+              >
+                {plans
+                  .filter((plan: MembershipPlan) => plan.type === 'upgrade')
+                  .map((plan: MembershipPlan) => (
+                    <Box
+                      key={plan.id}
+                      sx={{
+                        background: 'white',
+                        borderRadius: 2,
+                        p: 3,
+                        textAlign: 'center',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                        },
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: theme.palette.text.primary }}>
+                        {plan.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2, minHeight: 40 }}>
+                        {plan.description}
+                      </Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.primary.main, mb: 2 }}>
+                        ${plan.price}
+                      </Typography>
+                    </Box>
+                  ))}
+              </Box>
+            </Box>
+          )}
         </Container>
       </Box>
 
