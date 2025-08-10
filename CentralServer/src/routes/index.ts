@@ -22,7 +22,7 @@ router.use(`/settings`, settingsRoutes);
 router.use(`/notifications`, authenticate, notificationRoutes);
 router.use(`/ai`, authenticate, aiRoutes);
 router.use(`/reports`, authenticate, reportsRoutes);
-router.use(`/membership`, authenticate, membershipRoutes);
+router.use(`/membership`, membershipRoutes);
 router.use(`/payment`, paymentRoutes);
 
 export default router; 
