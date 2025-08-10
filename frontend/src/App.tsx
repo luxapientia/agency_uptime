@@ -4,6 +4,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { store, persistor } from './store';
 import Layout from './components/layout/Layout';
+import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
@@ -78,7 +79,7 @@ function AppContent() {
         <Router basename={rootUrl}>
           <Layout>
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
