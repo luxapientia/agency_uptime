@@ -82,6 +82,12 @@ export default function Header() {
     { text: 'Membership Plans', icon: <Payment />, path: '/membership-plans' },
   ];
 
+  const publicMenuItems = [
+    { text: 'FAQ', path: '/faq' },
+    { text: 'Privacy Policy', path: '/privacy-policy' },
+    { text: 'Terms of Service', path: '/terms' },
+  ];
+
   const drawer = (
     <Box sx={{ width: 250 }}>
       <Box sx={{
@@ -353,40 +359,66 @@ export default function Header() {
               </Box>
             </>
           ) : (
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
-                variant="text"
-                onClick={() => navigate('/login')}
-                sx={{
-                  color: 'inherit',
-                  borderRadius: theme.shape.borderRadius,
-                  px: { xs: 2, sm: 3 },
-                  '&:hover': {
-                    backgroundColor: alpha('#fff', 0.1),
-                  },
-                }}
-              >
-                Login
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => navigate('/register')}
-                sx={{
-                  borderRadius: theme.shape.borderRadius,
-                  px: { xs: 2, sm: 3 },
-                  backgroundColor: 'white',
-                  color: theme.palette.primary.main,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: alpha('#fff', 0.9),
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 4px 12px ${alpha('#000', 0.15)}`,
-                  },
-                }}
-              >
-                Sign Up
-              </Button>
-            </Box>
+            <>
+              {!isMobile && (
+                <Box sx={{ display: 'flex', gap: 1, mr: 2 }}>
+                  {publicMenuItems.map((item) => (
+                    <Button
+                      key={item.text}
+                      onClick={() => navigate(item.path)}
+                      sx={{
+                        color: 'inherit',
+                        borderRadius: theme.shape.borderRadius,
+                        px: 2,
+                        py: 1,
+                        position: 'relative',
+                        fontWeight: 500,
+                        '&:hover': {
+                          backgroundColor: alpha('#fff', 0.1),
+                        },
+                      }}
+                    >
+                      {item.text}
+                    </Button>
+                  ))}
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="text"
+                  onClick={() => navigate('/login')}
+                  sx={{
+                    color: 'inherit',
+                    borderRadius: theme.shape.borderRadius,
+                    px: { xs: 2, sm: 3 },
+                    '&:hover': {
+                      backgroundColor: alpha('#fff', 0.1),
+                    },
+                  }}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/register')}
+                  sx={{
+                    borderRadius: theme.shape.borderRadius,
+                    px: { xs: 2, sm: 3 },
+                    backgroundColor: 'white',
+                    color: theme.palette.primary.main,
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      backgroundColor: alpha('#fff', 0.9),
+                      transform: 'translateY(-2px)',
+                      boxShadow: `0 4px 12px ${alpha('#000', 0.15)}`,
+                    },
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </Box>
+            </>
           )}
         </Toolbar>
       </AppBar>
