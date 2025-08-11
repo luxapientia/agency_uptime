@@ -14,6 +14,7 @@ export interface PublicSite {
   id: string;
   name: string;
   url: string;
+  checkInterval: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -28,6 +29,67 @@ export interface PublicSite {
     } | null;
   };
   statuses: SiteStatus[];
+  // Enhanced API response properties
+  status: {
+    overall: string;
+    color: string;
+    message: string;
+    lastChecked: string | null;
+    currentResponseTime: number | null;
+    uptime: {
+      '24h': number;
+      '7d': number;
+      '30d': number;
+    };
+  };
+  incidents: Array<{
+    start: string;
+    end: string | null;
+    duration: number;
+    cause: string;
+    resolution: string;
+  }>;
+  aiDiagnostics: {
+    diagnosis: string;
+    severity: string;
+    recommendations: string;
+    confidence: number;
+  } | null;
+  performance: {
+    averageResponseTime: number;
+    sslStatus: string;
+    sslExpiryDays: number | null;
+  };
+  detailedStatus: {
+    overall: {
+      isUp: boolean;
+      workerId: string;
+    };
+    ping: {
+      isUp: boolean;
+      responseTime: number | null;
+    };
+    http: {
+      isUp: boolean;
+      responseTime: number | null;
+    };
+    dns: {
+      isUp: boolean;
+      responseTime: number | null;
+      nameservers: string[];
+      records: any;
+    };
+    ssl: {
+      hasSsl: boolean;
+      validFrom: string | null;
+      validTo: string | null;
+      issuer: string | null;
+      daysUntilExpiry: number | null;
+    };
+    tcp: {
+      checks: any;
+    };
+  };
 }
 
 export interface SiteStatus {
