@@ -15,6 +15,7 @@ import MembershipPlans from './pages/MembershipPlans';
 import FAQ from './pages/FAQ';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import PublicSites from './pages/PublicSites';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
@@ -113,6 +114,7 @@ function AppContent() {
                   <SiteDetails />
                 </ProtectedRoute>
               } />
+              <Route path="/sites-status" element={<PublicSites />} />
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <Settings />
