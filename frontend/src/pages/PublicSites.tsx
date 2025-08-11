@@ -27,7 +27,6 @@ import {
   CheckCircle,
   Cancel,
   Search,
-  Business,
 } from '@mui/icons-material';
 import Layout from '../components/layout/Layout';
 import Footer from '../components/layout/Footer';
@@ -314,25 +313,12 @@ const PublicSites: React.FC = () => {
                           >
                             <TableCell>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                {site.user.themeSettings?.logo ? (
                                   <Avatar 
-                                    src={`${import.meta.env.VITE_API_URL}/${site.user.themeSettings.logo}`} 
+                                    src={`${import.meta.env.VITE_API_URL}/${site.user.themeSettings?.logo || 'logo.png'}`} 
                                     alt={site.user.companyName} 
                                     sx={{ width: 24, height: 24 }} 
                                   />
-                                ) : (
-                                  <Avatar 
-                                    sx={{ 
-                                      width: 24, 
-                                      height: 24,
-                                      bgcolor: theme.palette.primary.main,
-                                      color: theme.palette.primary.contrastText,
-                                      fontSize: '0.75rem'
-                                    }}
-                                  >
-                                    <Business sx={{ fontSize: '0.875rem' }} />
-                                  </Avatar>
-                                )}
+                                
                                 <Typography 
                                   variant="body1" 
                                   sx={{ 

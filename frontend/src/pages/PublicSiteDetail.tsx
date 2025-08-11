@@ -184,10 +184,9 @@ const PublicSiteDetail: React.FC = () => {
             {/* Site Info Card */}
             <Paper elevation={2} sx={{ p: 3, borderRadius: 2, mb: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
-                {site.user.themeSettings?.logo ? (
                   <Box
                     component="img"
-                    src={`${import.meta.env.VITE_API_URL}/${site.user.themeSettings.logo}`}
+                    src={`${import.meta.env.VITE_API_URL}/${site.user.themeSettings?.logo || 'logo.png'}` }
                     alt={site.user.companyName}
                     sx={{
                       width: 64,
@@ -197,24 +196,6 @@ const PublicSiteDetail: React.FC = () => {
                       border: `2px solid ${primaryColor}20`
                     }}
                   />
-                ) : (
-                  <Box
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      bgcolor: primaryColor,
-                      color: theme.palette.primary.contrastText,
-                      borderRadius: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.5rem',
-                      fontWeight: 600
-                    }}
-                  >
-                    {site.user.companyName.charAt(0).toUpperCase()}
-                  </Box>
-                )}
                 
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
