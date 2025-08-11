@@ -10,6 +10,26 @@ export interface Site {
   notificationSettings: NotificationSetting[];
 }
 
+export interface PublicSite {
+  id: string;
+  name: string;
+  url: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    companyName: string;
+    themeSettings: {
+      logo: string;
+      primaryColor: string;
+      secondaryColor: string;
+      textPrimary: string;
+      textSecondary: string;
+    } | null;
+  };
+  statuses: SiteStatus[];
+}
+
 export interface SiteStatus {
   id: string;
   siteId: string;
