@@ -83,6 +83,7 @@ export default function Header() {
   ];
 
   const publicMenuItems = [
+    { text: 'Site Status', path: '/sites-status' },
     { text: 'FAQ', path: '/faq' },
     { text: 'Privacy Policy', path: '/privacy-policy' },
     { text: 'Terms of Service', path: '/terms' },
