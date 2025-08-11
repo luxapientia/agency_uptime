@@ -80,6 +80,7 @@ export default function SiteDetails() {
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
   const [timeRange, setTimeRange] = useState(24); // Default to 24 hours
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [monthlyReportLoading, setMonthlyReportLoading] = useState(false);
 
   useEffect(() => {
     const loadSiteData = async () => {
@@ -172,6 +173,22 @@ export default function SiteDetails() {
     setPdfLoading(false);
   }
 }, [id]);
+
+  const handleSendMonthlyReport = useCallback(async () => {
+    if (!site) return;
+    setMonthlyReportLoading(true);
+    try {
+      await axios.post(`/sites/${site.id}/send-monthly-report`);
+      // Show success message - you can replace this with your preferred notification system
+      alert('Monthly report sent successfully! Check your email.');
+    } catch (error: any) {
+      console.error('Failed to send monthly report:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to send monthly report.';
+      alert(`Error: ${errorMessage}`);
+    } finally {
+      setMonthlyReportLoading(false);
+    }
+  }, [site]);
 
 // Memoized status history to prevent unnecessary re-renders
 const memoizedStatusHistory = useMemo(() => statusHistory || [], [statusHistory]);
@@ -324,6 +341,30 @@ return (
             flexShrink: 0,
           }}
         >
+          <MuiTooltip title="Send monthly report via email" arrow>
+            <span>
+              <Button
+                startIcon={monthlyReportLoading ? <CircularProgress size={20} color="inherit" /> : <AssessmentIcon />}
+                variant="outlined"
+                color="secondary"
+                onClick={handleSendMonthlyReport}
+                disabled={monthlyReportLoading || !site.monthlyReport}
+                aria-label="Send Monthly Report"
+                sx={{
+                  width: { xs: '100%', sm: 'auto' },
+                  fontWeight: 600,
+                  fontSize: { xs: '1rem', sm: '1.1rem' },
+                  py: 1.3,
+                  borderRadius: 2,
+                  mb: { xs: 1, sm: 0 },
+                  whiteSpace: 'nowrap',
+                  opacity: site.monthlyReport ? 1 : 0.6,
+                }}
+              >
+                {site.monthlyReport ? 'Send Monthly Report' : 'Monthly Reports Disabled'}
+              </Button>
+            </span>
+          </MuiTooltip>
           <MuiTooltip title="Download a PDF report of this site" arrow>
             <span>
               <Button
