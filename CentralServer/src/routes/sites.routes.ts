@@ -13,6 +13,8 @@ import slackService from '../services/slack.service';
 import { config } from '../config';
 import discordService from '../services/discord.service';
 import { leadConnectorService } from '../services/leadconnector.service';
+import { generateSiteMonthlyReportHTML } from '../services/siteMonthlyReport.service';
+import mailgunService from '../services/mailgun.service';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -658,6 +660,64 @@ const getSiteWorkerStatuses = async (req: AuthenticatedRequest, res: Response) =
   }
 };
 
+// Send monthly report manually for a specific site
+const sendMonthlyReport = async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const site = await prisma.site.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+
+    if (!site) {
+      res.status(404).json({ error: 'Site not found' });
+      return;
+    }
+
+    if (site.userId !== req.user.id) {
+      res.status(403).json({ error: 'You do not have permission to access this site' });
+      return;
+    }
+
+    if (!site.monthlyReport) {
+      res.status(400).json({ error: 'Monthly reports are not enabled for this site' });
+      return;
+    }
+
+    if (!site.user?.email) {
+      res.status(400).json({ error: 'User email not found' });
+      return;
+    }
+
+    // Generate the monthly report HTML
+    const htmlContent = await generateSiteMonthlyReportHTML(site.id);
+
+    // Determine the report period (previous month)
+    const now = new Date();
+    const prevMonthDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const period = `${prevMonthDate.getUTCFullYear()}-${String(prevMonthDate.getUTCMonth() + 1).padStart(2, '0')}`;
+
+    const companyName = site.user.companyName || 'Your Company';
+    const subject = `${companyName} - ${site.name} - Monthly Report ${period}`;
+
+    // Send the email
+    await mailgunService.sendEmail({
+      to: site.user.email,
+      subject,
+      text: `Monthly Report for ${site.name} (${period}).`,
+      html: htmlContent,
+    });
+
+    logger.info(`Monthly report sent manually for site ${site.id} (${site.name}) to ${site.user.email}`);
+    res.json({ message: 'Monthly report sent successfully' });
+
+  } catch (error) {
+    logger.error('Failed to send monthly report:', error);
+    res.status(500).json({ error: 'Failed to send monthly report' });
+  }
+};
+
 router.get('/', getSites as any);
 router.get('/statistics', getStatistics as any);
 router.get('/:id/status', getSiteStatus as any);
@@ -666,6 +726,7 @@ router.get('/:id/status/workers', getSiteWorkerStatuses as any);
 router.get('/statuses', getSiteStatuses as any);
 
 router.get('/report', generatePDFReport as any);
+router.post('/:id/send-monthly-report', sendMonthlyReport as any);
 router.get('/notification-channels', getNotificationChannels as any);
 router.post('/', validateRequest(createSiteSchema), createSite as any);
 router.patch('/:id', validateRequest(updateSiteSchema), updateSite as any);
