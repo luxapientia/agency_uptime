@@ -622,7 +622,7 @@ export async function generateSiteMonthlyReportHTML(siteId: string): Promise<str
 <body>
   <div class="header">
     <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-      <img src="https://${domain}/${theme.logo}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">
+      <img src="https://${domain}/${theme.logo || 'logo.png'}" alt="${site.user.companyName} Logo" style="max-height: 60px; max-width: 200px; margin-right: 20px;">
       <div>
         <h1 style="margin: 0; color: white;">Monthly Uptime Report</h1>
         <div class="subtitle">${site.name} • ${periodStr} • Generated: ${formatDate(new Date(), false)}</div>
@@ -1279,7 +1279,7 @@ export async function generateSiteMonthlyReportHTML(siteId: string): Promise<str
 
   <div class="footer">
     <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-      <img src="https://${domain}/${theme.logo}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">
+      <img src="https://${domain}/${theme.logo || 'logo.png'}" alt="${site.user.companyName} Logo" style="max-height: 30px; max-width: 100px; margin-right: 10px;">
       <span style="font-weight: bold; color: ${theme.primaryColor};">${site.user.companyName}</span>
     </div>
     <p style="text-align: center; margin: 0; color: ${theme.textSecondary};">
