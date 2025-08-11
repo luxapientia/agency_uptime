@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -31,6 +32,7 @@ import {
 import Layout from '../components/layout/Layout';
 import Footer from '../components/layout/Footer';
 import type { PublicSite } from '../types/site.types';
+import axios from '../lib/axios';
 
 interface PaginationInfo {
   page: number;
@@ -43,6 +45,7 @@ interface PaginationInfo {
 
 const PublicSites: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [allSites, setAllSites] = useState<PublicSite[]>([]);
   const [filteredSites, setFilteredSites] = useState<PublicSite[]>([]);
   const [displayedSites, setDisplayedSites] = useState<PublicSite[]>([]);
@@ -63,16 +66,12 @@ const PublicSites: React.FC = () => {
       setIsLoading(true);
       
       // Fetch all sites from the public API
-      const response = await fetch('/api/all-sites');
-      if (!response.ok) {
-        throw new Error('Failed to fetch sites');
-      }
-      const data = await response.json();
-      setAllSites(data.sites || []);
-      setFilteredSites(data.sites || []);
+      const response = await axios.get('/all-sites');
+      setAllSites(response.data.sites || []);
+      setFilteredSites(response.data.sites || []);
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to fetch sites');
     } finally {
       setIsLoading(false);
     }
@@ -317,7 +316,7 @@ const PublicSites: React.FC = () => {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 {site.user.themeSettings?.logo ? (
                                   <Avatar 
-                                    src={site.user.themeSettings.logo} 
+                                    src={`${import.meta.env.VITE_API_URL}/${site.user.themeSettings.logo}`} 
                                     alt={site.user.companyName} 
                                     sx={{ width: 24, height: 24 }} 
                                   />
@@ -334,7 +333,18 @@ const PublicSites: React.FC = () => {
                                     <Business sx={{ fontSize: '0.875rem' }} />
                                   </Avatar>
                                 )}
-                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                <Typography 
+                                  variant="body1" 
+                                  sx={{ 
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    '&:hover': {
+                                      color: theme.palette.primary.main,
+                                      textDecoration: 'underline'
+                                    }
+                                  }}
+                                  onClick={() => navigate(`/site-status/${site.id}`)}
+                                >
                                   {site.name}
                                 </Typography>
                               </Box>
