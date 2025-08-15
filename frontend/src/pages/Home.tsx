@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../store';
 import { fetchMembershipPlans } from '../store/slices/membershipSlice';
 import type { MembershipPlan } from '../types/membership.types';
+import { getFeatureDescription, isValidFeatureKey } from '../utils/featureUtils';
 
 export default function Home() {
   const theme = useTheme();
@@ -795,7 +796,7 @@ export default function Home() {
                             }}
                           />
                           <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                            {feature}
+                            {isValidFeatureKey(feature) ? getFeatureDescription(feature) : feature}
                           </Typography>
                         </Box>
                       ))}
