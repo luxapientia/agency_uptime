@@ -33,6 +33,7 @@ import { fetchMembershipPlans, fetchUserMemberships } from '../store/slices/memb
 import type { MembershipPlan } from '../types/membership.types';
 import StripePaymentModal from '../components/payment/StripePaymentModal';
 import BundlePaymentModal from '../components/payment/BundlePaymentModal';
+import { getFeatureDescription, isValidFeatureKey } from '../utils/featureUtils';
 
 interface PlanCardProps {
     plan: MembershipPlan;
@@ -219,7 +220,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                                 />
                                             </Box>
                                             <Typography variant="body2" color="text.primary" sx={{ fontSize: '0.875rem' }}>
-                                                {feature}
+                                                {isValidFeatureKey(feature) ? getFeatureDescription(feature) : feature}
                                             </Typography>
                                         </Box>
                                     ))}
