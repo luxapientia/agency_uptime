@@ -135,6 +135,7 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
       const planIdArray = planIds.split(',');
       
       for (const planId of planIdArray) {
+        // Create/update user membership
         await prisma.userMembership.upsert({
           where: {
             userId_membershipPlanId: {
@@ -151,6 +152,34 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
             endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
           },
         });
+
+        // Get the plan to extract features
+        const plan = await prisma.membershipPlan.findUnique({
+          where: { id: planId },
+          select: { features: true }
+        });
+
+        if (plan && plan.features.length > 0) {
+          // Create/update UserFeature records for each feature
+          for (const featureKey of plan.features) {
+            await prisma.userFeature.upsert({
+              where: {
+                userId_featureKey: {
+                  userId,
+                  featureKey,
+                },
+              },
+              update: {
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+              },
+              create: {
+                userId,
+                featureKey,
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+              },
+            });
+          }
+        }
       }
 
       logger.info(`Bundle payment successful for user ${userId}, plans: ${planIds}`);
@@ -172,6 +201,34 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
           endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         },
       });
+
+      // Get the plan to extract features
+      const plan = await prisma.membershipPlan.findUnique({
+        where: { id: planId },
+        select: { features: true }
+      });
+
+      if (plan && plan.features.length > 0) {
+        // Create/update UserFeature records for each feature
+        for (const featureKey of plan.features) {
+          await prisma.userFeature.upsert({
+            where: {
+              userId_featureKey: {
+                userId,
+                featureKey,
+              },
+            },
+            update: {
+              endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            },
+            create: {
+              userId,
+              featureKey,
+              endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            },
+          });
+        }
+      }
 
       logger.info(`Payment successful for user ${userId}, plan ${planId}`);
     }
