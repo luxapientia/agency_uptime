@@ -22,7 +22,27 @@ model User {
   customDomain  String?
   notifications Notification[]
   userMemberships UserMembership[]
+  
+  // User features with expiration dates
+  userFeatures UserFeature[]
+  
   @@map("users")
+}
+
+model UserFeature {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  featureKey  String   // References the feature constants (e.g., "MONITORED_WEBSITES_50")
+  endDate     DateTime // When this feature expires
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, featureKey]) // One feature per user
+  @@index([userId])
+  @@index([featureKey])
+  @@index([endDate]) // For efficient expiration queries
+  @@map("user_features")
 }
 
 model Site {
