@@ -31,6 +31,7 @@ import {
   DashboardOutlined,
   KeyboardArrowDown,
   Payment,
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -80,6 +81,10 @@ export default function Header() {
     { text: 'Dashboard', icon: <DashboardOutlined />, path: '/dashboard' },
     { text: 'Sites', icon: <Business />, path: '/sites' },
     { text: 'Membership Plans', icon: <Payment />, path: '/membership-plans' },
+    // Only show Admin menu item for admin users
+    ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? [
+      { text: 'Admin', icon: <AdminPanelSettings />, path: '/admin' }
+    ] : []),
   ];
 
   const publicMenuItems = [
@@ -385,40 +390,40 @@ export default function Header() {
                 </Box>
               )}
 
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="text"
-                  onClick={() => navigate('/login')}
-                  sx={{
-                    color: 'inherit',
-                    borderRadius: theme.shape.borderRadius,
-                    px: { xs: 2, sm: 3 },
-                    '&:hover': {
-                      backgroundColor: alpha('#fff', 0.1),
-                    },
-                  }}
-                >
-                  Login
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => navigate('/register')}
-                  sx={{
-                    borderRadius: theme.shape.borderRadius,
-                    px: { xs: 2, sm: 3 },
-                    backgroundColor: 'white',
-                    color: theme.palette.primary.main,
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      backgroundColor: alpha('#fff', 0.9),
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 4px 12px ${alpha('#000', 0.15)}`,
-                    },
-                  }}
-                >
-                  Sign Up
-                </Button>
-              </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="text"
+                onClick={() => navigate('/login')}
+                sx={{
+                  color: 'inherit',
+                  borderRadius: theme.shape.borderRadius,
+                  px: { xs: 2, sm: 3 },
+                  '&:hover': {
+                    backgroundColor: alpha('#fff', 0.1),
+                  },
+                }}
+              >
+                Login
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/register')}
+                sx={{
+                  borderRadius: theme.shape.borderRadius,
+                  px: { xs: 2, sm: 3 },
+                  backgroundColor: 'white',
+                  color: theme.palette.primary.main,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha('#fff', 0.9),
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 4px 12px ${alpha('#000', 0.15)}`,
+                  },
+                }}
+              >
+                Sign Up
+              </Button>
+            </Box>
             </>
           )}
         </Toolbar>
