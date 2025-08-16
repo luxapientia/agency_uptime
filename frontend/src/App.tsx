@@ -18,6 +18,7 @@ import TermsOfService from './pages/TermsOfService';
 import PublicSites from './pages/PublicSites';
 import PublicSiteDetail from './pages/PublicSiteDetail';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminRoute from './components/auth/AdminRoute';
 import { createAppTheme } from './theme';
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
@@ -31,6 +32,7 @@ import { fetchAllSiteStatuses } from './store/slices/siteStatusSlice';
 import { fetchAllNotifications } from './store/slices/notificationSlice';
 import { fetchWorkers } from './store/slices/workerSlice';
 import Notifications from './pages/Notifications';
+import Admin from './pages/Admin';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -131,6 +133,11 @@ function AppContent() {
                 <ProtectedRoute>
                   <MembershipPlans />
                 </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
               } />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
