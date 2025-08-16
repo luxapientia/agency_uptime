@@ -49,6 +49,10 @@ export interface UpdateUserRequest {
   email: string;
   companyName: string;
   role: UserRole;
+  userFeatures?: Array<{
+    featureKey: string;
+    endDate: string;
+  }>;
 }
 
 export interface UpdateUserResponse {
