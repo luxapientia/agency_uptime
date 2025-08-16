@@ -20,6 +20,8 @@ export interface UserFeatureInput {
   endDate: Date;
 }
 
+export type UserRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+
 /**
  * User with features included
  */
@@ -29,6 +31,7 @@ export interface UserWithFeatures {
   lastName: string;
   email: string;
   companyName: string;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
   customDomain?: string;
