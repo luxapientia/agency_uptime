@@ -1,9 +1,14 @@
+export type UserRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+
 export interface User {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   companyName: string;
+  role: UserRole;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthState {
