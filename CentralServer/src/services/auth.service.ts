@@ -26,6 +26,7 @@ interface AuthResponse {
     lastName: string;
     email: string;
     companyName: string;
+    role: string;
   };
 }
 
@@ -47,12 +48,22 @@ class AuthService {
       throw new BadRequestError('Email already registered');
     }
 
+    // Check if this is the first user in the system
+    const userCount = await prisma.user.count();
+    const isFirstUser = userCount === 0;
+
+    if (isFirstUser) {
+      console.log(`🎉 First user registered! ${data.email} will be assigned SUPER_ADMIN role.`);
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await prisma.user.create({
       data: {
         ...data,
         password: hashedPassword,
+        // First user becomes super admin, others default to USER
+        role: isFirstUser ? 'SUPER_ADMIN' : 'USER',
       },
       select: {
         id: true,
@@ -60,6 +71,7 @@ class AuthService {
         lastName: true,
         email: true,
         companyName: true,
+        role: true,
       },
     });
 
@@ -96,6 +108,7 @@ class AuthService {
         lastName: user.lastName,
         email: user.email,
         companyName: user.companyName,
+        role: user.role,
       },
     };
   }
@@ -116,6 +129,21 @@ class AuthService {
 
   async refreshToken(userId: string): Promise<string> {
     return this.generateToken(userId);
+  }
+
+  async getUserById(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        companyName: true,
+        role: true,
+      },
+    });
+    return user;
   }
 }
 
