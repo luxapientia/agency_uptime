@@ -10,9 +10,6 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
   try {
     // First, authenticate the user
     const authHeader = req.headers.authorization;
-    
-    console.log('Admin middleware - Headers:', req.headers);
-    console.log('Admin middleware - Auth header:', authHeader);
 
     if (!authHeader?.startsWith('Bearer ')) {
       throw new UnauthorizedError('No token provided');
@@ -37,10 +34,6 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
     if (!user) {
       throw new UnauthorizedError('User not found');
     }
-
-    // Check if user has admin privileges
-    console.log('Admin middleware - User role:', user.role);
-    console.log('Admin middleware - Is admin?', isAdmin(user.role));
     
     if (!isAdmin(user.role)) {
       throw new UnauthorizedError('Admin access required');
