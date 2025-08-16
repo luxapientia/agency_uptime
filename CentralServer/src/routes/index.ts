@@ -9,6 +9,7 @@ import reportsRoutes from './reports.routes';
 import settingsRoutes from './settings.route';
 import workersRoutes from './workers.routes';
 import publicRoutes from './public.routes';
+import adminRoutes from './admin.routes';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -28,5 +29,8 @@ router.use('/ai', authenticate, aiRoutes);
 router.use('/reports', authenticate, reportsRoutes);
 router.use('/membership', membershipRoutes);
 router.use('/payment', paymentRoutes);
+
+// Admin routes (requires admin privileges)
+router.use('/admin', adminRoutes);
 
 export default router; 
