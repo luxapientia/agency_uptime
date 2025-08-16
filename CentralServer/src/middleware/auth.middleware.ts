@@ -28,6 +28,7 @@ export const authenticate = async (
         firstName: true,
         lastName: true,
         companyName: true,
+        role: true,
       },
     });
 
@@ -35,13 +36,14 @@ export const authenticate = async (
       throw new UnauthorizedError('User not found');
     }
 
-    // Attach the user to the request
+    // Attach the user and userId to the request
     (req as any).user = user;
+    (req as any).userId = userId;
     next();
   } catch (error) {
-    res.status(401).send({
+    res.status(401).json({
       success: false,
-      message: 'Unauthorized User'
-    })
+      error: 'Authentication required'
+    });
   }
 }
