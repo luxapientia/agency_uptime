@@ -7,6 +7,7 @@ export interface AuthenticatedRequest extends Request {
     firstName: string;
     lastName: string;
     companyName: string;
+    role: string;
   };
 }
 
