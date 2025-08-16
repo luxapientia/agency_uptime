@@ -113,13 +113,13 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
 
 /**
  * PUT /admin/users/:id
- * Update user information (all fields)
+ * Update user information (all fields including features)
  * Requires admin privileges
  */
 router.put('/users/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, companyName, role } = req.body;
+    const { firstName, lastName, email, companyName, role, userFeatures } = req.body;
 
     // Validate required fields
     if (!firstName || !lastName || !email || !companyName || !role) {
@@ -144,6 +144,34 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
         success: false,
         error: 'Invalid email format',
       });
+    }
+
+    // Validate userFeatures array if provided
+    if (userFeatures !== undefined) {
+      if (!Array.isArray(userFeatures)) {
+        return res.status(400).json({
+          success: false,
+          error: 'userFeatures must be an array',
+        });
+      }
+
+      // Validate each feature object
+      for (const feature of userFeatures as Array<{ featureKey: string; endDate: string | Date }>) {
+        if (!feature.featureKey || !feature.endDate) {
+          return res.status(400).json({
+            success: false,
+            error: 'Each feature must have featureKey and endDate',
+          });
+        }
+
+        // Validate endDate is a valid date
+        if (isNaN(new Date(feature.endDate).getTime())) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid endDate format',
+          });
+        }
+      }
     }
 
     // Check if user exists
@@ -175,37 +203,87 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
       });
     }
 
-    // Update user
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim().toLowerCase(),
-        companyName: companyName.trim(),
-        role,
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        companyName: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-        userFeatures: {
-          select: {
-            featureKey: true,
-            endDate: true,
+    // Use transaction to update user and features atomically
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      // Update user
+      const user = await tx.user.update({
+        where: { id },
+        data: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim().toLowerCase(),
+          companyName: companyName.trim(),
+          role,
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          companyName: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+          userFeatures: {
+            select: {
+              featureKey: true,
+              endDate: true,
+            },
+          },
+          _count: {
+            select: {
+              sites: true,
+            },
           },
         },
-        _count: {
+      });
+
+      // Update user features if provided
+      if (userFeatures !== undefined) {
+        // Delete all existing user features
+        await tx.userFeature.deleteMany({
+          where: { userId: id },
+        });
+
+        // Create new user features
+        if (userFeatures.length > 0) {
+          await tx.userFeature.createMany({
+            data: userFeatures.map((feature: { featureKey: string; endDate: string | Date }) => ({
+              userId: id,
+              featureKey: feature.featureKey,
+              endDate: new Date(feature.endDate),
+            })),
+          });
+        }
+
+        // Fetch updated user with new features
+        return await tx.user.findUnique({
+          where: { id },
           select: {
-            sites: true,
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            companyName: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+            userFeatures: {
+              select: {
+                featureKey: true,
+                endDate: true,
+              },
+            },
+            _count: {
+              select: {
+                sites: true,
+              },
+            },
           },
-        },
-      },
+        });
+      }
+
+      return user;
     });
 
     res.json({
