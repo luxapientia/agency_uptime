@@ -49,6 +49,54 @@ class AdminService {
     const response = await axios.post('/admin/users', data);
     return response.data;
   }
+
+  /**
+   * Create a new site for a user
+   */
+  async createSite(data: {
+    userId: string;
+    name: string;
+    url: string;
+    checkInterval?: number;
+    monthlyReport?: boolean;
+    monthlyReportSendAt?: string;
+  }): Promise<{
+    success: boolean;
+    data: any;
+    message: string;
+  }> {
+    const response = await axios.post('/admin/sites', data);
+    return response.data;
+  }
+
+  /**
+   * Update an existing site
+   */
+  async updateSite(siteId: string, data: {
+    name: string;
+    url: string;
+    checkInterval?: number;
+    monthlyReport?: boolean;
+    monthlyReportSendAt?: string;
+  }): Promise<{
+    success: boolean;
+    data: any;
+    message: string;
+  }> {
+    const response = await axios.put(`/admin/sites/${siteId}`, data);
+    return response.data;
+  }
+
+  /**
+   * Delete a site
+   */
+  async deleteSite(siteId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    const response = await axios.delete(`/admin/sites/${siteId}`);
+    return response.data;
+  }
 }
 
 export default new AdminService(); 
