@@ -205,7 +205,7 @@ export class SiteCheckService {
 
         const req = protocol.request(options, (res) => {
           const headers = res.headers;
-          const isUp = res.statusCode ? res.statusCode < 400 : false;
+          const isUp = res.statusCode ? res.statusCode !== 404 : false;
 
           // Get SSL certificate info if available
           const ssl = res.socket instanceof TLSSocket && 'getPeerCertificate' in res.socket
