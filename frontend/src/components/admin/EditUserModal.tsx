@@ -55,7 +55,6 @@ import type { AdminUser, UpdateUserRequest } from '../../types/admin.types';
 import type { UserRole } from '../../types/auth.types';
 import { FEATURES, FEATURE_CATEGORIES } from '../../constants/features.constants';
 import { getFeatureDescription, isValidFeatureKey } from '../../utils/featureUtils';
-import adminService from '../../services/admin.service';
 
 interface EditUserModalProps {
   open: boolean;

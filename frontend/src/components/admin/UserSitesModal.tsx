@@ -37,7 +37,6 @@ import {
   Info as InfoIcon,
   Assessment as AssessmentIcon,
   CalendarMonth as CalendarMonthIcon,
-  AccessTime as AccessTimeIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -63,7 +62,6 @@ export default function UserSitesModal({
   open, 
   onClose, 
   userId, 
-  loading = false 
 }: UserSitesModalProps) {
   const theme = useTheme();
   const [sites, setSites] = useState<MonitoredSite[]>([]);
@@ -282,6 +280,9 @@ export default function UserSitesModal({
 
   // Pagination handlers
   const handlePageChange = (event: unknown, newPage: number) => {
+    if(event) {
+      
+    }
     setPage(newPage);
   };
 
