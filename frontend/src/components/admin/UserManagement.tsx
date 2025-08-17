@@ -349,7 +349,6 @@ export default function UserManagement({}: UserManagementProps) {
         open={sitesModalOpen}
         onClose={() => setSitesModalOpen(false)}
         userId={selectedUserId}
-        loading={false}
       />
     </Box>
   );
