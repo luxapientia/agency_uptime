@@ -1,65 +1,21 @@
-import { useState } from 'react';
 import {
   Box,
   Container,
   Typography,
   useTheme,
   Paper,
-  Tabs,
-  Tab,
   alpha,
 } from '@mui/material';
 import {
   People as PeopleIcon,
-  Dashboard as DashboardIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import UserManagement from '../components/admin/UserManagement';
-import AdminDashboard from '../components/admin/AdminDashboard';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`admin-tabpanel-${index}`}
-      aria-labelledby={`admin-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
-}
 
 export default function Admin() {
   const theme = useTheme();
-  const [tabValue, setTabValue] = useState(0);
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    console.log(event);
-    setTabValue(newValue);
-  };
-
-  const adminTabs = [
-    {
-      label: 'Dashboard',
-      icon: <DashboardIcon />,
-      component: <AdminDashboard />,
-    },
-    {
-      label: 'User Management',
-      icon: <PeopleIcon />,
-      component: <UserManagement />,
-    },
-  ];
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -82,15 +38,15 @@ export default function Admin() {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Admin Dashboard
+            Admin Panel
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-            Manage users and monitor system performance
+            Manage users and system access
           </Typography>
         </Box>
       </motion.div>
 
-      {/* Admin Tabs */}
+      {/* User Management Content */}
       <Paper
         elevation={0}
         sx={{
@@ -99,40 +55,25 @@ export default function Admin() {
           overflow: 'hidden',
         }}
       >
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            aria-label="admin tabs"
-            sx={{
-              px: 2,
-              '& .MuiTab-root': {
-                minHeight: 64,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '1rem',
-              },
-            }}
-          >
-            {adminTabs.map((tab, index) => (
-              <Tab
-                key={index}
-                label={tab.label}
-                icon={tab.icon}
-                iconPosition="start"
-                id={`admin-tab-${index}`}
-                aria-controls={`admin-tabpanel-${index}`}
-              />
-            ))}
-          </Tabs>
+        <Box sx={{ 
+          borderBottom: 1, 
+          borderColor: 'divider',
+          px: 3,
+          py: 2,
+          backgroundColor: alpha(theme.palette.primary.main, 0.05)
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <PeopleIcon sx={{ color: theme.palette.primary.main }} />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              User Management
+            </Typography>
+          </Box>
         </Box>
 
-        {/* Tab Content */}
-        {adminTabs.map((tab, index) => (
-          <TabPanel key={index} value={tabValue} index={index}>
-            {tab.component}
-          </TabPanel>
-        ))}
+        {/* Content */}
+        <Box sx={{ py: 3 }}>
+          <UserManagement />
+        </Box>
       </Paper>
     </Container>
   );
