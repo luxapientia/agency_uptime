@@ -4,7 +4,9 @@ import type {
   AdminUserResponse, 
   UpdateUserRoleRequest, 
   UpdateUserRequest,
-  UpdateUserResponse 
+  UpdateUserResponse,
+  CreateUserRequest,
+  CreateUserResponse
 } from '../types/admin.types';
 
 class AdminService {
@@ -33,10 +35,18 @@ class AdminService {
   }
 
   /**
-   * Update user information (all fields)
+   * Update user information (all fields including features)
    */
   async updateUser(userId: string, data: UpdateUserRequest): Promise<UpdateUserResponse> {
     const response = await axios.put(`/admin/users/${userId}`, data);
+    return response.data;
+  }
+
+  /**
+   * Create a new user
+   */
+  async createUser(data: CreateUserRequest): Promise<CreateUserResponse> {
+    const response = await axios.post('/admin/users', data);
     return response.data;
   }
 }
