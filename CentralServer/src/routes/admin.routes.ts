@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAdmin } from '../middleware/admin.middleware';
-
+import bcrypt from 'bcryptjs';
 const router = Router();
 const prisma = new PrismaClient();
 
@@ -194,6 +194,9 @@ router.post('/users', requireAdmin, async (req, res) => {
       }
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create user
     const newUser = await prisma.user.create({
       data: {
@@ -202,7 +205,7 @@ router.post('/users', requireAdmin, async (req, res) => {
         email: email.trim().toLowerCase(),
         companyName: companyName.trim(),
         role,
-        password: password, // Note: In production, this should be hashed
+        password: hashedPassword,
       },
       select: {
         id: true,
