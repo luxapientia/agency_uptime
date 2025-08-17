@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAdmin } from '../middleware/admin.middleware';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -196,6 +197,8 @@ router.post('/users', requireAdmin, async (req, res) => {
       }
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create user
     const newUser = await prisma.user.create({
       data: {
@@ -204,7 +207,7 @@ router.post('/users', requireAdmin, async (req, res) => {
         email: email.trim().toLowerCase(),
         companyName: companyName.trim(),
         role,
-        password: password, // Note: In production, this should be hashed
+        password: hashedPassword, // Note: In production, this should be hashed
       },
       select: {
         id: true,
@@ -756,6 +759,92 @@ router.delete('/sites/:id', requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete site',
+    });
+  }
+});
+
+/**
+ * DELETE /admin/users/:id
+ * Delete a user and all related data
+ * Requires admin privileges
+ */
+router.delete('/users/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+      select: { 
+        id: true, 
+        firstName: true, 
+        lastName: true,
+        email: true,
+        role: true
+      },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Prevent deletion of super admin users
+    if (existingUser.role === 'SUPER_ADMIN') {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot delete super admin users',
+      });
+    }
+
+    // Delete user and all related records using transaction
+    await prisma.$transaction(async (tx) => {
+      // Delete user features first
+      await tx.userFeature.deleteMany({
+        where: { userId: id },
+      });
+
+      // Delete notification settings for user's sites
+      await tx.notificationSettings.deleteMany({
+        where: { 
+          site: { userId: id } 
+        },
+      });
+
+      // Delete site statuses for user's sites
+      await tx.siteStatus.deleteMany({
+        where: { 
+          site: { userId: id } 
+        },
+      });
+
+      // Delete user's sites
+      await tx.site.deleteMany({
+        where: { userId: id },
+      });
+
+      // Delete user memberships
+      await tx.userMembership.deleteMany({
+        where: { userId: id },
+      });
+
+      // Finally delete the user
+      await tx.user.delete({
+        where: { id },
+      });
+    });
+
+    res.json({
+      success: true,
+      message: `User "${existingUser.firstName} ${existingUser.lastName}" deleted successfully`,
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete user',
     });
   }
 });
