@@ -97,6 +97,17 @@ class AdminService {
     const response = await axios.delete(`/admin/sites/${siteId}`);
     return response.data;
   }
+
+  /**
+   * Delete a user
+   */
+  async deleteUser(userId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    const response = await axios.delete(`/admin/users/${userId}`);
+    return response.data;
+  }
 }
 
 export default new AdminService(); 
