@@ -112,6 +112,136 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
 });
 
 /**
+ * POST /admin/users
+ * Create a new user
+ * Requires admin privileges
+ */
+router.post('/users', requireAdmin, async (req, res) => {
+  try {
+    const { firstName, lastName, email, companyName, role, password, userFeatures } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !email || !companyName || !role || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'All fields are required: firstName, lastName, email, companyName, role, password',
+      });
+    }
+
+    // Validate role
+    if (!['USER', 'ADMIN', 'SUPER_ADMIN'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid role. Must be USER, ADMIN, or SUPER_ADMIN',
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format',
+      });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters long',
+      });
+    }
+
+    // Check if email is already taken
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: { id: true },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is already taken by another user',
+      });
+    }
+
+    // Validate userFeatures array if provided
+    if (userFeatures !== undefined) {
+      if (!Array.isArray(userFeatures)) {
+        return res.status(400).json({
+          success: false,
+          error: 'userFeatures must be an array',
+        });
+      }
+
+      // Validate each feature object
+      for (const feature of userFeatures as Array<{ featureKey: string; endDate: string | Date }>) {
+        if (!feature.featureKey || !feature.endDate) {
+          return res.status(400).json({
+            success: false,
+            error: 'Each feature must have featureKey and endDate',
+          });
+        }
+
+        // Validate endDate is a valid date
+        if (isNaN(new Date(feature.endDate).getTime())) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid endDate format',
+          });
+        }
+      }
+    }
+
+    // Create user
+    const newUser = await prisma.user.create({
+      data: {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        companyName: companyName.trim(),
+        role,
+        password: password, // Note: In production, this should be hashed
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        companyName: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        userFeatures: {
+          select: {
+            featureKey: true,
+            endDate: true,
+          },
+        },
+        _count: {
+          select: {
+            sites: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: newUser,
+      message: 'User created successfully',
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create user',
+    });
+  }
+});
+
+/**
  * PUT /admin/users/:id
  * Update user information (all fields including features)
  * Requires admin privileges
