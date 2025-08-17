@@ -22,6 +22,7 @@ import {
   TextField,
   InputAdornment,
   Avatar,
+  Button,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -51,6 +52,7 @@ const PublicSites: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAgency, setSelectedAgency] = useState<string>('all');
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 10,
@@ -59,6 +61,12 @@ const PublicSites: React.FC = () => {
     hasNext: false,
     hasPrev: false,
   });
+
+  // Get unique agencies for the filter dropdown
+  const uniqueAgencies = React.useMemo(() => {
+    const agencies = allSites.map(site => site.user.companyName);
+    return ['all', ...Array.from(new Set(agencies)).sort()];
+  }, [allSites]);
 
   const fetchSites = async () => {
     try {
@@ -80,21 +88,28 @@ const PublicSites: React.FC = () => {
     fetchSites();
   }, []);
 
-  // Filter sites based on search term
+  // Filter sites based on search term and selected agency
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredSites(allSites);
-    } else {
-      const filtered = allSites.filter(site => 
+    let filtered = allSites;
+    
+    // Filter by agency first
+    if (selectedAgency !== 'all') {
+      filtered = filtered.filter(site => site.user.companyName === selectedAgency);
+    }
+    
+    // Then filter by search term
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(site => 
         site.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         site.url.toLowerCase().includes(searchTerm.toLowerCase()) ||
         site.user.companyName.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredSites(filtered);
     }
+    
+    setFilteredSites(filtered);
     // Reset to page 1 when filtering
     setPagination(prev => ({ ...prev, page: 1 }));
-  }, [searchTerm, allSites]);
+  }, [searchTerm, selectedAgency, allSites]);
 
   // Update pagination when filtered sites change
   useEffect(() => {
@@ -133,6 +148,15 @@ const PublicSites: React.FC = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handleAgencyChange = (event: any) => {
+    setSelectedAgency(event.target.value);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedAgency('all');
   };
 
   const getLastChecked = (siteId: string) => {
@@ -238,41 +262,115 @@ const PublicSites: React.FC = () => {
             </Typography>
           </Box>
 
-          {/* Search Filter */}
-          <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-            <TextField
-              placeholder="Search sites by name, URL, or agency..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              variant="outlined"
-              size="medium"
-              sx={{
-                width: { xs: '100%', sm: '400px', md: '500px' },
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  '&:hover fieldset': {
-                    borderColor: theme.palette.primary.main,
+          {/* Search and Filter Controls */}
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              gap: 2, 
+              justifyContent: 'center',
+              alignItems: { xs: 'stretch', sm: 'center' }
+            }}>
+              {/* Search Field */}
+              <TextField
+                placeholder="Search sites by name, URL, or agency..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                variant="outlined"
+                size="medium"
+                sx={{
+                  width: { xs: '100%', sm: '300px', md: '400px' },
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: theme.palette.primary.main,
+                    },
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: theme.palette.primary.main,
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search sx={{ color: theme.palette.text.secondary }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              
+              {/* Agency Filter */}
+              <FormControl 
+                size="medium" 
+                sx={{ 
+                  minWidth: { xs: '100%', sm: '200px' },
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: theme.palette.primary.main,
+                    },
                   },
-                },
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search sx={{ color: theme.palette.text.secondary }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
+                }}
+              >
+                <Select
+                  value={selectedAgency}
+                  onChange={handleAgencyChange}
+                  displayEmpty
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mr: 1 }}>
+                        Agency:
+                      </Typography>
+                    </InputAdornment>
+                  }
+                >
+                  <MenuItem value="all">
+                    <Typography variant="body2">All Agencies</Typography>
+                  </MenuItem>
+                  {uniqueAgencies.slice(1).map((agency) => (
+                    <MenuItem key={agency} value={agency}>
+                      <Typography variant="body2">{agency}</Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            
+            {/* Clear Filters Button */}
+            {(searchTerm || selectedAgency !== 'all') && (
+              <Box sx={{ textAlign: 'center', mt: 2 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={clearFilters}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: theme.palette.action.hover,
+                    },
+                  }}
+                >
+                  Clear All Filters
+                </Button>
+              </Box>
+            )}
           </Box>
 
           {/* Search Results Indicator */}
-          {searchTerm && (
+          {(searchTerm || selectedAgency !== 'all') && (
             <Box sx={{ mb: 3, textAlign: 'center' }}>
               <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                Search results for "{searchTerm}" • {filteredSites.length} site{filteredSites.length !== 1 ? 's' : ''} found
+                {searchTerm && selectedAgency !== 'all' ? (
+                  <>Search results for "{searchTerm}" in {selectedAgency} • {filteredSites.length} site{filteredSites.length !== 1 ? 's' : ''} found</>
+                ) : searchTerm ? (
+                  <>Search results for "{searchTerm}" • {filteredSites.length} site{filteredSites.length !== 1 ? 's' : ''} found</>
+                ) : (
+                  <>Showing sites from {selectedAgency} • {filteredSites.length} site{filteredSites.length !== 1 ? 's' : ''} found</>
+                )}
               </Typography>
             </Box>
           )}
@@ -427,11 +525,18 @@ const PublicSites: React.FC = () => {
           ) : (
             <Box sx={{ textAlign: 'center', py: 8 }}>
               <Typography variant="h6" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
-                {searchTerm ? 'No sites found matching your search.' : 'No sites are currently being monitored.'}
+                {searchTerm && selectedAgency !== 'all' 
+                  ? 'No sites found matching your search in the selected agency.'
+                  : searchTerm 
+                    ? 'No sites found matching your search.'
+                    : selectedAgency !== 'all'
+                      ? 'No sites found for the selected agency.'
+                      : 'No sites are currently being monitored.'
+                }
               </Typography>
-              {searchTerm && (
+              {(searchTerm || selectedAgency !== 'all') && (
                 <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                  Try adjusting your search terms or browse all sites.
+                  Try adjusting your search terms, selecting a different agency, or browse all sites.
                 </Typography>
               )}
             </Box>
@@ -439,31 +544,40 @@ const PublicSites: React.FC = () => {
 
           {/* Summary Stats */}
           {allSites.length > 0 && (
-            <Box sx={{ mt: 6, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 3 }}>
+            <Box sx={{ mt: 6, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(4, 1fr)' }, gap: 3 }}>
               <Box sx={{ textAlign: 'center', p: 3, background: theme.palette.grey[50], borderRadius: 2 }}>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
-                  {allSites.length}
+                  {filteredSites.length}
                 </Typography>
                 <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                  Total Sites
+                  {selectedAgency !== 'all' ? 'Filtered Sites' : 'Total Sites'}
                 </Typography>
               </Box>
               
               <Box sx={{ textAlign: 'center', p: 3, background: theme.palette.grey[50], borderRadius: 2 }}>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
-                  {allSites.filter(site => (site as any)?.statuses?.[0]?.isUp).length}
+                  {filteredSites.filter(site => (site as any)?.statuses?.[0]?.isUp).length}
                 </Typography>
                 <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                  Online Sites (Total)
+                  Online Sites {selectedAgency !== 'all' ? '(Filtered)' : '(Total)'}
                 </Typography>
               </Box>
               
               <Box sx={{ textAlign: 'center', p: 3, background: theme.palette.grey[50], borderRadius: 2 }}>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.error.main }}>
-                  {allSites.filter(site => !(site as any)?.statuses?.[0]?.isUp).length}
+                  {filteredSites.filter(site => !(site as any)?.statuses?.[0]?.isUp).length}
                 </Typography>
                 <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                  Offline Sites (Total)
+                  Offline Sites {selectedAgency !== 'all' ? '(Filtered)' : '(Total)'}
+                </Typography>
+              </Box>
+              
+              <Box sx={{ textAlign: 'center', p: 3, background: theme.palette.grey[50], borderRadius: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
+                  {uniqueAgencies.length - 1}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  Total Agencies
                 </Typography>
               </Box>
             </Box>
