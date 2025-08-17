@@ -80,6 +80,7 @@ export default function Header() {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardOutlined />, path: '/dashboard' },
     { text: 'Sites', icon: <Business />, path: '/sites' },
+    { text: 'Site Status', icon: <Business />, path: '/sites-status' },
     { text: 'Membership Plans', icon: <Payment />, path: '/membership-plans' },
     // Only show Admin menu item for admin users
     ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? [
