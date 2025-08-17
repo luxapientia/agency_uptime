@@ -53,7 +53,7 @@ function AppContent() {
   const rootUrl = import.meta.env.VITE_ROOT_URL;
   const dispatch = useDispatch<AppDispatch>();
   const themeSettings = useSelector((state: RootState) => state.settings.settings);
-  const { user, token } = useSelector((state: RootState) => state.auth);
+  const { user, token, features } = useSelector((state: RootState) => state.auth);
   const theme = createAppTheme(themeSettings);
 
   // Verify token on startup
@@ -76,7 +76,7 @@ function AppContent() {
       dispatch(fetchAllNotifications());
       dispatch(fetchWorkers());
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, features]);
 
   return (
     <ThemeProvider theme={theme}>

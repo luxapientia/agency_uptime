@@ -37,6 +37,7 @@ import type { AdminUser, UpdateUserRequest } from '../../types/admin.types';
 import UserSitesModal from './UserSitesModal';
 import EditUserModal from './EditUserModal';
 import AddUserModal from './AddUserModal';
+import { formatDate } from '../../utils/dateUtils';
 
 interface UserManagementProps {}
 
@@ -163,14 +164,6 @@ export default function UserManagement({}: UserManagementProps) {
   };
 
 
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   if (loading) {
     return (

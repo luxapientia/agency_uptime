@@ -7,8 +7,12 @@ export interface User {
   email: string;
   companyName: string;
   role: UserRole;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  userFeatures: Array<{
+    featureKey: string;
+    endDate: Date | string;
+  }>;
 }
 
 export interface AuthState {
@@ -17,6 +21,10 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  features: Array<{
+    featureKey: string;
+    endDate: Date | string;
+  }>;
 }
 
 export interface LoginCredentials {

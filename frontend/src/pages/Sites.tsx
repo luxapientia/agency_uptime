@@ -58,6 +58,7 @@ import axios from '../lib/axios';
 import { alpha } from '@mui/material/styles';
 import { showToast } from '../utils/toast';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { formatDate } from '../utils/dateUtils';
 
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
@@ -143,14 +144,6 @@ export default function Sites() {
       setIsDeleteDialogOpen(false);
       setSiteToDelete(null);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {

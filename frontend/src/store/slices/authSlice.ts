@@ -10,6 +10,7 @@ const initialState: AuthState = {
   isAuthenticated: !!localStorage.getItem('token'),
   isLoading: false,
   error: null,
+  features: [],
 };
 
 export const verifyToken = createAsyncThunk(
@@ -22,7 +23,11 @@ export const verifyToken = createAsyncThunk(
       }
       const response = await axiosInstance.get('/auth/me');
       localStorage.setItem('token', response.data.token);
-      return { user: response.data.user, token: response.data.token };
+      return { 
+        user: response.data.user, 
+        token: response.data.token,
+        features: response.data.user.userFeatures || []
+      };
     } catch (error: any) {
       localStorage.removeItem('token');
       return rejectWithValue(error.response?.data?.message || 'Token verification failed');
@@ -37,7 +42,11 @@ export const login = createAsyncThunk(
       const response = await axiosInstance.post('/auth/login', credentials);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
-      return { token, user };
+      return { 
+        token, 
+        user,
+        features: user.userFeatures || []
+      };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
@@ -51,7 +60,11 @@ export const register = createAsyncThunk(
       const response = await axiosInstance.post('/auth/register', credentials);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
-      return { token, user };
+      return { 
+        token, 
+        user,
+        features: user.userFeatures || []
+      };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }
@@ -70,6 +83,9 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
     },
+    setFeatures: (state, action: PayloadAction<Array<{ featureKey: string; endDate: Date | string }>>) => {
+      state.features = action.payload;
+    },
     clearError: (state) => {
       state.error = null;
     },
@@ -86,12 +102,14 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        state.features = action.payload.features;
       })
       .addCase(verifyToken.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
+        state.features = [];
         state.error = action.payload as string;
       })
       // Login
@@ -105,6 +123,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        state.features = action.payload.features;
       })
       .addCase(login.rejected, (state, action) => {
         showToast.error(action.payload as string);
@@ -122,6 +141,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        state.features = action.payload.features;
       })
       .addCase(register.rejected, (state, action) => {
         showToast.error(action.payload as string);
@@ -134,9 +154,10 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
+        state.features = [];
       });
   },
 });
 
-export const { setUser, clearError } = authSlice.actions;
+export const { setUser, setFeatures, clearError } = authSlice.actions;
 export default authSlice.reducer; 

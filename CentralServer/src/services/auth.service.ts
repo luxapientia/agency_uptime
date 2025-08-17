@@ -27,6 +27,12 @@ interface AuthResponse {
     email: string;
     companyName: string;
     role: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userFeatures: Array<{
+      featureKey: string;
+      endDate: Date;
+    }>;
   };
 }
 
@@ -72,6 +78,14 @@ class AuthService {
         email: true,
         companyName: true,
         role: true,
+        createdAt: true,
+        updatedAt: true,
+        userFeatures: {
+          select: {
+            featureKey: true,
+            endDate: true,
+          },
+        },
       },
     });
 
@@ -86,6 +100,23 @@ class AuthService {
   async login(data: LoginData): Promise<AuthResponse> {
     const user = await prisma.user.findUnique({
       where: { email: data.email },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        companyName: true,
+        role: true,
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+        userFeatures: {
+          select: {
+            featureKey: true,
+            endDate: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -109,6 +140,9 @@ class AuthService {
         email: user.email,
         companyName: user.companyName,
         role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        userFeatures: user.userFeatures,
       },
     };
   }
@@ -141,6 +175,14 @@ class AuthService {
         email: true,
         companyName: true,
         role: true,
+        createdAt: true,
+        updatedAt: true,
+        userFeatures: {
+          select: {
+            featureKey: true,
+            endDate: true,
+          },
+        },
       },
     });
     return user;

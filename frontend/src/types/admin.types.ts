@@ -7,11 +7,11 @@ export interface AdminUser {
   email: string;
   companyName: string;
   role: UserRole;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   userFeatures: Array<{
     featureKey: string;
-    endDate: string;
+    endDate: Date | string;
   }>;
   _count: {
     sites: number;

@@ -29,6 +29,14 @@ export const authenticate = async (
         lastName: true,
         companyName: true,
         role: true,
+        createdAt: true,
+        updatedAt: true,
+        userFeatures: {
+          select: {
+            featureKey: true,
+            endDate: true,
+          },
+        },
       },
     });
 
