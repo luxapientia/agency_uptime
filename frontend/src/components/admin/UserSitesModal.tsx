@@ -28,6 +28,7 @@ import {
   TableHead,
   TableRow,
   Chip,
+  TablePagination,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -85,6 +86,10 @@ export default function UserSitesModal({
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const getCheckIntervalText = (interval: number) => {
     if (interval === 0.5) return '30s';
@@ -118,8 +123,12 @@ export default function UserSitesModal({
           monthlyReport: site.monthlyReport || false // Default to false if not specified
         }));
         setSites(sitesWithInterval);
+        
+        // Reset pagination to first page when sites data changes
+        setPage(0);
       } else {
         setSites([]);
+        setPage(0);
       }
       
       // Set user name from the response
@@ -130,6 +139,7 @@ export default function UserSitesModal({
       console.error('Error fetching user sites:', err);
       setError('Failed to fetch user sites. Please try again.');
       setSites([]);
+      setPage(0);
     } finally {
       setSitesLoading(false);
     }
@@ -270,6 +280,16 @@ export default function UserSitesModal({
     }
   };
 
+  // Pagination handlers
+  const handlePageChange = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page when changing rows per page
+  };
+
   return (
     <Dialog
       open={open}
@@ -383,137 +403,158 @@ export default function UserSitesModal({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sites.map((site: MonitoredSite, index: number) => (
-                  <TableRow
-                    key={site.id}
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.02),
-                      },
-                      '& td': {
-                        padding: '12px 16px',
-                        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-                      },
-                      '&:last-child td': {
-                        borderBottom: 'none',
-                      }
-                    }}
-                  >
-                    <TableCell sx={{
-                      fontWeight: 600,
-                      color: theme.palette.text.secondary,
-                      textAlign: 'center',
-                      width: '60px'
-                    }}>
-                      {index + 1}
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box
+                {sites
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((site: MonitoredSite, index: number) => (
+                    <TableRow
+                      key={site.id}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                        },
+                        '& td': {
+                          padding: '12px 16px',
+                          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        },
+                        '&:last-child td': {
+                          borderBottom: 'none',
+                        }
+                      }}
+                    >
+                      <TableCell sx={{
+                        fontWeight: 600,
+                        color: theme.palette.text.secondary,
+                        textAlign: 'center',
+                        width: '60px'
+                      }}>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '50%',
+                              background: alpha(theme.palette.primary.main, 0.1),
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: theme.palette.primary.main,
+                            }}
+                          >
+                            <LanguageIcon fontSize="small" />
+                          </Box>
+                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                            {site.name}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography
+                          variant="body2"
                           sx={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: '50%',
-                            background: alpha(theme.palette.primary.main, 0.1),
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: theme.palette.primary.main,
+                            fontFamily: 'monospace',
+                            backgroundColor: alpha(theme.palette.grey[100], 0.8),
+                            px: 2,
+                            py: 1,
+                            borderRadius: 2,
+                            fontSize: '0.875rem',
+                            color: theme.palette.text.secondary,
+                            border: `1px solid ${alpha(theme.palette.grey[300], 0.3)}`,
                           }}
                         >
-                          <LanguageIcon fontSize="small" />
-                        </Box>
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                          {site.name}
+                          {site.url}
                         </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontFamily: 'monospace',
-                          backgroundColor: alpha(theme.palette.grey[100], 0.8),
-                          px: 2,
-                          py: 1,
-                          borderRadius: 2,
-                          fontSize: '0.875rem',
-                          color: theme.palette.text.secondary,
-                          border: `1px solid ${alpha(theme.palette.grey[300], 0.3)}`,
-                        }}
-                      >
-                        {site.url}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        icon={<ScheduleIcon fontSize="small" />}
-                        label={getCheckIntervalText(site.checkInterval)}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          color: theme.palette.info.main,
-                          borderColor: alpha(theme.palette.info.main, 0.3),
-                          backgroundColor: alpha(theme.palette.info.main, 0.08),
-                          fontSize: '0.75rem',
-                          height: '24px',
-                          borderRadius: '12px',
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        icon={<AssessmentIcon fontSize="small" />}
-                        label={site.monthlyReport ? 'Enabled' : 'Disabled'}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          color: site.monthlyReport ? theme.palette.success.main : theme.palette.grey[500],
-                          borderColor: alpha(site.monthlyReport ? theme.palette.success.main : theme.palette.grey[500], 0.3),
-                          backgroundColor: alpha(site.monthlyReport ? theme.palette.success.main : theme.palette.grey[500], 0.08),
-                          fontSize: '0.75rem',
-                          height: '24px',
-                          borderRadius: '12px',
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                        <Tooltip title="Edit site">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditSite(site)}
-                            sx={{
-                              color: theme.palette.primary.main,
-                              '&:hover': {
-                                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                              },
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete site">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteSite(site)}
-                            sx={{
-                              color: theme.palette.error.main,
-                              '&:hover': {
-                                backgroundColor: alpha(theme.palette.error.main, 0.1),
-                              },
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          icon={<ScheduleIcon fontSize="small" />}
+                          label={getCheckIntervalText(site.checkInterval)}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            color: theme.palette.info.main,
+                            borderColor: alpha(theme.palette.info.main, 0.3),
+                            backgroundColor: alpha(theme.palette.info.main, 0.08),
+                            fontSize: '0.75rem',
+                            height: '24px',
+                            borderRadius: '12px',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          icon={<AssessmentIcon fontSize="small" />}
+                          label={site.monthlyReport ? 'Enabled' : 'Disabled'}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            color: site.monthlyReport ? theme.palette.success.main : theme.palette.grey[500],
+                            borderColor: alpha(site.monthlyReport ? theme.palette.success.main : theme.palette.grey[500], 0.3),
+                            backgroundColor: alpha(site.monthlyReport ? theme.palette.success.main : theme.palette.grey[500], 0.08),
+                            fontSize: '0.75rem',
+                            height: '24px',
+                            borderRadius: '12px',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                          <Tooltip title="Edit site">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEditSite(site)}
+                              sx={{
+                                color: theme.palette.primary.main,
+                                '&:hover': {
+                                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                },
+                              }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete site">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeleteSite(site)}
+                              sx={{
+                                color: theme.palette.error.main,
+                                '&:hover': {
+                                  backgroundColor: alpha(theme.palette.error.main, 0.1),
+                                },
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
+        )}
+        
+        {/* Pagination */}
+        {sites.length > 0 && (
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            component="div"
+            count={sites.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            sx={{
+              borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+              '& .MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+                fontSize: '0.875rem',
+              },
+            }}
+          />
         )}
       </DialogContent>
 
