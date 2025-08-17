@@ -492,4 +492,272 @@ router.put('/users/:id/role', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * POST /admin/sites
+ * Create a new site for a user
+ * Requires admin privileges
+ */
+router.post('/sites', requireAdmin, async (req, res) => {
+  try {
+    const { userId, name, url, checkInterval, isActive, monthlyReport, monthlyReportSendAt } = req.body;
+
+    // Validate required fields
+    if (!userId || !name || !url) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId, name, and url are required',
+      });
+    }
+
+    // Validate URL format
+    try {
+      new URL(url);
+    } catch {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid URL format',
+      });
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Check if site URL already exists for this user
+    const existingSite = await prisma.site.findFirst({
+      where: {
+        userId,
+        url: url.trim(),
+      },
+      select: { id: true },
+    });
+
+    if (existingSite) {
+      return res.status(400).json({
+        success: false,
+        error: 'A site with this URL already exists for this user',
+      });
+    }
+
+    // Parse monthlyReportSendAt if provided
+    let parsedSendAt: Date | undefined;
+    if (monthlyReport && monthlyReportSendAt) {
+      parsedSendAt = new Date(monthlyReportSendAt);
+      if (isNaN(parsedSendAt.getTime())) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid monthlyReportSendAt format',
+        });
+      }
+    }
+
+    // Create site
+    const newSite = await prisma.site.create({
+      data: {
+        name: name.trim(),
+        url: url.trim(),
+        checkInterval: checkInterval || 1,
+        isActive: true, // Default to true since frontend no longer sends this field
+        monthlyReport: monthlyReport || false,
+        monthlyReportSendAt: parsedSendAt,
+        userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        checkInterval: true,
+        isActive: true,
+        monthlyReport: true,
+        monthlyReportSendAt: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: newSite,
+      message: 'Site created successfully',
+    });
+  } catch (error) {
+    console.error('Error creating site:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create site',
+    });
+  }
+});
+
+/**
+ * PUT /admin/sites/:id
+ * Update an existing site
+ * Requires admin privileges
+ */
+router.put('/sites/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, url, checkInterval, isActive, monthlyReport, monthlyReportSendAt } = req.body;
+
+    // Validate required fields
+    if (!name || !url) {
+      return res.status(400).json({
+        success: false,
+        error: 'name and url are required',
+      });
+    }
+
+    // Validate URL format
+    try {
+      new URL(url);
+    } catch {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid URL format',
+      });
+    }
+
+    // Check if site exists
+    const existingSite = await prisma.site.findUnique({
+      where: { id },
+      select: { id: true, userId: true, url: true, checkInterval: true, isActive: true, monthlyReport: true },
+    });
+
+    if (!existingSite) {
+      return res.status(404).json({
+        success: false,
+        error: 'Site not found',
+      });
+    }
+
+    // Check if URL already exists for another site of the same user
+    const duplicateSite = await prisma.site.findFirst({
+      where: {
+        userId: existingSite.userId,
+        url: url.trim(),
+        id: { not: id },
+      },
+      select: { id: true },
+    });
+
+    if (duplicateSite) {
+      return res.status(400).json({
+        success: false,
+        error: 'A site with this URL already exists for this user',
+      });
+    }
+
+    // Parse monthlyReportSendAt if provided
+    let parsedSendAt: Date | undefined;
+    if (monthlyReport && monthlyReportSendAt) {
+      parsedSendAt = new Date(monthlyReportSendAt);
+      if (isNaN(parsedSendAt.getTime())) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid monthlyReportSendAt format',
+        });
+      }
+    }
+
+    // Update site
+    const updatedSite = await prisma.site.update({
+      where: { id },
+      data: {
+        name: name.trim(),
+        url: url.trim(),
+        checkInterval: checkInterval !== undefined ? checkInterval : existingSite.checkInterval,
+        monthlyReport: monthlyReport !== undefined ? monthlyReport : existingSite.monthlyReport,
+        monthlyReportSendAt: parsedSendAt,
+      },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        checkInterval: true,
+        isActive: true,
+        monthlyReport: true,
+        monthlyReportSendAt: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: updatedSite,
+      message: 'Site updated successfully',
+    });
+  } catch (error) {
+    console.error('Error updating site:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update site',
+    });
+  }
+});
+
+/**
+ * DELETE /admin/sites/:id
+ * Delete a site
+ * Requires admin privileges
+ */
+router.delete('/sites/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if site exists
+    const existingSite = await prisma.site.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+
+    if (!existingSite) {
+      return res.status(404).json({
+        success: false,
+        error: 'Site not found',
+      });
+    }
+
+    // Delete site and related records using transaction
+    await prisma.$transaction(async (tx) => {
+      // Delete related site statuses first
+      await tx.siteStatus.deleteMany({
+        where: { siteId: id },
+      });
+
+      // Delete related notification settings
+      await tx.notificationSettings.deleteMany({
+        where: { siteId: id },
+      });
+
+      // Finally delete the site
+      await tx.site.delete({
+        where: { id },
+      });
+    });
+
+    res.json({
+      success: true,
+      message: `Site "${existingSite.name}" deleted successfully`,
+    });
+  } catch (error) {
+    console.error('Error deleting site:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete site',
+    });
+  }
+});
+
 export default router; 
