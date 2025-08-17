@@ -121,6 +121,25 @@ export default function UserManagement({}: UserManagementProps) {
     setDeleteDialogOpen(true);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      setError(null);
+      await adminService.deleteUser(selectedUser.id);
+      
+      // Refresh users list to show updated data
+      await fetchUsers();
+      
+      // Close dialog and reset selected user
+      setDeleteDialogOpen(false);
+      setSelectedUser(null);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError('Failed to delete user. Please try again.');
+    }
+  };
+
   const handleViewSites = (user: AdminUser) => {
     setSelectedUserId(user.id);
     setSitesModalOpen(true);
@@ -338,7 +357,7 @@ export default function UserManagement({}: UserManagementProps) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" color="error">
+          <Button variant="contained" color="error" onClick={handleConfirmDelete}>
             Delete
           </Button>
         </DialogActions>
