@@ -59,4 +59,19 @@ export interface UpdateUserResponse {
   success: boolean;
   data: AdminUser;
   message: string;
+}
+
+export interface CreateUserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  companyName: string;
+  role: UserRole;
+  password: string;
+}
+
+export interface CreateUserResponse {
+  success: boolean;
+  data: AdminUser;
+  message: string;
 } 
