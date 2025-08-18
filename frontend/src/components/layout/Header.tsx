@@ -47,6 +47,16 @@ export default function Header() {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const logo = useSelector((state: RootState) => state.settings.settings.logo);
 
+  // Determine which logo to use based on domain
+  const getLogoPath = () => {
+    if (window.location.hostname.includes('uptimemonitoring')) {
+      return 'logo2.png';
+    }
+    return logo || 'logo.png';
+  };
+
+  const logoPath = getLogoPath();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -248,7 +258,7 @@ export default function Header() {
                 sx={{
                   position: 'relative',
                   display: 'block',
-                  backgroundImage: `url(${rootUrl}/${logo})`,
+                  backgroundImage: `url(${rootUrl}/${logoPath})`,
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'left center',
