@@ -117,7 +117,6 @@ function AppContent() {
                   <SiteDetails />
                 </ProtectedRoute>
               } />
-              <Route path="/sites-status" element={<PublicSites />} />
               <Route path="/site-status/:id" element={<PublicSiteDetail />} />
               <Route path="/settings" element={
                 <ProtectedRoute>
