@@ -42,6 +42,7 @@ import {
   HttpsOutlined as HttpsIcon,
   SignalWifiStatusbar4Bar as OnlineIcon,
   Visibility as VisibilityIcon,
+  ContentCopy as CopyIcon,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../store';
 import {
@@ -640,6 +641,25 @@ export default function Sites() {
                       }}
                     >
                       <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Copy Site Detail Page URL">
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(`${window.location.origin}/site-status/${site.id}`);
+                        showToast.success('Site detail page url copied to clipboard');
+                      }}
+                      size="small"
+                      sx={{
+                        ml: 1,
+                        color: theme.palette.info.main,
+                        '&:hover': {
+                          background: alpha(theme.palette.info.main, 0.1)
+                        }
+                      }}
+                    >
+                      <CopyIcon />
                     </IconButton>
                   </Tooltip>
                 </TableCell>
