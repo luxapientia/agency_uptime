@@ -15,7 +15,6 @@ import MembershipPlans from './pages/MembershipPlans';
 import FAQ from './pages/FAQ';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
-import PublicSites from './pages/PublicSites';
 import PublicSiteDetail from './pages/PublicSiteDetail';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
