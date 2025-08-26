@@ -1,0 +1,48 @@
+[
+    {
+        "name": "Kick-Start Plan",
+        "price": 29,
+        "title": "Kick-Start Plan",
+        "description": "Perfect for small agencies",
+        "type": "main",
+        "features": [
+            "MONITORED_WEBSITES_10",
+            "CHECK_INTERVAL_5MIN",
+            "AI_DIAGNOSTICS_BASIC",
+            "ALERTS_EMAIL",
+            "BRANDED_PDF_REPORTS"
+        ]
+    },
+    {
+        "name": "Agency",
+        "price": 79,
+        "title": "Agency",
+        "description": "Best for growing agencies",
+        "type": "main",
+        "features": [
+            "MONITORED_WEBSITES_50",
+            "CHECK_INTERVAL_1MIN",
+            "AI_DIAGNOSTICS_ADVANCED",
+            "ALERTS_EMAIL",
+            "ALERTS_SLACK",
+            "CLIENT_SUBACCOUNTS"
+        ]
+    },
+    {
+        "name": "Enterprise",
+        "price": 199,
+        "title": "Enterprise",
+        "description": "For large agencies & resellers",
+        "type": "main",
+        "features": [
+            "MONITORED_WEBSITES_200",
+            "CHECK_INTERVAL_30SEC",
+            "AI_DIAGNOSTICS_PREMIUM",
+            "ALERTS_EMAIL",
+            "ALERTS_SLACK",
+            "ALERTS_TELEGRAM",
+            "ALERTS_DISCORD",
+            "API_ACCESS"
+        ]
+    }
+]
