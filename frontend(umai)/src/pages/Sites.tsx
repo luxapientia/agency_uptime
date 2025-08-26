@@ -56,7 +56,6 @@ import SiteForm from '../components/sites/SiteForm';
 import NotificationSettings from '../components/sites/NotificationSettings';
 import SiteStatistics from '../components/sites/SiteStatistics';
 import axios from '../lib/axios';
-import { alpha } from '@mui/material/styles';
 import { showToast } from '../utils/toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { formatDate } from '../utils/dateUtils';
@@ -75,8 +74,8 @@ export default function Sites() {
 
   // Get current filter from URL path
   const currentPath = location.pathname.split('/').pop() || '';
-  const currentFilter = ['online', 'ssl-protected', 'with-notifications'].includes(currentPath) 
-    ? currentPath 
+  const currentFilter = ['online', 'ssl-protected', 'with-notifications'].includes(currentPath)
+    ? currentPath
     : '';
 
   // Filter sites based on current path
@@ -363,15 +362,15 @@ export default function Sites() {
         </Stack>
       </Box>
 
-      <Box sx={{ 
-        mb: 4, 
+      <Box sx={{
+        mb: 4,
         borderBottom: '2px solid rgba(59, 130, 246, 0.1)',
         background: 'rgba(248, 250, 252, 0.5)',
         borderRadius: '16px 16px 0 0',
         p: 2,
       }}>
-        <Tabs 
-          value={currentFilter || ''} 
+        <Tabs
+          value={currentFilter || ''}
           onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
@@ -400,7 +399,7 @@ export default function Sites() {
             },
           }}
         >
-          <Tab 
+          <Tab
             label={
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{
@@ -413,10 +412,10 @@ export default function Sites() {
                 </Box>
                 <span>All Sites ({sites.length})</span>
               </Stack>
-            } 
-            value="" 
+            }
+            value=""
           />
-          <Tab 
+          <Tab
             label={
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{
@@ -429,10 +428,10 @@ export default function Sites() {
                 </Box>
                 <span>Online Sites ({filterCounts.online})</span>
               </Stack>
-            } 
-            value="online" 
+            }
+            value="online"
           />
-          <Tab 
+          <Tab
             label={
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{
@@ -445,10 +444,10 @@ export default function Sites() {
                 </Box>
                 <span>SSL Protected ({filterCounts.sslProtected})</span>
               </Stack>
-            } 
-            value="ssl-protected" 
+            }
+            value="ssl-protected"
           />
-          <Tab 
+          <Tab
             label={
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{
@@ -461,8 +460,8 @@ export default function Sites() {
                 </Box>
                 <span>With Notifications ({filterCounts.withNotifications})</span>
               </Stack>
-            } 
-            value="with-notifications" 
+            }
+            value="with-notifications"
           />
         </Tabs>
       </Box>
@@ -530,8 +529,8 @@ export default function Sites() {
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'center' }}>
                     <Tooltip title="Site Status">
-                      <Box sx={{ 
-                        display: 'flex', 
+                      <Box sx={{
+                        display: 'flex',
                         alignItems: 'center',
                         gap: 1.5,
                         p: 1.5,
@@ -541,10 +540,10 @@ export default function Sites() {
                       }}>
                         {siteStatuses[site.id]?.isUp ? (
                           <>
-                            <Box sx={{ 
-                              width: 12, 
-                              height: 12, 
-                              borderRadius: '50%', 
+                            <Box sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
                               bgcolor: '#10B981',
                               boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)',
                             }} />
@@ -552,10 +551,10 @@ export default function Sites() {
                           </>
                         ) : (
                           <>
-                            <Box sx={{ 
-                              width: 12, 
-                              height: 12, 
-                              borderRadius: '50%', 
+                            <Box sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
                               bgcolor: '#EF4444',
                               boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)',
                             }} />
@@ -581,8 +580,8 @@ export default function Sites() {
                     >
                       {site.name.charAt(0).toUpperCase()}
                     </Avatar>
-                    <Typography variant="body1" sx={{ 
-                      fontWeight: 600, 
+                    <Typography variant="body1" sx={{
+                      fontWeight: 600,
                       color: '#1E293B',
                       fontSize: '1rem',
                     }}>
@@ -638,11 +637,11 @@ export default function Sites() {
                   </Link>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1.5, 
-                    justifyContent: 'center', 
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    justifyContent: 'center',
                     color: '#64748B',
                     p: 1.5,
                     borderRadius: '8px',
@@ -656,11 +655,11 @@ export default function Sites() {
                   </Box>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1.5, 
-                    justifyContent: 'center', 
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    justifyContent: 'center',
                     color: '#64748B',
                     p: 1.5,
                     borderRadius: '8px',
@@ -744,7 +743,7 @@ export default function Sites() {
                           border: '1px solid rgba(16, 185, 129, 0.2)',
                           borderRadius: '10px',
                           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          '&:hover': { 
+                          '&:hover': {
                             background: 'rgba(16, 185, 129, 0.15)',
                             transform: 'translateY(-2px) scale(1.05)',
                             boxShadow: '0 6px 20px rgba(16, 185, 129, 0.25)',
@@ -777,7 +776,7 @@ export default function Sites() {
                           border: '1px solid rgba(245, 158, 11, 0.2)',
                           borderRadius: '10px',
                           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          '&:hover': { 
+                          '&:hover': {
                             background: 'rgba(245, 158, 11, 0.15)',
                             transform: 'translateY(-2px) scale(1.05)',
                             boxShadow: '0 6px 20px rgba(245, 158, 11, 0.25)',
@@ -981,17 +980,36 @@ export default function Sites() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: theme.palette.mode === 'dark'
-              ? alpha(theme.palette.warning.main, 0.1)
-              : alpha(theme.palette.warning.main, 0.1),
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            py: 2,
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%)',
+            borderBottom: '2px solid rgba(59, 130, 246, 0.1)',
+            py: 3,
+            px: 4,
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="center">
-            <NotificationIcon color="warning" />
-            <Typography variant="h6" color={theme.palette.text.primary}>Notification Settings</Typography>
-          </Stack>
+          <Typography 
+            variant="h5" 
+            component="div" 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              fontWeight: 700,
+              color: '#1E293B',
+            }}
+          >
+            <Box sx={{
+              p: 1.5,
+              borderRadius: '12px',
+              bgcolor: 'rgba(59, 130, 246, 0.15)',
+              color: '#3B82F6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <NotificationIcon />
+            </Box>
+            Notification Settings
+          </Typography>
           <IconButton
             onClick={() => {
               setNotificationDialogOpen(false);
@@ -999,10 +1017,17 @@ export default function Sites() {
             }}
             size="small"
             sx={{
-              color: theme.palette.text.secondary,
+              p: 1.5,
+              color: '#64748B',
+              bgcolor: 'rgba(100, 116, 139, 0.1)',
+              borderRadius: '10px',
+              border: '1px solid rgba(100, 116, 139, 0.2)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
-                background: alpha(theme.palette.text.secondary, 0.1)
-              }
+                bgcolor: 'rgba(100, 116, 139, 0.15)',
+                transform: 'scale(1.05)',
+                boxShadow: '0 4px 12px rgba(100, 116, 139, 0.2)',
+              },
             }}
           >
             <CloseIcon />
