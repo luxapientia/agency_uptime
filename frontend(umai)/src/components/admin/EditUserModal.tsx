@@ -937,10 +937,6 @@ export default function EditUserModal({
                                   return <WebhookIcon fontSize="small" />;
                                 case FEATURES.ALERTS_PUSH_NOTIFICATION:
                                   return <NotificationsActiveIcon fontSize="small" />;
-                                case FEATURES.WHITELABEL_DASHBOARD:
-                                case FEATURES.WHITELABEL_FULL:
-                                case FEATURES.WHITELABEL_COMPLETE:
-                                  return <PaletteIcon fontSize="small" />;
                                 case FEATURES.CLIENT_SUBACCOUNTS:
                                 case FEATURES.MULTI_USER_LOGINS:
                                   return <PeopleIcon fontSize="small" />;
@@ -950,8 +946,6 @@ export default function EditUserModal({
                                   return <WebhookIcon fontSize="small" />;
                                 case FEATURES.PREDICTIVE_MONITORING:
                                   return <TrendingUpIcon fontSize="small" />;
-                                case FEATURES.BRANDED_PDF_REPORTS:
-                                  return <PictureAsPdfIcon fontSize="small" />;
                                 default:
                                   return <CheckCircleIcon fontSize="small" />;
                               }
