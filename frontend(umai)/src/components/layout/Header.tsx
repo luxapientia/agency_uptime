@@ -26,7 +26,6 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Settings,
   ExitToApp,
   Business,
   DashboardOutlined,
