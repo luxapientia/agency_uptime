@@ -13,11 +13,9 @@ import {
   Typography,
   IconButton,
   InputAdornment,
-  useTheme,
   CircularProgress,
   FormHelperText,
   Alert,
-  alpha,
   FormControlLabel,
   Switch,
 } from '@mui/material';
@@ -44,7 +42,6 @@ interface SiteFormProps {
 const INTERVAL_OPTIONS = [0.5, 1, 5];
 
 export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: SiteFormProps) {
-  const theme = useTheme();
   const getNowUtcDay = () => String(new Date().getUTCDate());
   const getNowUtcTime = () => {
     const now = new Date();
@@ -156,8 +153,10 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px', // 2 * default borderRadius (8px)
+          borderRadius: '24px',
           overflow: 'hidden',
+          border: '2px solid rgba(59, 130, 246, 0.1)',
+          boxShadow: '0 20px 60px rgba(59, 130, 246, 0.15)',
         },
       }}
     >
@@ -167,24 +166,50 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: theme.palette.mode === 'dark'
-              ? alpha(theme.palette.primary.main, 0.1)
-              : alpha(theme.palette.primary.main, 0.05),
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            py: 2,
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%)',
+            borderBottom: '2px solid rgba(59, 130, 246, 0.1)',
+            py: 3,
+            px: 4,
           }}
         >
-          <Typography variant="h6" component="div" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <LanguageIcon sx={{ color: theme.palette.primary.main }} />
+          <Typography 
+            variant="h5" 
+            component="div" 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              fontWeight: 700,
+              color: '#1E293B',
+            }}
+          >
+            <Box sx={{
+              p: 1.5,
+              borderRadius: '12px',
+              bgcolor: 'rgba(59, 130, 246, 0.15)',
+              color: '#3B82F6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <LanguageIcon />
+            </Box>
             {site ? 'Edit Site' : 'Add New Site'}
           </Typography>
           <IconButton
             onClick={onClose}
             size="small"
             sx={{
-              color: theme.palette.text.secondary,
+              p: 1.5,
+              color: '#64748B',
+              bgcolor: 'rgba(100, 116, 139, 0.1)',
+              borderRadius: '10px',
+              border: '1px solid rgba(100, 116, 139, 0.2)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
-                bgcolor: alpha(theme.palette.text.primary, 0.1),
+                bgcolor: 'rgba(100, 116, 139, 0.15)',
+                transform: 'scale(1.05)',
+                boxShadow: '0 4px 12px rgba(100, 116, 139, 0.2)',
               },
             }}
           >
@@ -192,8 +217,8 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 3 }}>
+        <DialogContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
             <TextField
               label="Site Name"
               fullWidth
@@ -209,18 +234,42 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LinkIcon sx={{ color: theme.palette.action.active }} />
+                    <Box sx={{
+                      p: 1,
+                      borderRadius: '8px',
+                      bgcolor: 'rgba(59, 130, 246, 0.1)',
+                      color: '#3B82F6',
+                      ml: 1,
+                    }}>
+                      <LinkIcon fontSize="small" />
+                    </Box>
                   </InputAdornment>
                 ),
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: '12px', // 1.5 * default borderRadius (8px)
+                  borderRadius: '16px',
+                  border: '2px solid rgba(59, 130, 246, 0.1)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    borderColor: 'rgba(59, 130, 246, 0.3)',
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.1)',
+                  },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.primary.main,
+                      borderColor: '#3B82F6',
+                      borderWidth: '2px',
                     },
+                    boxShadow: '0 6px 20px rgba(59, 130, 246, 0.15)',
                   },
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#64748B',
+                  fontWeight: 600,
+                },
+                '& .MuiFormHelperText-root': {
+                  color: '#EF4444',
+                  fontWeight: 500,
                 },
               }}
             />
@@ -241,18 +290,42 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LanguageIcon sx={{ color: theme.palette.action.active }} />
+                    <Box sx={{
+                      p: 1,
+                      borderRadius: '8px',
+                      bgcolor: 'rgba(139, 92, 246, 0.1)',
+                      color: '#8B5CF6',
+                      ml: 1,
+                    }}>
+                      <LanguageIcon fontSize="small" />
+                    </Box>
                   </InputAdornment>
                 ),
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: '12px',
+                  borderRadius: '16px',
+                  border: '2px solid rgba(139, 92, 246, 0.1)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    borderColor: 'rgba(139, 92, 246, 0.3)',
+                    boxShadow: '0 4px 12px rgba(139, 92, 246, 0.1)',
+                  },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.primary.main,
+                      borderColor: '#8B5CF6',
+                      borderWidth: '2px',
                     },
+                    boxShadow: '0 6px 20px rgba(139, 92, 246, 0.15)',
                   },
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#64748B',
+                  fontWeight: 600,
+                },
+                '& .MuiFormHelperText-root': {
+                  color: '#EF4444',
+                  fontWeight: 500,
                 },
               }}
             />
@@ -264,15 +337,31 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                 onChange={(e) => setFormData({ ...formData, checkInterval: e.target.value as number })}
                 startAdornment={
                   <InputAdornment position="start">
-                    <ScheduleIcon sx={{ color: theme.palette.action.active, ml: 1 }} />
+                    <Box sx={{
+                      p: 1,
+                      borderRadius: '8px',
+                      bgcolor: 'rgba(16, 185, 129, 0.1)',
+                      color: '#10B981',
+                      ml: 1,
+                    }}>
+                      <ScheduleIcon fontSize="small" />
+                    </Box>
                   </InputAdornment>
                 }
                 sx={{
-                  borderRadius: '12px',
+                  borderRadius: '16px',
+                  border: '2px solid rgba(16, 185, 129, 0.1)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    borderColor: 'rgba(16, 185, 129, 0.3)',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.1)',
+                  },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.primary.main,
+                      borderColor: '#10B981',
+                      borderWidth: '2px',
                     },
+                    boxShadow: '0 6px 20px rgba(16, 185, 129, 0.15)',
                   },
                 }}
               >
@@ -282,8 +371,15 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                   </MenuItem>
                 ))}
               </Select>
-              <FormHelperText>
-                <InfoIcon fontSize="small" sx={{ color: theme.palette.info.main }} />
+              <FormHelperText sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                color: '#3B82F6',
+                fontWeight: 500,
+                mt: 1,
+              }}>
+                <InfoIcon fontSize="small" />
                 Choose how often the site should be checked
               </FormHelperText>
             </FormControl>
@@ -301,25 +397,49 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                       monthlyReportTime: checked && !prev.monthlyReportTime ? getNowUtcTime() : prev.monthlyReportTime,
                     }));
                   }}
-                  color="primary"
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#3B82F6',
+                      '&:hover': {
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                      },
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#3B82F6',
+                    },
+                  }}
                 />
               }
               label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <AssessmentIcon sx={{ color: theme.palette.primary.main }} />
-                  <Typography variant="body2">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{
+                    p: 1.5,
+                    borderRadius: '12px',
+                    bgcolor: 'rgba(59, 130, 246, 0.1)',
+                    color: '#3B82F6',
+                  }}>
+                    <AssessmentIcon />
+                  </Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#1E293B' }}>
                     Include in Monthly Reports
                   </Typography>
                 </Box>
               }
               sx={{
-                bgcolor: alpha(theme.palette.primary.main, 0.05),
-                borderRadius: '12px',
-                p: 2,
+                bgcolor: 'rgba(59, 130, 246, 0.05)',
+                borderRadius: '16px',
+                p: 3,
                 m: 0,
                 width: '100%',
                 justifyContent: 'space-between',
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                border: '2px solid rgba(59, 130, 246, 0.15)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  bgcolor: 'rgba(59, 130, 246, 0.08)',
+                  borderColor: 'rgba(59, 130, 246, 0.25)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.1)',
+                },
                 '& .MuiFormControlLabel-label': {
                   flex: 1,
                 },
@@ -327,7 +447,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             />
 
             {formData.monthlyReport && (
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
                 <FormControl fullWidth>
                   <Select
                     value={formData.monthlyReportDay || ''}
@@ -335,15 +455,31 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                     onChange={(e) => setFormData({ ...formData, monthlyReportDay: e.target.value as string })}
                     startAdornment={
                       <InputAdornment position="start">
-                        <CalendarMonthIcon sx={{ color: theme.palette.action.active, ml: 1 }} />
+                        <Box sx={{
+                          p: 1,
+                          borderRadius: '8px',
+                          bgcolor: 'rgba(245, 158, 11, 0.1)',
+                          color: '#F59E0B',
+                          ml: 1,
+                        }}>
+                          <CalendarMonthIcon fontSize="small" />
+                        </Box>
                       </InputAdornment>
                     }
                     sx={{
-                      borderRadius: '12px',
+                      borderRadius: '16px',
+                      border: '2px solid rgba(245, 158, 11, 0.1)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        borderColor: 'rgba(245, 158, 11, 0.3)',
+                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.1)',
+                      },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.primary.main,
+                          borderColor: '#F59E0B',
+                          borderWidth: '2px',
                         },
+                        boxShadow: '0 6px 20px rgba(245, 158, 11, 0.15)',
                       },
                     }}
                   >
@@ -356,7 +492,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText error={!!errors.monthlyReportDay}>
+                  <FormHelperText error={!!errors.monthlyReportDay} sx={{ color: '#EF4444', fontWeight: 500, mt: 1 }}>
                     {errors.monthlyReportDay || 'Choose the day of the month'}
                   </FormHelperText>
                 </FormControl>
@@ -372,13 +508,42 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <AccessTimeIcon sx={{ color: theme.palette.action.active }} />
+                        <Box sx={{
+                          p: 1,
+                          borderRadius: '8px',
+                          bgcolor: 'rgba(6, 182, 212, 0.1)',
+                          color: '#06B6D4',
+                          ml: 1,
+                        }}>
+                          <AccessTimeIcon fontSize="small" />
+                        </Box>
                       </InputAdornment>
                     ),
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
+                      borderRadius: '16px',
+                      border: '2px solid rgba(6, 182, 212, 0.1)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        borderColor: 'rgba(6, 182, 212, 0.3)',
+                        boxShadow: '0 4px 12px rgba(6, 182, 212, 0.1)',
+                      },
+                      '&.Mui-focused': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#06B6D4',
+                          borderWidth: '2px',
+                        },
+                        boxShadow: '0 6px 20px rgba(6, 182, 212, 0.15)',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#64748B',
+                      fontWeight: 600,
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#EF4444',
+                      fontWeight: 500,
                     },
                   }}
                   inputProps={{ step: 60 }}
@@ -389,10 +554,15 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             <Alert
               severity="info"
               sx={{
-                borderRadius: '12px',
-                backgroundColor: alpha(theme.palette.info.main, 0.08),
+                borderRadius: '16px',
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                border: '2px solid rgba(59, 130, 246, 0.15)',
                 '& .MuiAlert-icon': {
-                  color: theme.palette.info.main,
+                  color: '#3B82F6',
+                },
+                '& .MuiAlert-message': {
+                  color: '#1E293B',
+                  fontWeight: 500,
                 },
               }}
             >
@@ -403,21 +573,28 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
 
         <DialogActions
           sx={{
-            px: 3,
-            py: 2.5,
-            background: theme.palette.mode === 'dark'
-              ? alpha(theme.palette.common.white, 0.05)
-              : alpha(theme.palette.common.black, 0.02),
+            px: 4,
+            py: 3,
+            background: 'linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%)',
+            borderTop: '2px solid rgba(59, 130, 246, 0.1)',
           }}
         >
           <Button
             onClick={onClose}
             sx={{
-              borderRadius: '12px',
-              px: 3,
-              color: theme.palette.text.secondary,
+              borderRadius: '16px',
+              px: 4,
+              py: 1.5,
+              color: '#64748B',
+              border: '2px solid rgba(100, 116, 139, 0.2)',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
-                bgcolor: alpha(theme.palette.text.primary, 0.1),
+                bgcolor: 'rgba(100, 116, 139, 0.05)',
+                borderColor: '#64748B',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(100, 116, 139, 0.15)',
               },
             }}
           >
@@ -428,15 +605,23 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             variant="contained"
             disabled={isLoading}
             sx={{
-              borderRadius: '12px',
-              px: 3,
-              background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
-              boxShadow: `0 3px 5px 2px ${alpha(theme.palette.primary.main, 0.3)}`,
+              borderRadius: '16px',
+              px: 4,
+              py: 1.5,
+              background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+              boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
-                background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.main} 90%)`,
+                background: 'linear-gradient(135deg, #1D4ED8 0%, #7C3AED 100%)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 12px 35px rgba(59, 130, 246, 0.4)',
               },
               '&:disabled': {
-                background: theme.palette.action.disabledBackground,
+                background: 'rgba(156, 163, 175, 0.5)',
+                boxShadow: 'none',
+                transform: 'none',
               },
             }}
           >
