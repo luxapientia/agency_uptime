@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
-const staticPath = path.join(__dirname, '../CentralServer/public');
+const staticPath = path.join(__dirname, '../CentralServer/public/au');
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
