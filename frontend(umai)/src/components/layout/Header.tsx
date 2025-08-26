@@ -22,7 +22,6 @@ import {
   alpha,
   Tooltip,
   Zoom,
-  Chip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -33,8 +32,6 @@ import {
   Payment,
   AdminPanelSettings,
   MonitorHeart,
-  Speed,
-  Shield,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -308,47 +305,6 @@ export default function Header() {
                 }}
               />
             </Box>
-
-            {/* Feature highlights for public users */}
-            {!isAuthenticated && !isMobile && (
-              <Box sx={{ display: 'flex', gap: 1.5, ml: 4 }}>
-                <Chip
-                  icon={<Speed />}
-                  label="Real-time Monitoring"
-                  size="small"
-                  sx={{
-                    background: alpha(theme.palette.primary.main, 0.1),
-                    color: theme.palette.primary.main,
-                    fontWeight: 500,
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                    '& .MuiChip-icon': { color: theme.palette.primary.main },
-                    '&:hover': {
-                      background: alpha(theme.palette.primary.main, 0.15),
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all 0.3s ease-in-out',
-                  }}
-                />
-                <Chip
-                  icon={<Shield />}
-                  label="SSL & Security"
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    borderColor: alpha(theme.palette.secondary.main, 0.3),
-                    color: theme.palette.secondary.main,
-                    fontWeight: 500,
-                    '& .MuiChip-icon': { color: theme.palette.secondary.main },
-                    '&:hover': {
-                      borderColor: theme.palette.secondary.main,
-                      background: alpha(theme.palette.secondary.main, 0.05),
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all 0.3s ease-in-out',
-                  }}
-                />
-              </Box>
-            )}
           </Box>
 
           {isAuthenticated ? (
