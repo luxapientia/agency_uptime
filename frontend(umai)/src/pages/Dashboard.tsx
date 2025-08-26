@@ -6,12 +6,13 @@ import {
   CardContent,
   IconButton,
   Tooltip,
-  useTheme,
   Stack,
   Skeleton,
   alpha,
   Paper,
   CircularProgress,
+  Chip,
+  Divider,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -19,6 +20,9 @@ import {
   SignalCellularAlt as SignalIcon,
   Security as SecurityIcon,
   Notifications as NotificationsIcon,
+  TrendingUp as TrendingUpIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import axios from '../lib/axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,11 +43,11 @@ interface StatsCardProps {
   color: string;
   delay: number;
   subtitle?: string;
-  path: string; // Add path prop
+  path: string;
+  status?: 'success' | 'warning' | 'info' | 'error';
 }
 
-const StatsCard = ({ title, value, icon, color, delay, subtitle, path }: StatsCardProps) => {
-  const theme = useTheme();
+const StatsCard = ({ title, value, icon, color, delay, subtitle, path, status }: StatsCardProps) => {
   const navigate = useNavigate();
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -52,12 +56,23 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle, path }: StatsCa
 
   const [isHovered, setIsHovered] = useState(false);
 
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'success':
+        return <CheckCircleIcon sx={{ color: '#10B981', fontSize: '1.2rem' }} />;
+      case 'warning':
+        return <WarningIcon sx={{ color: '#F59E0B', fontSize: '1.2rem' }} />;
+      default:
+        return <TrendingUpIcon sx={{ color: '#3B82F6', fontSize: '1.2rem' }} />;
+    }
+  };
+
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.5, delay }}
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.6, delay, type: "spring", stiffness: 100 }}
       style={{ height: '100%' }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
@@ -65,17 +80,14 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle, path }: StatsCa
       <Card
         sx={{
           height: '100%',
-          background: `linear-gradient(135deg, ${alpha(color, 0.12)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-          backdropFilter: 'blur(10px)',
-          border: `1px solid ${alpha(color, isHovered ? 0.3 : 0.1)}`,
-          transition: theme.transitions.create(
-            ['transform', 'box-shadow', 'border-color', 'background'],
-            { duration: theme.transitions.duration.shorter }
-          ),
-          transform: isHovered ? 'translateY(-8px) scale(1.02)' : 'none',
+          background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
+          border: 'none',
+          borderRadius: '24px',
           boxShadow: isHovered 
-            ? `0 12px 24px -8px ${alpha(color, 0.3)}`
-            : `0 4px 12px -2px ${alpha(color, 0.1)}`,
+            ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            : '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: isHovered ? 'translateY(-12px) rotateX(5deg)' : 'none',
           position: 'relative',
           overflow: 'hidden',
           cursor: 'pointer',
@@ -85,80 +97,120 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle, path }: StatsCa
             top: 0,
             left: 0,
             right: 0,
-            bottom: 0,
-            background: `radial-gradient(circle at top right, ${alpha(color, 0.12)}, transparent 70%)`,
+            height: '4px',
+            background: `linear-gradient(90deg, ${color}, ${color}80)`,
+            transform: isHovered ? 'scaleX(1)' : 'scaleX(0)',
+            transition: 'transform 0.4s ease',
+            transformOrigin: 'left',
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: '50%',
+            right: '-20px',
+            width: '40px',
+            height: '40px',
+            background: `radial-gradient(circle, ${alpha(color, 0.1)} 0%, transparent 70%)`,
+            borderRadius: '50%',
+            transform: 'translateY(-50%)',
             opacity: isHovered ? 1 : 0,
-            transition: 'opacity 0.3s ease',
+            transition: 'opacity 0.4s ease',
           },
         }}
         onClick={() => navigate(path)}
       >
-        <CardContent sx={{ height: '100%', position: 'relative' }}>
-          <Stack spacing={2.5}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <motion.div
-                animate={{
-                  scale: isHovered ? 1.1 : 1,
-                  rotate: isHovered ? 5 : 0,
+        <CardContent sx={{ height: '100%', position: 'relative', p: 4 }}>
+          <Stack spacing={3} sx={{ height: '100%' }}>
+            {/* Header Section */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box
+                sx={{
+                  p: 2.5,
+                  borderRadius: '20px',
+                  background: `linear-gradient(135deg, ${alpha(color, 0.15)} 0%, ${alpha(color, 0.05)} 100%)`,
+                  border: `2px solid ${alpha(color, 0.2)}`,
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: '-2px',
+                    left: '-2px',
+                    right: '-2px',
+                    bottom: '-2px',
+                    background: `linear-gradient(135deg, ${color}, ${alpha(color, 0.5)})`,
+                    borderRadius: '20px',
+                    zIndex: -1,
+                    opacity: isHovered ? 0.3 : 0,
+                    transition: 'opacity 0.4s ease',
+                  },
                 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 3,
-                    bgcolor: alpha(color, 0.15),
-                    color: color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: '0.3s all',
-                    transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+                <motion.div
+                  animate={{
+                    scale: isHovered ? 1.2 : 1,
+                    rotate: isHovered ? 15 : 0,
                   }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
                   {icon}
-                </Box>
-              </motion.div>
+                </motion.div>
+              </Box>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                {getStatusIcon()}
+                <Chip
+                  label={status === 'success' ? 'Active' : status === 'warning' ? 'Alert' : 'Info'}
+                  size="small"
+                  sx={{
+                    bgcolor: status === 'success' ? '#DCFCE7' : status === 'warning' ? '#FEF3C7' : '#DBEAFE',
+                    color: status === 'success' ? '#166534' : status === 'warning' ? '#92400E' : '#1E40AF',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    borderRadius: '12px',
+                    px: 1,
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Value Section */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1,
-                  y: isHovered ? -5 : 0
+                animate={{
+                  scale: isHovered ? 1.05 : 1,
+                  y: isHovered ? -5 : 0,
                 }}
-                transition={{ 
-                  duration: 0.5,
-                  delay: delay + 0.2,
-                  ease: "easeOut"
-                }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
               >
                 <Typography
-                  variant="h3"
+                  variant="h1"
                   sx={{
-                    fontWeight: 700,
-                    background: isHovered
-                      ? `linear-gradient(135deg, ${color} 0%, ${theme.palette.primary.main} 100%)`
-                      : `linear-gradient(135deg, ${color} 30%, ${theme.palette.primary.main} 90%)`,
+                    fontWeight: 900,
+                    background: `linear-gradient(135deg, ${color} 0%, #1E293B 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    transition: '0.3s all',
+                    fontSize: { xs: '3rem', sm: '3.5rem', md: '4rem' },
+                    lineHeight: 1,
+                    mb: 1,
+                    textAlign: 'center',
                   }}
                 >
                   {value}
                 </Typography>
               </motion.div>
-            </Stack>
+            </Box>
+
+            {/* Footer Section */}
             <Box>
+              <Divider sx={{ mb: 2, borderColor: alpha(color, 0.2) }} />
               <Typography
                 variant="h6"
                 sx={{
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  mb: 0.5,
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  mb: 1,
+                  fontSize: '1.125rem',
+                  textAlign: 'center',
                 }}
               >
                 {title}
@@ -167,8 +219,11 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle, path }: StatsCa
                 <Typography
                   variant="body2"
                   sx={{
-                    color: alpha(theme.palette.text.secondary, 0.8),
+                    color: '#64748B',
                     fontWeight: 500,
+                    fontSize: '0.875rem',
+                    textAlign: 'center',
+                    lineHeight: 1.4,
                   }}
                 >
                   {subtitle}
@@ -183,58 +238,64 @@ const StatsCard = ({ title, value, icon, color, delay, subtitle, path }: StatsCa
 };
 
 const LoadingCard = () => {
-  const theme = useTheme();
-  
   return (
     <Card
       sx={{
         height: '100%',
-        background: alpha(theme.palette.background.paper, 0.5),
-        backdropFilter: 'blur(10px)',
-        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
+        border: 'none',
+        borderRadius: '24px',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
       }}
     >
-      <CardContent>
-        <Stack spacing={2.5}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
+      <CardContent sx={{ p: 4 }}>
+        <Stack spacing={3} sx={{ height: '100%' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Skeleton
               variant="rounded"
-              width={48}
-              height={48}
-              sx={{ borderRadius: 3 }}
+              width={64}
+              height={64}
+              sx={{ borderRadius: '20px' }}
             />
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+              <Skeleton variant="circular" width={20} height={20} />
+              <Skeleton variant="rounded" width={50} height={24} sx={{ borderRadius: '12px' }} />
+            </Box>
+          </Box>
+          
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Skeleton 
-              variant="rounded" 
-              width={80} 
-              height={48}
-              sx={{
+              variant="text" 
+              width="80%" 
+              height={80}
+              sx={{ 
+                mx: 'auto',
                 borderRadius: 2,
-                background: `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+                background: 'linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
               }}
             />
-          </Stack>
+          </Box>
+          
           <Box>
             <Skeleton 
               variant="text" 
-              width={140} 
-              height={32}
-              sx={{
-                borderRadius: 1,
+              width="60%" 
+              height={24}
+              sx={{ 
+                mx: 'auto',
                 mb: 1,
-                background: `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+                borderRadius: 1,
+                background: 'linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
               }}
             />
             <Skeleton 
               variant="text" 
-              width={100} 
-              height={24}
-              sx={{
+              width="80%" 
+              height={20}
+              sx={{ 
+                mx: 'auto',
                 borderRadius: 1,
-                background: `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`,
+                background: 'linear-gradient(90deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05))',
               }}
             />
           </Box>
@@ -245,7 +306,6 @@ const LoadingCard = () => {
 };
 
 export default function Dashboard() {
-  const theme = useTheme();
   const [stats, setStats] = useState<Statistics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -274,38 +334,42 @@ export default function Dashboard() {
     {
       title: 'Total Sites',
       value: stats?.totalSites || 0,
-      icon: <StorageIcon />,
-      color: theme.palette.primary.main,
+      icon: <StorageIcon sx={{ fontSize: '2rem', color: '#3B82F6' }} />,
+      color: '#3B82F6',
       delay: 0,
       subtitle: 'All monitored websites',
-      path: '/sites'
+      path: '/sites',
+      status: 'info' as const
     },
     {
       title: 'Online Sites',
       value: stats?.onlineSites || 0,
-      icon: <SignalIcon />,
-      color: theme.palette.success.main,
+      icon: <SignalIcon sx={{ fontSize: '2rem', color: '#10B981' }} />,
+      color: '#10B981',
       delay: 0.1,
       subtitle: 'Currently operational',
-      path: '/sites/online'
+      path: '/sites/online',
+      status: 'success' as const
     },
     {
       title: 'SSL Protected',
       value: stats?.sitesWithSsl || 0,
-      icon: <SecurityIcon />,
-      color: theme.palette.info.main,
+      icon: <SecurityIcon sx={{ fontSize: '2rem', color: '#8B5CF6' }} />,
+      color: '#8B5CF6',
       delay: 0.2,
       subtitle: 'Secure connections',
-      path: '/sites/ssl-protected'
+      path: '/sites/ssl-protected',
+      status: 'success' as const
     },
     {
       title: 'With Notifications',
       value: stats?.sitesWithNotifications || 0,
-      icon: <NotificationsIcon />,
-      color: theme.palette.warning.main,
+      icon: <NotificationsIcon sx={{ fontSize: '2rem', color: '#F59E0B' }} />,
+      color: '#F59E0B',
       delay: 0.3,
       subtitle: 'Alert system enabled',
-      path: '/sites/with-notifications'
+      path: '/sites/with-notifications',
+      status: 'warning' as const
     },
   ];
 
@@ -314,20 +378,32 @@ export default function Dashboard() {
       component={motion.div}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.6 }}
+      sx={{
+        mt: 10,
+      }}
     >
       {/* Welcome Section */}
       <Paper
         elevation={0}
         sx={{
-          mb: 4,
-          p: 3,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
-          backdropFilter: 'blur(10px)',
-          borderRadius: 4,
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          mb: 6,
+          p: 5,
+          background: 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
+          border: 'none',
+          borderRadius: '32px',
           position: 'relative',
           overflow: 'hidden',
+          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.1)',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(circle at 30% 20%, rgba(59, 130, 246, 0.03) 0%, transparent 50%)',
+          },
         }}
       >
         <Box
@@ -335,9 +411,9 @@ export default function Dashboard() {
             position: 'absolute',
             top: 0,
             right: 0,
-            width: { xs: '150px', sm: '300px' },
+            width: { xs: '200px', sm: '400px' },
             height: '100%',
-            background: `linear-gradient(45deg, transparent, ${alpha(theme.palette.primary.main, 0.03)})`,
+            background: 'linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.05))',
             clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
           }}
         />
@@ -345,32 +421,35 @@ export default function Dashboard() {
           direction={{ xs: 'column', sm: 'row' }}
           alignItems={{ xs: 'flex-start', sm: 'center' }}
           justifyContent="space-between"
-          spacing={2}
+          spacing={4}
           sx={{ position: 'relative' }}
         >
           <Box>
             <Typography
-              variant="h4"
+              variant="h2"
               sx={{
                 fontWeight: 800,
-                background: theme.palette.mode === 'dark'
-                  ? `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`
-                  : `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+                background: 'linear-gradient(135deg, #1E293B 0%, #3B82F6 50%, #8B5CF6 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                mb: 1,
+                mb: 2,
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                lineHeight: 1.2,
               }}
             >
-              Welcome Back!
+              Welcome to Uptime Monitoring
             </Typography>
             <Typography
-              variant="body1"
+              variant="h5"
               sx={{
-                color: alpha(theme.palette.text.secondary, 0.8),
-                fontWeight: 500,
+                color: '#64748B',
+                fontWeight: 600,
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+                lineHeight: 1.4,
+                maxWidth: '600px',
               }}
             >
-              Here's what's happening with your monitored sites
+              Monitor your website performance, security, and uptime with our advanced analytics dashboard
             </Typography>
           </Box>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -378,25 +457,31 @@ export default function Dashboard() {
               <IconButton
                 onClick={fetchStats}
                 sx={{
-                  p: 2,
-                  bgcolor: theme.palette.background.paper,
-                  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-                  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                  p: 3,
+                  bgcolor: 'white',
+                  boxShadow: '0 15px 35px rgba(59, 130, 246, 0.2)',
+                  border: '3px solid rgba(59, 130, 246, 0.2)',
+                  borderRadius: '20px',
                   '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                    bgcolor: 'rgba(59, 130, 246, 0.05)',
+                    borderColor: '#3B82F6',
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 20px 45px rgba(59, 130, 246, 0.3)',
                   },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
                 {isRefreshing ? (
                   <CircularProgress
-                    size={24}
+                    size={32}
                     thickness={4}
-                    sx={{ color: theme.palette.primary.main }}
+                    sx={{ color: '#3B82F6' }}
                   />
                 ) : (
                   <RefreshIcon
                     sx={{
-                      color: theme.palette.primary.main,
+                      color: '#3B82F6',
+                      fontSize: '1.75rem',
                       transition: '0.3s all',
                     }}
                   />
@@ -414,20 +499,27 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.4 }}
           >
             <Paper
               sx={{
-                p: 2,
-                mb: 3,
-                bgcolor: alpha(theme.palette.error.main, 0.1),
-                border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
-                borderRadius: 2,
+                p: 4,
+                mb: 5,
+                bgcolor: 'rgba(239, 68, 68, 0.05)',
+                border: '2px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: '20px',
+                boxShadow: '0 8px 25px rgba(239, 68, 68, 0.1)',
               }}
             >
               <Typography
                 color="error"
-                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  fontWeight: 600,
+                  fontSize: '1.125rem',
+                }}
               >
                 {error}
               </Typography>
@@ -440,18 +532,18 @@ export default function Dashboard() {
       <Box
         sx={{
           display: 'grid',
-          gap: { xs: 2, sm: 3 },
+          gap: { xs: 4, sm: 5 },
           gridTemplateColumns: {
             xs: '1fr',
             sm: 'repeat(2, 1fr)',
-            md: 'repeat(4, 1fr)',
+            md: 'repeat(2, 1fr)',
             lg: 'repeat(4, 1fr)',
           },
           mb: 4,
         }}
       >
         {isLoading
-          ? Array(5)
+          ? Array(4)
               .fill(null)
               .map((_, index) => <LoadingCard key={index} />)
           : statsCards.map((card, index) => (
