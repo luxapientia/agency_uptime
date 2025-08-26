@@ -41,7 +41,6 @@ import {
   Assessment as AssessmentIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  Hub as ConsensusIcon,
   Speed as SpeedIcon,
   Psychology as AiIcon,
   Download as PdfIcon,
@@ -515,30 +514,6 @@ return (
                         >
                           {siteStatus?.isUp ? 'Site is Online' : 'Site is Offline'}
                         </Typography>
-                        <Badge
-                          badgeContent={<ConsensusIcon sx={{ fontSize: 12 }} />}
-                          sx={{
-                            '& .MuiBadge-badge': {
-                              backgroundColor: theme.palette.primary.main,
-                              color: theme.palette.primary.contrastText,
-                            },
-                          }}
-                        >
-                          <Chip
-                            label={
-                              siteStatus?.workerId === 'consensus_worker'
-                                ? 'Consensus Status'
-                                : `Worker: ${siteStatus?.workerId}`
-                            }
-                            size="small"
-                            sx={{
-                              whiteSpace: 'nowrap',
-                              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                              color: theme.palette.primary.main,
-                              fontWeight: 600,
-                            }}
-                          />
-                        </Badge>
                       </Stack>
 
                       <Typography
