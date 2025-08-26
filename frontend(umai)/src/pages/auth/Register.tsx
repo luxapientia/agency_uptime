@@ -96,7 +96,7 @@ export default function Register() {
           }}
         >
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-            Create your Agency Uptime Account
+            Create your UptimeMonitoring.AI Account
           </Typography>
 
           {error && (

@@ -81,7 +81,7 @@ export default function Login() {
           }}
         >
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-            Sign in to Agency Uptime
+            Sign in to UptimeMonitoring.AI
           </Typography>
 
           {error && (
