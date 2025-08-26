@@ -442,12 +442,6 @@ export default function Header() {
                   transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                   anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                 >
-                  <MenuItem onClick={() => navigate('/settings')}>
-                    <ListItemIcon>
-                      <Settings fontSize="small" sx={{ color: theme.palette.primary.main }} />
-                    </ListItemIcon>
-                    <ListItemText>Settings</ListItemText>
-                  </MenuItem>
                   <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
                       <ExitToApp fontSize="small" sx={{ color: theme.palette.primary.main }} />
