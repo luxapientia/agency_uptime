@@ -56,7 +56,7 @@ const PrivacyPolicy: React.FC = () => {
                 Introduction
               </Typography>
               <Typography variant="body1" sx={{ color: theme.palette.text.secondary, lineHeight: 1.7 }}>
-                Agency Uptime ('AU', 'we', 'us', or 'our') is a service owned and operated by Alinea Group, LLC. We are committed to protecting your privacy and ensuring the security of your information. This Privacy Policy explains how we collect, use, store, and share information when you use our website and services.
+                UptimeMonitoring.AI ("UMAI", "we", "us", or "our") is a service owned and operated by Alinea Group, LLC. We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, store, and share information when you use our website and services.
               </Typography>
             </Box>
 
@@ -125,7 +125,7 @@ const PrivacyPolicy: React.FC = () => {
                 <Box component="ul" sx={{ pl: 3, color: theme.palette.text.secondary }}>
                   <Box component="li" sx={{ mb: 1, lineHeight: 1.6 }}>
                     <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
-                      <strong>Usage Data:</strong> We collect information about your use of Agency Uptime, including monitored URLs, uptime status, and alert history.
+                      <strong>Usage Data:</strong> We collect information about your use of UMAI, including monitored URLs, uptime status, and alert history.
                     </Typography>
                   </Box>
                   <Box component="li" sx={{ mb: 1, lineHeight: 1.6 }}>
@@ -188,7 +188,7 @@ const PrivacyPolicy: React.FC = () => {
                 </Box>
                 <Box component="li" sx={{ mb: 1, lineHeight: 1.6 }}>
                   <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
-                    Improve and personalize the AU experience
+                    Improve and personalize the UMAI experience
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ mb: 1, lineHeight: 1.6 }}>
@@ -228,7 +228,7 @@ const PrivacyPolicy: React.FC = () => {
               <Box component="ul" sx={{ pl: 3, color: theme.palette.text.secondary }}>
                 <Box component="li" sx={{ mb: 1, lineHeight: 1.6 }}>
                   <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
-                    <strong>Service Providers:</strong> With trusted vendors (e.g., payment processors, hosting providers) who help us operate AU
+                    <strong>Service Providers:</strong> With trusted vendors (e.g., payment processors, hosting providers) who help us operate UMAI
                   </Typography>
                 </Box>
                 <Box component="li" sx={{ mb: 1, lineHeight: 1.6 }}>
@@ -317,7 +317,7 @@ const PrivacyPolicy: React.FC = () => {
                 To exercise these rights, contact us at{' '}
                 <Box
                   component="a"
-                  href="mailto:support@agencyuptime.com"
+                  href="mailto:support@uptimemonitoring.ai"
                   sx={{
                     color: theme.palette.primary.main,
                     textDecoration: 'underline',
@@ -326,7 +326,7 @@ const PrivacyPolicy: React.FC = () => {
                     },
                   }}
                 >
-                  support@agencyuptime.com
+                  support@uptimemonitoring.ai
                 </Box>
                 .
               </Typography>
@@ -346,7 +346,7 @@ const PrivacyPolicy: React.FC = () => {
                 Children's Privacy
               </Typography>
               <Typography variant="body1" sx={{ color: theme.palette.text.secondary, lineHeight: 1.7 }}>
-                AU is not intended for children under 16. We do not knowingly collect information from children under 16. If we become aware of such data, we will delete it promptly.
+                UMAI is not intended for children under 16. We do not knowingly collect information from children under 16. If we discover such data, we will delete it promptly.
               </Typography>
             </Box>
 
@@ -364,7 +364,7 @@ const PrivacyPolicy: React.FC = () => {
                 Changes to This Policy
               </Typography>
               <Typography variant="body1" sx={{ color: theme.palette.text.secondary, lineHeight: 1.7 }}>
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page. Your continued use of AU after changes are posted constitutes acceptance of the revised policy.
+                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page. Your continued use of UMAI after changes are posted constitutes acceptance of the revised policy.
               </Typography>
             </Box>
 
@@ -391,7 +391,7 @@ const PrivacyPolicy: React.FC = () => {
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   <Box
                     component="a"
-                    href="mailto:support@agencyuptime.com"
+                    href="mailto:support@uptimemonitoring.ai"
                     sx={{
                       color: theme.palette.primary.main,
                       textDecoration: 'underline',
@@ -400,7 +400,7 @@ const PrivacyPolicy: React.FC = () => {
                       },
                     }}
                   >
-                    support@agencyuptime.com
+                    support@uptimemonitoring.ai
                   </Box>
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 1 }}>
