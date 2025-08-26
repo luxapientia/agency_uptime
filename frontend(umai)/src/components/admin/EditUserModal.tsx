@@ -42,7 +42,6 @@ import {
   People as PeopleIcon,
   Api as ApiIcon,
   TrendingUp as TrendingUpIcon,
-  PictureAsPdf as PictureAsPdfIcon,
   Schedule as ScheduleIcon,
   Email as EmailAlertIcon,
   Chat as ChatIcon,
