@@ -42,7 +42,7 @@ import {
   HttpsOutlined as HttpsIcon,
   SignalWifiStatusbar4Bar as OnlineIcon,
   Visibility as VisibilityIcon,
-  ContentCopy as CopyIcon,
+  // ContentCopy as CopyIcon,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../store';
 import {
@@ -264,24 +264,51 @@ export default function Sites() {
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Box sx={{
-        mb: 4,
+        mb: 5,
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
-        gap: 2,
+        gap: 3,
         justifyContent: 'space-between',
-        alignItems: { xs: 'stretch', sm: 'center' }
+        alignItems: { xs: 'stretch', sm: 'center' },
+        p: 4,
+        background: 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
+        borderRadius: '24px',
+        border: '2px solid rgba(59, 130, 246, 0.1)',
+        boxShadow: '0 8px 32px rgba(59, 130, 246, 0.1)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '200px',
+          height: '100%',
+          background: 'linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.05))',
+          clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
+        },
       }}>
-        <Typography variant="h4" component="h1" sx={{
-          fontWeight: 'bold',
-          background: theme.palette.mode === 'dark'
-            ? `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.secondary.light} 90%)`
-            : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
-        }}>
-          Monitored Sites
-        </Typography>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Typography variant="h3" component="h1" sx={{
+            fontWeight: 800,
+            background: 'linear-gradient(135deg, #1E293B 0%, #3B82F6 50%, #8B5CF6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+            lineHeight: 1.2,
+            mb: 1,
+          }}>
+            Monitored Sites
+          </Typography>
+          <Typography variant="h6" sx={{
+            color: '#64748B',
+            fontWeight: 600,
+            fontSize: '1.125rem',
+          }}>
+            Track and manage your website performance
+          </Typography>
+        </Box>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
           <Button
             variant="outlined"
             color="primary"
@@ -290,14 +317,21 @@ export default function Sites() {
             disabled={isGeneratingReport}
             fullWidth={isMobile}
             sx={{
-              borderRadius: theme.shape.borderRadius,
-              py: 1.5,
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
+              borderRadius: '16px',
+              py: 2,
+              px: 3,
+              borderColor: '#3B82F6',
+              color: '#3B82F6',
+              borderWidth: '2px',
+              fontWeight: 600,
+              fontSize: '0.95rem',
               '&:hover': {
-                borderColor: theme.palette.primary.dark,
-                backgroundColor: `${theme.palette.primary.main}10`,
-              }
+                borderColor: '#1D4ED8',
+                backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 8px 25px rgba(59, 130, 246, 0.2)',
+              },
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
             {isGeneratingReport ? 'Generating...' : 'Generate Report'}
@@ -309,17 +343,19 @@ export default function Sites() {
             onClick={handleAddClick}
             fullWidth={isMobile}
             sx={{
-              borderRadius: theme.shape.borderRadius,
-              py: 1.5,
-              background: theme.palette.mode === 'dark'
-                ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
-                : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-              boxShadow: `0 3px 5px 2px ${theme.palette.primary.main}30`,
+              borderRadius: '16px',
+              py: 2,
+              px: 3,
+              background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+              boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
+              fontWeight: 600,
+              fontSize: '0.95rem',
               '&:hover': {
-                background: theme.palette.mode === 'dark'
-                  ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
-                  : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
-              }
+                background: 'linear-gradient(135deg, #1D4ED8 0%, #7C3AED 100%)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 12px 35px rgba(59, 130, 246, 0.4)',
+              },
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
             Add New Site
@@ -327,7 +363,13 @@ export default function Sites() {
         </Stack>
       </Box>
 
-      <Box sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
+      <Box sx={{ 
+        mb: 4, 
+        borderBottom: '2px solid rgba(59, 130, 246, 0.1)',
+        background: 'rgba(248, 250, 252, 0.5)',
+        borderRadius: '16px 16px 0 0',
+        p: 2,
+      }}>
         <Tabs 
           value={currentFilter || ''} 
           onChange={handleTabChange}
@@ -335,16 +377,40 @@ export default function Sites() {
           scrollButtons="auto"
           sx={{
             '& .MuiTab-root': {
-              minHeight: 48,
+              minHeight: 56,
               textTransform: 'none',
-              fontSize: '0.875rem',
-            }
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: '#64748B',
+              borderRadius: '12px 12px 0 0',
+              mx: 0.5,
+              '&.Mui-selected': {
+                color: '#3B82F6',
+                fontWeight: 700,
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                color: '#3B82F6',
+              },
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: '#3B82F6',
+              height: '3px',
+              borderRadius: '2px',
+            },
           }}
         >
           <Tab 
             label={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <LanguageIcon fontSize="small" />
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Box sx={{
+                  p: 1,
+                  borderRadius: '8px',
+                  bgcolor: 'rgba(59, 130, 246, 0.1)',
+                  color: '#3B82F6',
+                }}>
+                  <LanguageIcon fontSize="small" />
+                </Box>
                 <span>All Sites ({sites.length})</span>
               </Stack>
             } 
@@ -352,8 +418,15 @@ export default function Sites() {
           />
           <Tab 
             label={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <OnlineIcon fontSize="small" />
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Box sx={{
+                  p: 1,
+                  borderRadius: '8px',
+                  bgcolor: 'rgba(16, 185, 129, 0.1)',
+                  color: '#10B981',
+                }}>
+                  <OnlineIcon fontSize="small" />
+                </Box>
                 <span>Online Sites ({filterCounts.online})</span>
               </Stack>
             } 
@@ -361,8 +434,15 @@ export default function Sites() {
           />
           <Tab 
             label={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <HttpsIcon fontSize="small" />
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Box sx={{
+                  p: 1,
+                  borderRadius: '8px',
+                  bgcolor: 'rgba(139, 92, 246, 0.1)',
+                  color: '#8B5CF6',
+                }}>
+                  <HttpsIcon fontSize="small" />
+                </Box>
                 <span>SSL Protected ({filterCounts.sslProtected})</span>
               </Stack>
             } 
@@ -370,8 +450,15 @@ export default function Sites() {
           />
           <Tab 
             label={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <NotificationIcon fontSize="small" />
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Box sx={{
+                  p: 1,
+                  borderRadius: '8px',
+                  bgcolor: 'rgba(245, 158, 11, 0.1)',
+                  color: '#F59E0B',
+                }}>
+                  <NotificationIcon fontSize="small" />
+                </Box>
                 <span>With Notifications ({filterCounts.withNotifications})</span>
               </Stack>
             } 
@@ -382,31 +469,41 @@ export default function Sites() {
 
       <TableContainer
         component={Paper}
-        elevation={2}
+        elevation={0}
         sx={{
-          borderRadius: theme.shape.borderRadius,
-          overflow: 'auto',
+          borderRadius: '20px',
+          overflow: 'hidden',
           maxWidth: '100%',
+          border: '2px solid rgba(59, 130, 246, 0.1)',
+          boxShadow: '0 10px 40px rgba(59, 130, 246, 0.1)',
+          background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
           '& .MuiTableCell-root': {
-            borderColor: theme.palette.divider,
-            whiteSpace: 'nowrap'
+            borderColor: 'rgba(59, 130, 246, 0.1)',
+            whiteSpace: 'nowrap',
+            padding: '16px 12px',
           }
         }}
       >
         <Table sx={{ minWidth: 800 }}>
           <TableHead>
             <TableRow sx={{
-              background: theme.palette.mode === 'dark'
-                ? alpha(theme.palette.primary.main, 0.05)
-                : alpha(theme.palette.primary.main, 0.05)
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%)',
+              '& .MuiTableCell-root': {
+                borderBottom: '2px solid rgba(59, 130, 246, 0.2)',
+                fontWeight: 700,
+                color: '#1E293B',
+                fontSize: '0.95rem',
+                textAlign: 'center',
+                py: 2,
+              }
             }}>
-              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">URL</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Check Interval</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Last Updated</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">View Details</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: theme.palette.text.primary }} align="center">Actions</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>URL</TableCell>
+              <TableCell>Check Interval</TableCell>
+              <TableCell>Last Updated</TableCell>
+              <TableCell>View Details</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -418,41 +515,51 @@ export default function Sites() {
                 key={site.id}
                 sx={{
                   '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.primary.main, 0.05)
-                      : alpha(theme.palette.primary.main, 0.05),
-                    cursor: 'pointer'
+                    backgroundColor: 'rgba(59, 130, 246, 0.03)',
+                    cursor: 'pointer',
+                    transform: 'scale(1.01)',
+                    boxShadow: '0 4px 20px rgba(59, 130, 246, 0.1)',
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '& .MuiTableCell-root': {
+                    borderBottom: '1px solid rgba(59, 130, 246, 0.08)',
                   }
                 }}
                 onClick={() => navigate(`/sites/${site.id}`)}
               >
                 <TableCell align="center">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'center' }}>
                     <Tooltip title="Site Status">
                       <Box sx={{ 
                         display: 'flex', 
                         alignItems: 'center',
-                        gap: 1
+                        gap: 1.5,
+                        p: 1.5,
+                        borderRadius: '12px',
+                        bgcolor: siteStatuses[site.id]?.isUp ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        border: `2px solid ${siteStatuses[site.id]?.isUp ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
                       }}>
                         {siteStatuses[site.id]?.isUp ? (
                           <>
                             <Box sx={{ 
-                              width: 10, 
-                              height: 10, 
+                              width: 12, 
+                              height: 12, 
                               borderRadius: '50%', 
-                              bgcolor: 'success.main' 
+                              bgcolor: '#10B981',
+                              boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)',
                             }} />
-                            <Typography color="success.main">Up</Typography>
+                            <Typography color="#10B981" fontWeight={600} fontSize="0.875rem">Online</Typography>
                           </>
                         ) : (
                           <>
                             <Box sx={{ 
-                              width: 10, 
-                              height: 10, 
+                              width: 12, 
+                              height: 12, 
                               borderRadius: '50%', 
-                              bgcolor: 'error.main' 
+                              bgcolor: '#EF4444',
+                              boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)',
                             }} />
-                            <Typography color="error.main">Down</Typography>
+                            <Typography color="#EF4444" fontWeight={600} fontSize="0.875rem">Offline</Typography>
                           </>
                         )}
                       </Box>
@@ -463,15 +570,22 @@ export default function Sites() {
                   <Stack direction="row" spacing={2} alignItems="center">
                     <Avatar
                       sx={{
-                        width: 32,
-                        height: 32,
-                        bgcolor: theme.palette.primary.main,
-                        fontSize: '1rem',
+                        width: 40,
+                        height: 40,
+                        bgcolor: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
+                        border: '2px solid rgba(59, 130, 246, 0.2)',
+                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)',
                       }}
                     >
                       {site.name.charAt(0).toUpperCase()}
                     </Avatar>
-                    <Typography variant="body1" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>
+                    <Typography variant="body1" sx={{ 
+                      fontWeight: 600, 
+                      color: '#1E293B',
+                      fontSize: '1rem',
+                    }}>
                       {site.name}
                     </Typography>
                   </Stack>
@@ -484,24 +598,39 @@ export default function Sites() {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      color: theme.palette.primary.main,
+                      gap: 1.5,
+                      color: '#3B82F6',
                       textDecoration: 'none',
                       maxWidth: '300px',
+                      p: 1.5,
+                      borderRadius: '8px',
+                      transition: 'all 0.3s ease',
                       '&:hover': {
-                        textDecoration: 'underline',
-                        color: theme.palette.primary.dark
+                        textDecoration: 'none',
+                        color: '#1D4ED8',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)',
                       }
                     }}
                   >
-                    <LanguageIcon fontSize="small" />
+                    <Box sx={{
+                      p: 1,
+                      borderRadius: '8px',
+                      bgcolor: 'rgba(59, 130, 246, 0.1)',
+                      color: '#3B82F6',
+                    }}>
+                      <LanguageIcon fontSize="small" />
+                    </Box>
                     <Typography
                       noWrap
                       sx={{
                         flex: 1,
                         textOverflow: 'ellipsis',
                         overflow: 'hidden',
-                        color: 'inherit'
+                        color: 'inherit',
+                        fontWeight: 500,
+                        fontSize: '0.9rem',
                       }}
                     >
                       {site.url}
@@ -509,15 +638,39 @@ export default function Sites() {
                   </Link>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', color: theme.palette.text.secondary }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5, 
+                    justifyContent: 'center', 
+                    color: '#64748B',
+                    p: 1.5,
+                    borderRadius: '8px',
+                    bgcolor: 'rgba(59, 130, 246, 0.05)',
+                    border: '1px solid rgba(59, 130, 246, 0.1)',
+                  }}>
                     <SpeedIcon fontSize="small" color="inherit" />
-                    Every {site.checkInterval} minute{site.checkInterval > 1 ? 's' : ''}
+                    <Typography sx={{ fontWeight: 500, fontSize: '0.9rem' }}>
+                      Every {site.checkInterval} minute{site.checkInterval > 1 ? 's' : ''}
+                    </Typography>
                   </Box>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', color: theme.palette.text.secondary }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5, 
+                    justifyContent: 'center', 
+                    color: '#64748B',
+                    p: 1.5,
+                    borderRadius: '8px',
+                    bgcolor: 'rgba(139, 92, 246, 0.05)',
+                    border: '1px solid rgba(139, 92, 246, 0.1)',
+                  }}>
                     <UpdateIcon fontSize="small" color="inherit" />
-                    {formatDate(site.updatedAt)}
+                    <Typography sx={{ fontWeight: 500, fontSize: '0.9rem' }}>
+                      {formatDate(site.updatedAt)}
+                    </Typography>
                   </Box>
                 </TableCell>
                 <TableCell align="center">
@@ -530,17 +683,20 @@ export default function Sites() {
                       navigate(`/sites/${site.id}`);
                     }}
                     sx={{
-                      borderRadius: theme.shape.borderRadius,
-                      px: 2,
-                      py: 0.5,
-                      borderColor: theme.palette.primary.main,
-                      color: theme.palette.primary.main,
-                      fontWeight: 'medium',
+                      borderRadius: '12px',
+                      px: 3,
+                      py: 1,
+                      borderColor: '#3B82F6',
+                      color: '#3B82F6',
+                      borderWidth: '2px',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
-                        borderColor: theme.palette.primary.dark,
-                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        transform: 'translateY(-1px)',
-                        boxShadow: `0 2px 4px ${alpha(theme.palette.primary.main, 0.2)}`
+                        borderColor: '#1D4ED8',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 25px rgba(59, 130, 246, 0.2)',
                       }
                     }}
                   >
@@ -548,120 +704,163 @@ export default function Sites() {
                   </Button>
                 </TableCell>
                 <TableCell align="center">
-                  <Tooltip title="View Statistics">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusClick(site);
-                      }}
-                      size="small"
-                      sx={{
-                        mr: 1,
-                        color: theme.palette.info.main,
-                        '&:hover': {
-                          background: alpha(theme.palette.info.main, 0.1)
-                        }
-                      }}
-                    >
-                      <StatsIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Download PDF Report">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownloadSitePdf(site);
-                      }}
-                      size="small"
-                      disabled={downloadingPdfSiteId === site.id}
-                      sx={{
-                        mr: 1,
-                        color: theme.palette.success.main,
-                        '&:hover': { 
-                          background: alpha(theme.palette.success.main, 0.1) 
-                        },
-                        '&:disabled': {
-                          color: theme.palette.text.disabled
-                        }
-                      }}
-                    >
-                      {downloadingPdfSiteId === site.id ? (
-                        <CircularProgress size={16} color="inherit" />
-                      ) : (
-                        <PdfIcon />
-                      )}
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Notification Settings">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNotificationClick(site);
-                      }}
-                      size="small"
-                      sx={{
-                        mr: 1,
-                        color: theme.palette.warning.main,
-                        '&:hover': { background: alpha(theme.palette.warning.main, 0.1) }
-                      }}
-                    >
-                      <NotificationIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Edit Site">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditClick(site);
-                      }}
-                      size="small"
-                      sx={{
-                        color: theme.palette.secondary.main,
-                        '&:hover': {
-                          background: alpha(theme.palette.secondary.main, 0.1)
-                        }
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete Site">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(site);
-                      }}
-                      size="small"
-                      sx={{
-                        ml: 1,
-                        color: theme.palette.error.main,
-                        '&:hover': {
-                          background: alpha(theme.palette.error.main, 0.1)
-                        }
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Copy Site Detail Page URL">
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigator.clipboard.writeText(`${window.location.origin}/site-status/${site.id}`);
-                        showToast.success('Site detail page url copied to clipboard');
-                      }}
-                      size="small"
-                      sx={{
-                        ml: 1,
-                        color: theme.palette.info.main,
-                        '&:hover': {
-                          background: alpha(theme.palette.info.main, 0.1)
-                        }
-                      }}
-                    >
-                      <CopyIcon />
-                    </IconButton>
-                  </Tooltip>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                    <Tooltip title="View Statistics">
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusClick(site);
+                        }}
+                        size="small"
+                        sx={{
+                          p: 1.5,
+                          color: '#3B82F6',
+                          bgcolor: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid rgba(59, 130, 246, 0.2)',
+                          borderRadius: '10px',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            background: 'rgba(59, 130, 246, 0.15)',
+                            transform: 'translateY(-2px) scale(1.05)',
+                            boxShadow: '0 6px 20px rgba(59, 130, 246, 0.25)',
+                          }
+                        }}
+                      >
+                        <StatsIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Download PDF Report">
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadSitePdf(site);
+                        }}
+                        size="small"
+                        disabled={downloadingPdfSiteId === site.id}
+                        sx={{
+                          p: 1.5,
+                          color: '#10B981',
+                          bgcolor: 'rgba(16, 185, 129, 0.1)',
+                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                          borderRadius: '10px',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': { 
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            transform: 'translateY(-2px) scale(1.05)',
+                            boxShadow: '0 6px 20px rgba(16, 185, 129, 0.25)',
+                          },
+                          '&:disabled': {
+                            color: '#9CA3AF',
+                            bgcolor: 'rgba(156, 163, 175, 0.1)',
+                            borderColor: 'rgba(156, 163, 175, 0.2)',
+                          }
+                        }}
+                      >
+                        {downloadingPdfSiteId === site.id ? (
+                          <CircularProgress size={16} color="inherit" />
+                        ) : (
+                          <PdfIcon />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Notification Settings">
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNotificationClick(site);
+                        }}
+                        size="small"
+                        sx={{
+                          p: 1.5,
+                          color: '#F59E0B',
+                          bgcolor: 'rgba(245, 158, 11, 0.1)',
+                          border: '1px solid rgba(245, 158, 11, 0.2)',
+                          borderRadius: '10px',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': { 
+                            background: 'rgba(245, 158, 11, 0.15)',
+                            transform: 'translateY(-2px) scale(1.05)',
+                            boxShadow: '0 6px 20px rgba(245, 158, 11, 0.25)',
+                          }
+                        }}
+                      >
+                        <NotificationIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Edit Site">
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditClick(site);
+                        }}
+                        size="small"
+                        sx={{
+                          p: 1.5,
+                          color: '#8B5CF6',
+                          bgcolor: 'rgba(139, 92, 246, 0.1)',
+                          border: '1px solid rgba(139, 92, 246, 0.2)',
+                          borderRadius: '10px',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            background: 'rgba(139, 92, 246, 0.15)',
+                            transform: 'translateY(-2px) scale(1.05)',
+                            boxShadow: '0 6px 20px rgba(139, 92, 246, 0.25)',
+                          }
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete Site">
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(site);
+                        }}
+                        size="small"
+                        sx={{
+                          p: 1.5,
+                          color: '#EF4444',
+                          bgcolor: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                          borderRadius: '10px',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            transform: 'translateY(-2px) scale(1.05)',
+                            boxShadow: '0 6px 20px rgba(239, 68, 68, 0.25)',
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                    {/* <Tooltip title="Copy Site Detail Page URL">
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(`${window.location.origin}/site-status/${site.id}`);
+                          showToast.success('Site detail page url copied to clipboard');
+                        }}
+                        size="small"
+                        sx={{
+                          p: 1.5,
+                          color: '#06B6D4',
+                          bgcolor: 'rgba(6, 182, 212, 0.1)',
+                          border: '1px solid rgba(6, 182, 212, 0.2)',
+                          borderRadius: '10px',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            background: 'rgba(6, 182, 212, 0.15)',
+                            transform: 'translateY(-2px) scale(1.05)',
+                            boxShadow: '0 6px 20px rgba(6, 182, 212, 0.25)',
+                          }
+                        }}
+                      >
+                        <CopyIcon />
+                      </IconButton>
+                    </Tooltip> */}
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
@@ -676,12 +875,26 @@ export default function Sites() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           sx={{
-            borderTop: `1px solid ${theme.palette.divider}`,
+            borderTop: '2px solid rgba(59, 130, 246, 0.1)',
+            background: 'rgba(248, 250, 252, 0.5)',
             '.MuiTablePagination-select': {
-              color: theme.palette.text.primary
+              color: '#1E293B',
+              fontWeight: 600,
             },
             '.MuiTablePagination-displayedRows': {
-              color: theme.palette.text.secondary
+              color: '#64748B',
+              fontWeight: 500,
+            },
+            '.MuiTablePagination-actions': {
+              '.MuiIconButton-root': {
+                color: '#3B82F6',
+                '&:hover': {
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                },
+                '&.Mui-disabled': {
+                  color: '#9CA3AF',
+                }
+              }
             }
           }}
         />
