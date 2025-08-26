@@ -1,0 +1,203 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id            String         @id @default(uuid())
+  firstName     String
+  lastName     String
+  email         String         @unique
+  password      String
+  companyName   String
+  role          UserRole       @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  sites         Site[]
+  themeSettings ThemeSettings?
+  customDomain  String?
+  notifications Notification[]
+  userMemberships UserMembership[]
+  
+  // User features with expiration dates
+  userFeatures UserFeature[]
+  
+  @@map("users")
+}
+
+model UserFeature {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  featureKey  String   // References the feature constants (e.g., "MONITORED_WEBSITES_50")
+  endDate     DateTime // When this feature expires
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, featureKey]) // One feature per user
+  @@index([userId])
+  @@index([featureKey])
+  @@index([endDate]) // For efficient expiration queries
+  @@map("user_features")
+}
+
+model Site {
+  id            String         @id @default(uuid())
+  name          String
+  url           String
+  checkInterval Int            @default(5)
+  isActive      Boolean        @default(true)
+  monthlyReport Boolean        @default(false)
+  monthlyReportSendAt DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  statuses      SiteStatus[]
+  notificationSettings  NotificationSettings[]
+
+  @@index([userId])
+  @@map("sites")
+}
+
+enum NotificationType {
+  EMAIL
+  SLACK
+  TELEGRAM
+  DISCORD
+  PUSH_NOTIFICATION
+  WEB_HOOK
+}
+
+model NotificationSettings {
+  id          String           @id @default(uuid())
+  siteId      String
+  site        Site             @relation(fields: [siteId], references: [id])
+  enabled     Boolean          @default(true)
+  type        NotificationType
+  contactInfo String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("notification_settings")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  type      String
+  seen      Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model SiteStatus {
+  id        String   @id @default(uuid())
+  checkedAt DateTime @default(now())
+  siteId    String
+
+  workerId  String
+
+  isUp      Boolean  @default(false)
+  pingIsUp  Boolean  @default(false)
+  httpIsUp  Boolean  @default(false)
+  dnsIsUp   Boolean  @default(false)
+
+  // Response Times
+  pingResponseTime Float?
+  httpResponseTime Float?
+  dnsResponseTime  Float?
+
+  // TCP Check Information
+  tcpChecks      Json?  // Array of {port: number, isUp: boolean, responseTime: number}
+
+  // DNS Information
+  dnsNameservers String[]
+  dnsRecords     Json?
+
+  // SSL Information
+  hasSsl             Boolean   @default(false)
+  sslValidFrom       DateTime?
+  sslValidTo         DateTime?
+  sslIssuer          String?
+  sslDaysUntilExpiry Int?
+
+  // Relations
+  site Site @relation(fields: [siteId], references: [id])
+
+  @@index([siteId])
+  @@index([checkedAt])
+  @@map("site_statuses")
+}
+
+model ThemeSettings {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  
+  // Theme Colors
+  primaryColor   String   @default("#2563eb")
+  secondaryColor String   @default("#4f46e5")
+  errorColor     String   @default("#dc2626")
+  warningColor   String   @default("#f59e0b")
+  infoColor      String   @default("#3b82f6")
+  successColor   String   @default("#10b981")
+  textPrimary    String   @default("#111827")
+  textSecondary  String   @default("#4b5563")
+  
+  // Other Theme Settings
+  isDarkMode     Boolean  @default(false)
+  borderRadius   Int      @default(4)
+  fontPrimary    String   @default("Roboto")
+  fontSecondary  String   @default("Roboto")
+  favicon        String   @default("favicon.png")
+  logo           String   @default("logo.png")
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@map("theme_settings")
+}
+
+model MembershipPlan {
+  id String @id @default(uuid())
+  name String
+  price Int
+  title String
+  description String
+  type String @default("upgrade") // "main" or "upgrade"
+  features String[] // Array of feature strings
+  userMemberships UserMembership[]
+
+  @@map("membership_plans")
+}
+
+model UserMembership {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  membershipPlanId String
+  membershipPlan MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+  startDate DateTime @default(now())
+  endDate DateTime
+
+  @@unique([userId, membershipPlanId])
+  @@map("user_memberships")
+}
