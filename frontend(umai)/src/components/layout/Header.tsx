@@ -22,6 +22,7 @@ import {
   alpha,
   Tooltip,
   Zoom,
+  Chip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -32,6 +33,9 @@ import {
   KeyboardArrowDown,
   Payment,
   AdminPanelSettings,
+  MonitorHeart,
+  Speed,
+  Shield,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -104,29 +108,62 @@ export default function Header() {
   ];
 
   const drawer = (
-    <Box sx={{ width: 250 }}>
+    <Box sx={{ width: 280 }}>
       <Box sx={{
-        p: 3,
+        p: 4,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         background: theme.palette.mode === 'dark'
-          ? `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`
-          : `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`,
+          ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.15)})`
+          : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.secondary.main, 0.08)})`,
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
       }}>
+        <Box
+          sx={{
+            width: 60,
+            height: 60,
+            borderRadius: '16px',
+            background: theme.palette.mode === 'dark'
+              ? alpha(theme.palette.primary.main, 0.2)
+              : alpha(theme.palette.primary.main, 0.1),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 2,
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+          }}
+        >
+          <MonitorHeart sx={{ fontSize: 28, color: theme.palette.primary.main }} />
+        </Box>
         <Typography
-          variant="h6"
+          variant="h5"
           component="div"
           sx={{
-            fontWeight: 'bold',
+            fontWeight: 700,
             background: theme.palette.mode === 'dark'
               ? `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.secondary.light} 90%)`
               : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
+            mb: 0.5,
+            textAlign: 'center',
           }}
         >
-          Agency Uptime
+          Uptime Monitoring
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: '0.875rem',
+            textAlign: 'center',
+            fontWeight: 500,
+          }}
+        >
+          Professional Website Monitoring
         </Typography>
       </Box>
       <Divider />
@@ -140,12 +177,13 @@ export default function Header() {
             }}
             selected={location.pathname === item.path}
             sx={{
-              borderRadius: theme.shape.borderRadius,
+              borderRadius: 2,
               mb: 1,
-              transition: 'all 0.2s ease-in-out',
+              transition: 'all 0.3s ease-in-out',
               '&:hover': {
                 backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                transform: 'translateX(4px)',
+                transform: 'translateX(6px)',
+                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
               },
               '&.Mui-selected': {
                 backgroundColor: alpha(theme.palette.primary.main, 0.12),
@@ -158,9 +196,9 @@ export default function Header() {
             <ListItemIcon 
               sx={{ 
                 color: location.pathname === item.path 
-                  ? theme.palette.primary.main 
+                  ? theme.palette.primary.main
                   : theme.palette.text.secondary,
-                transition: 'color 0.2s ease-in-out',
+                transition: 'color 0.3s ease-in-out',
               }}
             >
               {item.icon}
@@ -169,11 +207,11 @@ export default function Header() {
               primary={item.text}
               primaryTypographyProps={{
                 color: location.pathname === item.path 
-                  ? theme.palette.primary.main 
+                  ? theme.palette.primary.main
                   : theme.palette.text.primary,
                 fontWeight: location.pathname === item.path ? 600 : 500,
                 sx: {
-                  transition: 'color 0.2s ease-in-out',
+                  transition: 'color 0.3s ease-in-out',
                 }
               }}
             />
@@ -187,27 +225,24 @@ export default function Header() {
     <>
       <AppBar
         position="fixed"
-        elevation={isScrolled ? 2 : 0}
+        elevation={0}
         sx={{
           background: isScrolled 
             ? theme.palette.mode === 'dark'
-              ? `linear-gradient(90deg, ${alpha(theme.palette.primary.dark, 0.95)}, ${alpha(theme.palette.primary.main, 0.95)})`
-              : `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.95)}, ${alpha(theme.palette.primary.light, 0.95)})`
+              ? 'rgba(18, 18, 18, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)'
             : theme.palette.mode === 'dark'
-              ? `linear-gradient(90deg, ${alpha(theme.palette.primary.dark, 0.85)}, ${alpha(theme.palette.primary.main, 0.85)})`
-              : `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.85)}, ${alpha(theme.palette.primary.light, 0.85)})`,
-          backdropFilter: 'blur(8px)',
-          borderBottom: `1px solid ${isScrolled ? 'transparent' : alpha(theme.palette.primary.main, 0.1)}`,
-          transition: theme.transitions.create(
-            ['background', 'box-shadow', 'border-bottom'],
-            { duration: theme.transitions.duration.short }
-          ),
+              ? 'rgba(18, 18, 18, 0.98)'
+              : 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: `1px solid ${isScrolled ? alpha(theme.palette.divider, 0.2) : 'transparent'}`,
+          transition: 'all 0.3s ease-in-out',
           '& .MuiToolbar-root': {
-            color: theme.palette.primary.contrastText,
+            color: theme.palette.text.primary,
           },
         }}
       >
-        <Toolbar sx={{ minHeight: { xs: 64, sm: 70, md: 70 } }}>
+        <Toolbar sx={{ minHeight: { xs: 70, sm: 80, md: 80 } }}>
           {isAuthenticated && isMobile && (
             <IconButton
               aria-label="open drawer"
@@ -215,11 +250,12 @@ export default function Header() {
               onClick={handleDrawerToggle}
               sx={{
                 mr: 2,
-                color: 'inherit',
+                color: theme.palette.text.primary,
                 '&:hover': {
-                  backgroundColor: alpha('#fff', 0.1),
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  transform: 'scale(1.05)',
                 },
-                transition: 'transform 0.2s ease-in-out',
+                transition: 'all 0.3s ease-in-out',
               }}
             >
               <MenuIcon />
@@ -231,7 +267,7 @@ export default function Header() {
               flexGrow: 1,
               display: 'flex',
               alignItems: 'center',
-              gap: 1,
+              gap: 2,
             }}
           >
             <Box
@@ -246,9 +282,9 @@ export default function Header() {
                 cursor: 'pointer',
                 outline: 'none',
                 '&:focus-visible': {
-                  outline: `2px solid ${alpha('#fff', 0.5)}`,
+                  outline: `2px solid ${alpha(theme.palette.primary.main, 0.5)}`,
                   outlineOffset: 2,
-                  borderRadius: 1,
+                  borderRadius: 2,
                 },
               }}
             >
@@ -261,51 +297,93 @@ export default function Header() {
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'left center',
                   height: '50px',
-                  width: '200px', // Give more space for the logo to breathe
+                  width: '200px',
                   backgroundColor: 'transparent',
                   transition: 'all 0.3s ease-in-out',
                   transform: 'perspective(1000px) rotateY(0deg)',
                   transformOrigin: 'left center',
                   '&:hover': {
-                    transform: 'perspective(1000px) rotateY(10deg) scale(1.05)',
+                    transform: 'perspective(1000px) rotateY(5deg) scale(1.02)',
+                    filter: 'brightness(1.1)',
                   },
                 }}
               />
-              
             </Box>
+
+            {/* Feature highlights for public users */}
+            {!isAuthenticated && !isMobile && (
+              <Box sx={{ display: 'flex', gap: 1.5, ml: 4 }}>
+                <Chip
+                  icon={<Speed />}
+                  label="Real-time Monitoring"
+                  size="small"
+                  sx={{
+                    background: alpha(theme.palette.primary.main, 0.1),
+                    color: theme.palette.primary.main,
+                    fontWeight: 500,
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                    '& .MuiChip-icon': { color: theme.palette.primary.main },
+                    '&:hover': {
+                      background: alpha(theme.palette.primary.main, 0.15),
+                      transform: 'translateY(-1px)',
+                    },
+                    transition: 'all 0.3s ease-in-out',
+                  }}
+                />
+                <Chip
+                  icon={<Shield />}
+                  label="SSL & Security"
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    borderColor: alpha(theme.palette.secondary.main, 0.3),
+                    color: theme.palette.secondary.main,
+                    fontWeight: 500,
+                    '& .MuiChip-icon': { color: theme.palette.secondary.main },
+                    '&:hover': {
+                      borderColor: theme.palette.secondary.main,
+                      background: alpha(theme.palette.secondary.main, 0.05),
+                      transform: 'translateY(-1px)',
+                    },
+                    transition: 'all 0.3s ease-in-out',
+                  }}
+                />
+              </Box>
+            )}
           </Box>
 
           {isAuthenticated ? (
             <>
               {!isMobile && (
-                <Box sx={{ display: 'flex', gap: 1, mr: 2 }}>
+                <Box sx={{ display: 'flex', gap: 1.5, mr: 3 }}>
                   {menuItems.map((item) => (
                     <Button
                       key={item.text}
                       startIcon={item.icon}
-                      endIcon={location.pathname === item.path && <KeyboardArrowDown />}
                       onClick={() => navigate(item.path)}
                       sx={{
-                        color: 'inherit',
-                        borderRadius: theme.shape.borderRadius,
-                        px: 2,
-                        py: 1,
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1.5,
                         position: 'relative',
                         fontWeight: location.pathname === item.path ? 600 : 500,
+                        background: location.pathname === item.path 
+                          ? alpha(theme.palette.primary.main, 0.1)
+                          : 'transparent',
+                        color: location.pathname === item.path 
+                          ? theme.palette.primary.main 
+                          : theme.palette.text.primary,
+                        border: location.pathname === item.path 
+                          ? `1px solid ${alpha(theme.palette.primary.main, 0.3)}`
+                          : '1px solid transparent',
                         '&:hover': {
-                          backgroundColor: alpha('#fff', 0.1),
+                          backgroundColor: location.pathname === item.path 
+                            ? alpha(theme.palette.primary.main, 0.15)
+                            : alpha(theme.palette.primary.main, 0.05),
+                          transform: 'translateY(-1px)',
+                          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
                         },
-                        '&::after': location.pathname === item.path ? {
-                          content: '""',
-                          position: 'absolute',
-                          bottom: 0,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: '30%',
-                          height: 2,
-                          borderRadius: 1,
-                          backgroundColor: '#fff',
-                        } : {},
+                        transition: 'all 0.3s ease-in-out',
                       }}
                     >
                       {item.text}
@@ -314,7 +392,7 @@ export default function Header() {
                 </Box>
               )}
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <NotificationDropdown />
                 
                 <Tooltip title="Account settings" TransitionComponent={Zoom}>
@@ -322,25 +400,28 @@ export default function Header() {
                     onClick={handleMenu}
                     size="large"
                     sx={{
-                      color: 'inherit',
+                      color: theme.palette.text.primary,
                       '&:hover': {
-                        backgroundColor: alpha('#fff', 0.1),
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        transform: 'scale(1.05)',
                       },
+                      transition: 'all 0.3s ease-in-out',
                     }}
                   >
                     <Avatar
                       sx={{
-                        width: 32,
-                        height: 32,
-                        bgcolor: theme.palette.primary.dark,
+                        width: 40,
+                        height: 40,
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                         color: theme.palette.primary.contrastText,
-                        fontSize: '0.875rem',
+                        fontSize: '1rem',
                         fontWeight: 600,
+                        boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
                       }}
                     >
                       {user?.firstName?.charAt(0).toUpperCase() || 'U'}
                     </Avatar>
-                    <KeyboardArrowDown sx={{ ml: 0.5, fontSize: 20 }} />
+                    <KeyboardArrowDown sx={{ ml: 0.5, fontSize: 20, color: theme.palette.primary.main }} />
                   </IconButton>
                 </Tooltip>
 
@@ -351,8 +432,11 @@ export default function Header() {
                   onClick={handleClose}
                   PaperProps={{
                     sx: {
-                      minWidth: 200,
-                      mt: 1,
+                      minWidth: 220,
+                      mt: 2,
+                      borderRadius: 2,
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
                     },
                   }}
                   transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -360,13 +444,13 @@ export default function Header() {
                 >
                   <MenuItem onClick={() => navigate('/settings')}>
                     <ListItemIcon>
-                      <Settings fontSize="small" />
+                      <Settings fontSize="small" sx={{ color: theme.palette.primary.main }} />
                     </ListItemIcon>
                     <ListItemText>Settings</ListItemText>
                   </MenuItem>
                   <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
-                      <ExitToApp fontSize="small" />
+                      <ExitToApp fontSize="small" sx={{ color: theme.palette.primary.main }} />
                     </ListItemIcon>
                     <ListItemText>Logout</ListItemText>
                   </MenuItem>
@@ -376,21 +460,24 @@ export default function Header() {
           ) : (
             <>
               {!isMobile && (
-                <Box sx={{ display: 'flex', gap: 1, mr: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, mr: 3 }}>
                   {publicMenuItems.map((item) => (
                     <Button
                       key={item.text}
                       onClick={() => navigate(item.path)}
                       sx={{
-                        color: 'inherit',
-                        borderRadius: theme.shape.borderRadius,
-                        px: 2,
-                        py: 1,
+                        color: theme.palette.text.secondary,
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1.5,
                         position: 'relative',
                         fontWeight: 500,
                         '&:hover': {
-                          backgroundColor: alpha('#fff', 0.1),
+                          backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                          color: theme.palette.primary.main,
+                          transform: 'translateY(-1px)',
                         },
+                        transition: 'all 0.3s ease-in-out',
                       }}
                     >
                       {item.text}
@@ -404,12 +491,17 @@ export default function Header() {
                 variant="text"
                 onClick={() => navigate('/login')}
                 sx={{
-                  color: 'inherit',
-                  borderRadius: theme.shape.borderRadius,
-                  px: { xs: 2, sm: 3 },
+                  color: theme.palette.text.primary,
+                  borderRadius: 2,
+                  px: 4,
+                  py: 1.5,
+                  fontWeight: 500,
                   '&:hover': {
-                    backgroundColor: alpha('#fff', 0.1),
+                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                    color: theme.palette.primary.main,
+                    transform: 'translateY(-1px)',
                   },
+                  transition: 'all 0.3s ease-in-out',
                 }}
               >
                 Login
@@ -418,19 +510,22 @@ export default function Header() {
                 variant="contained"
                 onClick={() => navigate('/register')}
                 sx={{
-                  borderRadius: theme.shape.borderRadius,
-                  px: { xs: 2, sm: 3 },
-                  backgroundColor: 'white',
-                  color: theme.palette.primary.main,
-                  transition: 'all 0.2s ease-in-out',
+                  borderRadius: 2,
+                  px: 4,
+                  py: 1.5,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                  color: theme.palette.primary.contrastText,
+                  fontWeight: 600,
+                  boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
+                  transition: 'all 0.3s ease-in-out',
                   '&:hover': {
-                    backgroundColor: alpha('#fff', 0.9),
+                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
                     transform: 'translateY(-2px)',
-                    boxShadow: `0 4px 12px ${alpha('#000', 0.15)}`,
+                    boxShadow: `0 8px 30px ${alpha(theme.palette.primary.main, 0.4)}`,
                   },
                 }}
               >
-                Sign Up
+                Get Started
               </Button>
             </Box>
             </>
@@ -449,15 +544,13 @@ export default function Header() {
           }}
           PaperProps={{
             sx: {
-              backgroundColor: theme.palette.mode === 'dark'
-                ? alpha(theme.palette.background.paper, 0.8)
-                : theme.palette.background.paper,
-              backdropFilter: 'blur(8px)',
+              backgroundColor: theme.palette.background.paper,
+              backdropFilter: 'blur(20px)',
             },
           }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 250 },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 280 },
           }}
         >
           {drawer}
