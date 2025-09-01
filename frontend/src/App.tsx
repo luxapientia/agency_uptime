@@ -32,6 +32,7 @@ import { fetchAllNotifications } from './store/slices/notificationSlice';
 import { fetchWorkers } from './store/slices/workerSlice';
 import Notifications from './pages/Notifications';
 import Admin from './pages/Admin';
+import AllSites from './pages/AllSites';
 
 // Helper function to update favicon
 const updateFavicon = (faviconUrl: string) => {
@@ -135,6 +136,11 @@ function AppContent() {
               <Route path="/admin" element={
                 <AdminRoute>
                   <Admin />
+                </AdminRoute>
+              } />
+              <Route path="/all-sites" element={
+                <AdminRoute>
+                  <AllSites />
                 </AdminRoute>
               } />
               <Route path="/faq" element={<FAQ />} />
