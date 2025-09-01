@@ -43,7 +43,7 @@ interface PaginationInfo {
   hasPrev: boolean;
 }
 
-const PublicSites: React.FC = () => {
+const AllSites: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [allSites, setAllSites] = useState<PublicSite[]>([]);
@@ -71,7 +71,7 @@ const PublicSites: React.FC = () => {
   const fetchSites = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch all sites from the public API
       const response = await axios.get('/all-sites');
       setAllSites(response.data.sites || []);
@@ -91,21 +91,21 @@ const PublicSites: React.FC = () => {
   // Filter sites based on search term and selected agency
   useEffect(() => {
     let filtered = allSites;
-    
+
     // Filter by agency first
     if (selectedAgency !== 'all') {
       filtered = filtered.filter(site => site.user.companyName === selectedAgency);
     }
-    
+
     // Then filter by search term
     if (searchTerm.trim()) {
-      filtered = filtered.filter(site => 
+      filtered = filtered.filter(site =>
         site.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         site.url.toLowerCase().includes(searchTerm.toLowerCase()) ||
         site.user.companyName.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     setFilteredSites(filtered);
     // Reset to page 1 when filtering
     setPagination(prev => ({ ...prev, page: 1 }));
@@ -116,7 +116,7 @@ const PublicSites: React.FC = () => {
     const total = filteredSites.length;
     const totalPages = Math.ceil(total / pagination.limit);
     const currentPage = Math.min(pagination.page, totalPages || 1);
-    
+
     setPagination(prev => ({
       ...prev,
       total,
@@ -135,7 +135,7 @@ const PublicSites: React.FC = () => {
   }, [filteredSites, pagination.page, pagination.limit]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    if(event) {
+    if (event) {
 
     }
     setPagination(prev => ({ ...prev, page: value }));
@@ -163,11 +163,11 @@ const PublicSites: React.FC = () => {
     const site = allSites.find(s => s.id === siteId);
     const status = (site as any)?.statuses?.[0];
     if (!status || !status.checkedAt) return 'Never';
-    
+
     const date = new Date(status.checkedAt);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -178,7 +178,7 @@ const PublicSites: React.FC = () => {
     const site = allSites.find(s => s.id === siteId);
     const status = (site as any)?.statuses?.[0];
     const isUp = status?.isUp || false;
-    
+
     if (isUp) {
       return (
         <Chip
@@ -247,7 +247,7 @@ const PublicSites: React.FC = () => {
                 mb: 2,
               }}
             >
-              Site Status Monitor
+              All Sites
             </Typography>
             <Typography
               variant="h6"
@@ -264,10 +264,10 @@ const PublicSites: React.FC = () => {
 
           {/* Search and Filter Controls */}
           <Box sx={{ mb: 4 }}>
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: { xs: 'column', sm: 'row' }, 
-              gap: 2, 
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 2,
               justifyContent: 'center',
               alignItems: { xs: 'stretch', sm: 'center' }
             }}>
@@ -298,11 +298,11 @@ const PublicSites: React.FC = () => {
                   ),
                 }}
               />
-              
+
               {/* Agency Filter */}
-              <FormControl 
-                size="medium" 
-                sx={{ 
+              <FormControl
+                size="medium"
+                sx={{
                   minWidth: { xs: '100%', sm: '200px' },
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
@@ -338,7 +338,7 @@ const PublicSites: React.FC = () => {
                 </Select>
               </FormControl>
             </Box>
-            
+
             {/* Clear Filters Button */}
             {(searchTerm || selectedAgency !== 'all') && (
               <Box sx={{ textAlign: 'center', mt: 2 }}>
@@ -378,9 +378,9 @@ const PublicSites: React.FC = () => {
           {/* Sites Table */}
           {displayedSites.length > 0 ? (
             <>
-              <Paper 
-                elevation={2} 
-                sx={{ 
+              <Paper
+                elevation={2}
+                sx={{
                   borderRadius: 2,
                   overflow: 'hidden',
                   border: `1px solid ${theme.palette.divider}`,
@@ -400,10 +400,10 @@ const PublicSites: React.FC = () => {
                     <TableBody>
                       {displayedSites.map((site) => {
                         return (
-                          <TableRow 
+                          <TableRow
                             key={site.id}
-                            sx={{ 
-                              '&:hover': { 
+                            sx={{
+                              '&:hover': {
                                 backgroundColor: theme.palette.action.hover,
                               },
                               transition: 'background-color 0.2s ease',
@@ -411,15 +411,15 @@ const PublicSites: React.FC = () => {
                           >
                             <TableCell>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Avatar 
-                                    src={`${import.meta.env.VITE_API_URL}/${site.user.themeSettings?.logo || 'logo.png'}`} 
-                                    alt={site.user.companyName} 
-                                    sx={{ width: 24, height: 24 }} 
-                                  />
-                                
-                                <Typography 
-                                  variant="body1" 
-                                  sx={{ 
+                                <Avatar
+                                  src={`${import.meta.env.VITE_API_URL}/${site.user.themeSettings?.logo || 'logo.png'}`}
+                                  alt={site.user.companyName}
+                                  sx={{ width: 24, height: 24 }}
+                                />
+
+                                <Typography
+                                  variant="body1"
+                                  sx={{
                                     fontWeight: 500,
                                     cursor: 'pointer',
                                     '&:hover': {
@@ -434,9 +434,9 @@ const PublicSites: React.FC = () => {
                               </Box>
                             </TableCell>
                             <TableCell>
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
+                              <Typography
+                                variant="body2"
+                                sx={{
                                   fontWeight: 500,
                                   color: theme.palette.text.secondary,
                                   fontStyle: 'italic'
@@ -446,9 +446,9 @@ const PublicSites: React.FC = () => {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
+                              <Typography
+                                variant="body2"
+                                sx={{
                                   color: theme.palette.primary.main,
                                   wordBreak: 'break-all',
                                 }}
@@ -473,10 +473,10 @@ const PublicSites: React.FC = () => {
               </Paper>
 
               {/* Pagination Controls */}
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 mt: 3,
                 flexDirection: { xs: 'column', sm: 'row' },
                 gap: 2
@@ -525,9 +525,9 @@ const PublicSites: React.FC = () => {
           ) : (
             <Box sx={{ textAlign: 'center', py: 8 }}>
               <Typography variant="h6" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
-                {searchTerm && selectedAgency !== 'all' 
+                {searchTerm && selectedAgency !== 'all'
                   ? 'No sites found matching your search in the selected agency.'
-                  : searchTerm 
+                  : searchTerm
                     ? 'No sites found matching your search.'
                     : selectedAgency !== 'all'
                       ? 'No sites found for the selected agency.'
@@ -553,7 +553,7 @@ const PublicSites: React.FC = () => {
                   {selectedAgency !== 'all' ? 'Filtered Sites' : 'Total Sites'}
                 </Typography>
               </Box>
-              
+
               <Box sx={{ textAlign: 'center', p: 3, background: theme.palette.grey[50], borderRadius: 2 }}>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
                   {filteredSites.filter(site => (site as any)?.statuses?.[0]?.isUp).length}
@@ -562,7 +562,7 @@ const PublicSites: React.FC = () => {
                   Online Sites {selectedAgency !== 'all' ? '(Filtered)' : '(Total)'}
                 </Typography>
               </Box>
-              
+
               <Box sx={{ textAlign: 'center', p: 3, background: theme.palette.grey[50], borderRadius: 2 }}>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.error.main }}>
                   {filteredSites.filter(site => !(site as any)?.statuses?.[0]?.isUp).length}
@@ -571,7 +571,7 @@ const PublicSites: React.FC = () => {
                   Offline Sites {selectedAgency !== 'all' ? '(Filtered)' : '(Total)'}
                 </Typography>
               </Box>
-              
+
               <Box sx={{ textAlign: 'center', p: 3, background: theme.palette.grey[50], borderRadius: 2 }}>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
                   {uniqueAgencies.length - 1}
@@ -589,4 +589,4 @@ const PublicSites: React.FC = () => {
   );
 };
 
-export default PublicSites; 
+export default AllSites; 
