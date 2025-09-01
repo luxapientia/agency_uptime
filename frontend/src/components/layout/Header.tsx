@@ -93,7 +93,8 @@ export default function Header() {
     { text: 'Membership Plans', icon: <Payment />, path: '/membership-plans' },
     // Only show Admin menu item for admin users
     ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' ? [
-      { text: 'Admin', icon: <AdminPanelSettings />, path: '/admin' }
+      { text: 'Admin', icon: <AdminPanelSettings />, path: '/admin' },
+      { text: 'All Sites', icon: <Business />, path: '/all-sites' },
     ] : []),
   ];
 
