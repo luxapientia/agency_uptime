@@ -49,9 +49,6 @@ export default function Header() {
 
   // Determine which logo to use based on domain
   const getLogoPath = () => {
-    if (window.location.hostname.includes('uptimemonitoring')) {
-      return 'logo2.png';
-    }
     return logo || 'logo.png';
   };
 
