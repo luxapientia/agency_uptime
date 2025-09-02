@@ -37,9 +37,10 @@ interface PlanCardProps {
     endDate?: Date | null;
     disabled?: boolean;
     disabledReason?: string;
+    isUpgrade?: boolean;
 }
 
-const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, endDate, disabled = false, disabledReason }: PlanCardProps) => {
+const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, endDate, disabled = false, disabledReason, isUpgrade = false }: PlanCardProps) => {
     const [ref, inView] = useInView({
         triggerOnce: true,
         threshold: 0.1,
@@ -301,7 +302,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                 }}
                             >
-                                {isActive ? 'Current Plan' : disabled ? disabledReason || 'Unavailable' : 'Subscribe Now'}
+                                {isActive ? 'Current Plan' : disabled ? disabledReason || 'Unavailable' : isUpgrade ? 'Upgrade Plan' : 'Subscribe Now'}
                             </Button>
                         </Box>
                     </Stack>
@@ -365,6 +366,42 @@ export default function MembershipPlans() {
 
     const isPlanSelected = (plan: MembershipPlan) => {
         return selectedPlan?.id === plan.id;
+    };
+
+    // Helper function to get plan tier level (for upgrade/downgrade logic)
+    const getPlanTier = (planName: string): number => {
+        switch (planName.toLowerCase()) {
+            case 'intro plan':
+                return 1;
+            case 'starter plan':
+                return 2;
+            case 'professional plan':
+                return 3;
+            case 'enterprise plan':
+                return 4;
+            default:
+                return 1;
+        }
+    };
+
+    // Helper function to check if a plan is a downgrade
+    const isDowngrade = (plan: MembershipPlan): boolean => {
+        if (!hasActiveMainPlan || !activeMainPlan) return false;
+        
+        const currentTier = getPlanTier(activeMainPlan.name);
+        const newTier = getPlanTier(plan.name);
+        
+        return newTier < currentTier;
+    };
+
+    // Helper function to check if a plan is an upgrade
+    const isUpgrade = (plan: MembershipPlan): boolean => {
+        if (!hasActiveMainPlan || !activeMainPlan) return false;
+        
+        const currentTier = getPlanTier(activeMainPlan.name);
+        const newTier = getPlanTier(plan.name);
+        
+        return newTier > currentTier;
     };
 
     // Only show main plans
@@ -496,7 +533,7 @@ export default function MembershipPlans() {
                         </Typography>
                         <Typography variant="h6" color="#64748B" sx={{ mb: 3, fontWeight: 500, maxWidth: 700, mx: 'auto' }}>
                             {hasActiveMainPlan
-                                ? `You are currently subscribed to the ${activeMainPlan?.title} plan`
+                                ? `You are currently subscribed to the ${activeMainPlan?.title} plan. You can upgrade or change to any other plan.`
                                 : 'Choose a plan to start monitoring your websites with our powerful uptime tracking platform'
                             }
                         </Typography>
@@ -520,7 +557,7 @@ export default function MembershipPlans() {
                                 }}
                             >
                                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                                    <strong>Active Plan:</strong> {activeMainPlan.title} - ${activeMainPlan.price}/month
+                                    <strong>Active Plan:</strong> {activeMainPlan.title} - ${activeMainPlan.price} one-time
                                 </Typography>
                             </Alert>
                         )}
@@ -552,8 +589,9 @@ export default function MembershipPlans() {
                                 isSelected={isPlanSelected(plan)}
                                 isActive={isPlanActive(plan.id)}
                                 endDate={getMembershipEndDate(plan.id)}
-                                disabled={hasActiveMainPlan && !isPlanActive(plan.id)}
-                                disabledReason={hasActiveMainPlan && !isPlanActive(plan.id) ? "One Plan Only" : undefined}
+                                disabled={isDowngrade(plan)}
+                                disabledReason={isDowngrade(plan) ? "Cannot downgrade" : undefined}
+                                isUpgrade={isUpgrade(plan)}
                             />
                         ))}
                     </Box>
