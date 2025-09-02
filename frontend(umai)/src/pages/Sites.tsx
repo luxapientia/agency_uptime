@@ -489,8 +489,9 @@ export default function Sites() {
         elevation={0}
         sx={{
           borderRadius: '20px',
-          overflow: 'hidden',
+          overflow: 'auto',
           maxWidth: '100%',
+          maxHeight: '70vh',
           border: '2px solid rgba(59, 130, 246, 0.1)',
           boxShadow: '0 10px 40px rgba(59, 130, 246, 0.1)',
           background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
@@ -498,7 +499,23 @@ export default function Sites() {
             borderColor: 'rgba(59, 130, 246, 0.1)',
             whiteSpace: 'nowrap',
             padding: '16px 12px',
-          }
+          },
+          // Custom scrollbar styling
+          '&::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgba(59, 130, 246, 0.05)',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgba(59, 130, 246, 0.3)',
+            borderRadius: '4px',
+            '&:hover': {
+              background: 'rgba(59, 130, 246, 0.5)',
+            },
+          },
         }}
       >
         <Table sx={{ minWidth: 800 }}>
