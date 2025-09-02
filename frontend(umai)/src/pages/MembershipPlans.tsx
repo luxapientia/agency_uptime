@@ -15,10 +15,9 @@ import {
 import {
     Star as StarIcon,
     TrendingUp as TrendingUpIcon,
-    Security as SecurityIcon,
     CheckCircle as CheckCircleIcon,
-    Diamond as DiamondIcon,
     Rocket as RocketIcon,
+    Business as BusinessIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -59,14 +58,14 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
 
     const getPlanIcon = (planName: string) => {
         switch (planName.toLowerCase()) {
-            case 'starter':
+            case 'intro plan':
+                return <RocketIcon />;
+            case 'starter plan':
                 return <StarIcon />;
-            case 'professional':
+            case 'professional plan':
                 return <TrendingUpIcon />;
-            case 'enterprise':
-                return <SecurityIcon />;
-            case 'agency':
-                return <DiamondIcon />;
+            case 'enterprise plan':
+                return <BusinessIcon />;
             default:
                 return <RocketIcon />;
         }
@@ -74,14 +73,14 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
 
     const getPlanColor = (planName: string) => {
         switch (planName.toLowerCase()) {
-            case 'starter':
+            case 'intro plan':
+                return '#06B6D4'; // Cyan
+            case 'starter plan':
                 return '#10B981'; // Green
-            case 'professional':
+            case 'professional plan':
                 return '#3B82F6'; // Blue
-            case 'enterprise':
+            case 'enterprise plan':
                 return '#8B5CF6'; // Purple
-            case 'agency':
-                return '#F59E0B'; // Amber
             default:
                 return '#06B6D4'; // Cyan
         }
@@ -97,11 +96,12 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
             transition={{ duration: 0.5, delay }}
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
+            style={{ height: '100%' }}
         >
             <Card
                 sx={{
                     height: '100%',
-                    minHeight: 520,
+                    minHeight: 600,
                     position: 'relative',
                     background: isPopular
                         ? `linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)`
@@ -109,7 +109,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                     border: isSelected
                         ? `2px solid ${planColor}`
                         : isPopular
-                            ? `2px solid rgba(245, 158, 11, 0.3)`
+                            ? `2px solid rgba(59, 130, 246, 0.3)`
                             : `2px solid rgba(156, 163, 175, 0.2)`,
                     borderRadius: '24px',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -141,9 +141,9 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                 fontSize: '0.9rem',
                                 py: 1,
                                 px: 2,
-                                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
                                 color: 'white',
-                                boxShadow: '0 8px 20px rgba(245, 158, 11, 0.4)',
+                                boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)',
                                 '& .MuiChip-icon': {
                                     color: 'white',
                                 },
@@ -155,7 +155,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                 <CardContent sx={{ p: 4, height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <Stack spacing={3} sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         {/* Plan Header */}
-                        <Box sx={{ textAlign: 'center' }}>
+                        <Box sx={{ textAlign: 'center', flexShrink: 0 }}>
                             <Box
                                 sx={{
                                     display: 'inline-flex',
@@ -176,33 +176,41 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                             <Typography variant="h4" component="h3" gutterBottom sx={{ fontWeight: 700, color: '#1E293B' }}>
                                 {plan.title}
                             </Typography>
-
-                            <Typography variant="body1" color="#64748B" sx={{ mb: 2, lineHeight: 1.6 }}>
-                                {plan.description}
-                            </Typography>
                         </Box>
 
-                        <Divider sx={{ borderColor: 'rgba(156, 163, 175, 0.2)', borderWidth: '2px' }} />
+                        <Divider sx={{ borderColor: 'rgba(156, 163, 175, 0.2)', borderWidth: '2px', flexShrink: 0 }} />
 
                         {/* Price */}
-                        <Box sx={{ textAlign: 'center' }}>
+                        <Box sx={{ textAlign: 'center', flexShrink: 0 }}>
                             <Typography variant="h2" component="div" sx={{ fontWeight: 800, color: planColor, mb: 1 }}>
                                 ${plan.price}
                             </Typography>
                             <Typography variant="body1" color="#64748B" sx={{ fontWeight: 600 }}>
-                                per month
+                                one-time
                             </Typography>
                         </Box>
 
+                        {/* Monitored Sites */}
+                        {plan.monitoredSites && (
+                            <Box sx={{ textAlign: 'center', mb: 2, flexShrink: 0 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#1E293B' }}>
+                                    {plan.monitoredSites} Website{plan.monitoredSites > 1 ? 's' : ''}
+                                </Typography>
+                                <Typography variant="body2" color="#64748B" sx={{ fontWeight: 500 }}>
+                                    Monitored
+                                </Typography>
+                            </Box>
+                        )}
+
                         {/* Features */}
                         {plan.features && plan.features.length > 0 && (
-                            <Box sx={{ flex: 1 }}>
-                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: '#1E293B', textAlign: 'center' }}>
+                            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, color: '#1E293B', textAlign: 'center', flexShrink: 0 }}>
                                     What's Included
                                 </Typography>
-                                <Stack spacing={2}>
+                                <Stack spacing={2} sx={{ flex: 1, overflow: 'auto' }}>
                                     {plan.features.map((feature, index) => (
-                                        <Box key={index} sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', flexShrink: 0 }}>
                                             <Box
                                                 sx={{
                                                     width: 20,
@@ -215,11 +223,12 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                                     mr: 2,
                                                     flexShrink: 0,
                                                     boxShadow: `0 2px 8px ${planColor}40`,
+                                                    mt: 0.5,
                                                 }}
                                             >
                                                 <CheckCircleIcon sx={{ fontSize: 14, color: 'white' }} />
                                             </Box>
-                                            <Typography variant="body1" color="#374151" sx={{ fontWeight: 500, fontSize: '0.95rem' }}>
+                                            <Typography variant="body1" color="#374151" sx={{ fontWeight: 500, fontSize: '0.95rem', lineHeight: 1.4 }}>
                                                 {isValidFeatureKey(feature) ? getFeatureDescription(feature) : feature}
                                             </Typography>
                                         </Box>
@@ -229,7 +238,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                         )}
 
                         {/* Membership Status */}
-                        <Box sx={{ textAlign: 'center', mb: 2, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Box sx={{ textAlign: 'center', mb: 2, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {isActive && endDate ? (
                                 <Chip
                                     label={`Active until ${formatDate(endDate)}`}
@@ -247,7 +256,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                         </Box>
 
                         {/* Action Button */}
-                        <Box sx={{ mt: 'auto', pt: 2 }}>
+                        <Box sx={{ mt: 'auto', pt: 2, flexShrink: 0 }}>
                             <Button
                                 variant={isActive ? "outlined" : "contained"}
                                 size="large"
@@ -520,32 +529,32 @@ export default function MembershipPlans() {
                     <Box
                         sx={{
                             display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', md: 'repeat(auto-fit, minmax(350px, 1fr))' },
-                            gap: 4,
-                            justifyContent: 'center',
-                            mb: 6
+                            gridTemplateColumns: { 
+                                xs: '1fr', 
+                                sm: 'repeat(auto-fit, minmax(320px, 1fr))',
+                                md: 'repeat(auto-fit, minmax(350px, 1fr))',
+                                lg: 'repeat(4, 1fr)'
+                            },
+                            gap: { xs: 3, md: 4 },
+                            alignItems: 'stretch',
+                            mb: 6,
+                            maxWidth: 1400,
+                            mx: 'auto'
                         }}
                     >
                         {mainPlans.map((plan, index) => (
-                            <Box
+                            <PlanCard
                                 key={plan.id}
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <PlanCard
-                                    plan={plan}
-                                    isPopular={plan.name === 'Agency'}
-                                    delay={index * 0.1}
-                                    onSelect={handlePlanSelect}
-                                    isSelected={isPlanSelected(plan)}
-                                    isActive={isPlanActive(plan.id)}
-                                    endDate={getMembershipEndDate(plan.id)}
-                                    disabled={hasActiveMainPlan && !isPlanActive(plan.id)}
-                                    disabledReason={hasActiveMainPlan && !isPlanActive(plan.id) ? "One Plan Only" : undefined}
-                                />
-                            </Box>
+                                plan={plan}
+                                isPopular={plan.name === 'Professional Plan'}
+                                delay={index * 0.1}
+                                onSelect={handlePlanSelect}
+                                isSelected={isPlanSelected(plan)}
+                                isActive={isPlanActive(plan.id)}
+                                endDate={getMembershipEndDate(plan.id)}
+                                disabled={hasActiveMainPlan && !isPlanActive(plan.id)}
+                                disabledReason={hasActiveMainPlan && !isPlanActive(plan.id) ? "One Plan Only" : undefined}
+                            />
                         ))}
                     </Box>
                 </motion.div>
