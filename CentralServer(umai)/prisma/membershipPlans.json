@@ -1,48 +1,65 @@
 [
     {
-        "name": "Kick-Start Plan",
-        "price": 29,
-        "title": "Kick-Start Plan",
-        "description": "Perfect for small agencies",
+        "name": "Intro Plan",
+        "price": 49,
+        "title": "Intro Plan",
+        "monitoredSites": 1,
         "type": "main",
         "features": [
-            "MONITORED_WEBSITES_10",
             "CHECK_INTERVAL_5MIN",
             "AI_DIAGNOSTICS_BASIC",
+            "REPORT_PDF",
             "ALERTS_EMAIL",
-            "BRANDED_PDF_REPORTS"
+            "LIFETIME GUARANTEE"
         ]
     },
     {
-        "name": "Agency",
-        "price": 79,
-        "title": "Agency",
-        "description": "Best for growing agencies",
+        "name": "Starter Plan",
+        "price": 99,
+        "title": "Starter Plan",
+        "monitoredSites": 3,
         "type": "main",
         "features": [
-            "MONITORED_WEBSITES_50",
-            "CHECK_INTERVAL_1MIN",
-            "AI_DIAGNOSTICS_ADVANCED",
+            "CHECK_INTERVAL_5MIN",
+            "AI_DIAGNOSTICS_BASIC",
+            "REPORT_PDF",
             "ALERTS_EMAIL",
-            "ALERTS_SLACK",
-            "CLIENT_SUBACCOUNTS"
+            "LIFETIME GUARANTEE"
         ]
     },
     {
-        "name": "Enterprise",
+        "name": "Professional Plan",
         "price": 199,
-        "title": "Enterprise",
-        "description": "For large agencies & resellers",
+        "title": "Professional Plan",
+        "monitoredSites": 5,
         "type": "main",
         "features": [
-            "MONITORED_WEBSITES_200",
-            "CHECK_INTERVAL_30SEC",
-            "AI_DIAGNOSTICS_PREMIUM",
-            "ALERTS_EMAIL",
+            "CHECK_INTERVAL_1MIN",
+            "REPORT_PDF",
+            "AI_DIAGNOSTICS_ADVANCED",
+            "PREDICTIVE_MONITORING",
             "ALERTS_SLACK",
-            "ALERTS_TELEGRAM",
             "ALERTS_DISCORD",
-            "API_ACCESS"
+            "ALERTS_EMAIL",
+            "LIFETIME GUARANTEE"
+        ]
+    },
+    {
+        "name": "Enterprise Plan",
+        "price": 299,
+        "title": "Enterprise Plan",
+        "monitoredSites": 10,
+        "type": "main",
+        "features": [
+            "CHECK_INTERVAL_30SEC",
+            "AI_DIAGNOSTICS_ENTERPRISE",
+            "REPORT_PDF",
+            "PREDICTIVE_MONITORING_ADVANCED",
+            "DNS_SSL_MONITORING",
+            "ALERTS_SLACK",
+            "ALERTS_DISCORD",
+            "ALERTS_EMAIL",
+            "LIFETIME GUARANTEE"
         ]
     }
 ]
