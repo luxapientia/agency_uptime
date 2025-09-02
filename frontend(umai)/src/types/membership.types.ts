@@ -3,7 +3,7 @@ export interface MembershipPlan {
   name: string;
   price: number;
   title: string;
-  description: string;
+  monitoredSites: number;
   type: 'main' | 'upgrade';
   features: string[];
   createdAt?: string;
