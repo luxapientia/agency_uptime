@@ -34,13 +34,12 @@ interface PlanCardProps {
     onSelect: (plan: MembershipPlan) => void;
     isSelected?: boolean;
     isActive?: boolean;
-    endDate?: Date | null;
     disabled?: boolean;
     disabledReason?: string;
     isUpgrade?: boolean;
 }
 
-const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, endDate, disabled = false, disabledReason, isUpgrade = false }: PlanCardProps) => {
+const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, disabled = false, disabledReason, isUpgrade = false }: PlanCardProps) => {
     const [ref, inView] = useInView({
         triggerOnce: true,
         threshold: 0.1,
@@ -237,24 +236,6 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                 </Stack>
                             </Box>
                         )}
-
-                        {/* Membership Status */}
-                        <Box sx={{ textAlign: 'center', mb: 2, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            {isActive && endDate ? (
-                                <Chip
-                                    label={`Active until ${formatDate(endDate)}`}
-                                    sx={{
-                                        fontWeight: 700,
-                                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                                        color: 'white',
-                                        border: '2px solid rgba(16, 185, 129, 0.3)',
-                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                                    }}
-                                />
-                            ) : (
-                                <Box sx={{ height: 32 }} />
-                            )}
-                        </Box>
 
                         {/* Action Button */}
                         <Box sx={{ mt: 'auto', pt: 2, flexShrink: 0 }}>
@@ -475,51 +456,6 @@ export default function MembershipPlans() {
                 </Box>
             </motion.div>
 
-            {/* Current Memberships */}
-            {userMemberships.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                >
-                    <Box sx={{
-                        background: 'linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%)',
-                        borderRadius: '24px',
-                        border: '2px solid rgba(59, 130, 246, 0.1)',
-                        p: 4,
-                        mb: 6,
-                        textAlign: 'center'
-                    }}>
-                        <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3, fontWeight: 700, color: '#1E293B' }}>
-                            Your Current Membership
-                        </Typography>
-                        <Typography variant="body1" color="#64748B" sx={{ mb: 4, fontWeight: 500 }}>
-                            Plans you're currently subscribed to
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
-                            {userMemberships
-                                .filter(membership => new Date(membership.endDate) > new Date())
-                                .map((membership) => (
-                                    <Chip
-                                        key={membership.id}
-                                        label={`${membership.membershipPlan.title} - Expires ${formatDate(new Date(membership.endDate))}`}
-                                        sx={{
-                                            fontWeight: 700,
-                                            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                                            color: 'white',
-                                            border: '2px solid rgba(16, 185, 129, 0.3)',
-                                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                                            fontSize: '0.95rem',
-                                            py: 1,
-                                        }}
-                                    />
-                                ))}
-                        </Box>
-                    </Box>
-                </motion.div>
-            )}
-
             {/* Main Plans */}
             {mainPlans.length > 0 && (
                 <motion.div
@@ -588,7 +524,6 @@ export default function MembershipPlans() {
                                 onSelect={handlePlanSelect}
                                 isSelected={isPlanSelected(plan)}
                                 isActive={isPlanActive(plan.id)}
-                                endDate={getMembershipEndDate(plan.id)}
                                 disabled={isDowngrade(plan)}
                                 disabledReason={isDowngrade(plan) ? "Cannot downgrade" : undefined}
                                 isUpgrade={isUpgrade(plan)}
