@@ -96,27 +96,6 @@ export function getFeaturesGroupedByCategory(): Record<string, { key: FeatureKey
 }
 
 /**
- * Check if a user can monitor a specific number of websites
- * @param userFeatures - Array of user feature objects with featureKey and endDate
- * @param requiredCount - The number of websites they want to monitor
- * @returns boolean indicating if user can monitor that many websites
- */
-export function canMonitorWebsites(userFeatures: Array<{ featureKey: string; endDate: Date }>, requiredCount: number): boolean {
-  if (requiredCount <= 10) return true; // Basic free tier
-  
-  if (requiredCount <= 50) {
-    return hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_50) || 
-           hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_200);
-  }
-  
-  if (requiredCount <= 200) {
-    return hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_200);
-  }
-  
-  return false; // Beyond enterprise limit
-}
-
-/**
  * Check if a user can use a specific check interval
  * @param userFeatures - Array of user feature objects with featureKey and endDate
  * @param intervalSeconds - The check interval in seconds
@@ -135,18 +114,6 @@ export function canUseCheckInterval(userFeatures: Array<{ featureKey: string; en
   }
   
   return false; // Less than 30 seconds not supported
-}
-
-/**
- * Get the maximum number of websites a user can monitor based on their features
- * @param userFeatures - Array of user feature objects with featureKey and endDate
- * @returns The maximum number of websites allowed
- */
-export function getMaxWebsitesAllowed(userFeatures: Array<{ featureKey: string; endDate: Date }>): number {
-  if (hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_200)) return 200;
-  if (hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_50)) return 50;
-  if (hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_10)) return 10;
-  return 0; // No monitoring features
 }
 
 /**
@@ -230,4 +197,42 @@ export function getDaysUntilFeatureExpires(userFeatures: Array<{ featureKey: str
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
   return diffDays;
+}
+
+/**
+ * Check if a user has AI diagnostics capabilities
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns The highest level of AI diagnostics available
+ */
+export function getAIDiagnosticsLevel(userFeatures: Array<{ featureKey: string; endDate: Date }>): 'none' | 'basic' | 'advanced' | 'enterprise' {
+  if (hasFeature(userFeatures, FEATURES.AI_DIAGNOSTICS_ENTERPRISE)) return 'enterprise';
+  if (hasFeature(userFeatures, FEATURES.AI_DIAGNOSTICS_ADVANCED)) return 'advanced';
+  if (hasFeature(userFeatures, FEATURES.AI_DIAGNOSTICS_BASIC)) return 'basic';
+  return 'none';
+}
+
+/**
+ * Check if a user has predictive monitoring capabilities
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns The level of predictive monitoring available
+ */
+export function getPredictiveMonitoringLevel(userFeatures: Array<{ featureKey: string; endDate: Date }>): 'none' | 'basic' | 'advanced' {
+  if (hasFeature(userFeatures, FEATURES.PREDICTIVE_MONITORING_ADVANCED)) return 'advanced';
+  if (hasFeature(userFeatures, FEATURES.PREDICTIVE_MONITORING)) return 'basic';
+  return 'none';
+}
+
+/**
+ * Get all available alert types for a user
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns Array of available alert types
+ */
+export function getAvailableAlertTypes(userFeatures: Array<{ featureKey: string; endDate: Date }>): string[] {
+  const alertTypes: string[] = [];
+  
+  if (hasFeature(userFeatures, FEATURES.ALERTS_EMAIL)) alertTypes.push('email');
+  if (hasFeature(userFeatures, FEATURES.ALERTS_SLACK)) alertTypes.push('slack');
+  if (hasFeature(userFeatures, FEATURES.ALERTS_DISCORD)) alertTypes.push('discord');
+  
+  return alertTypes;
 } 
