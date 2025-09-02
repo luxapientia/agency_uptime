@@ -63,6 +63,7 @@ import { formatDate } from '../utils/dateUtils';
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
   const { sites, isLoading, selectedSite } = useSelector((state: RootState) => state.sites);
+  const { userMemberships } = useSelector((state: RootState) => state.membership);
   const siteStatuses = useSelector((state: RootState) => state.siteStatus.statuses);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -109,7 +110,19 @@ export default function Sites() {
   const [selectedSiteForNotification, setSelectedSiteForNotification] = useState<Site | null>(null);
   const [downloadingPdfSiteId, setDownloadingPdfSiteId] = useState<string | null>(null);
 
+  // Get user's current membership plan and site limit
+  const currentMembership = userMemberships.find(membership => 
+    new Date(membership.endDate) > new Date()
+  );
+  
+  const siteLimit = currentMembership?.membershipPlan.monitoredSites || 0;
+  const canAddMoreSites = sites.length < siteLimit;
+
   const handleAddClick = () => {
+    if (!canAddMoreSites) {
+      showToast.error(`You've reached your site limit of ${siteLimit}. Please upgrade your plan to add more sites.`);
+      return;
+    }
     dispatch(setSelectedSite(null));
     setIsFormOpen(true);
   };
@@ -340,20 +353,25 @@ export default function Sites() {
             color="primary"
             startIcon={<AddIcon />}
             onClick={handleAddClick}
+            disabled={!canAddMoreSites}
             fullWidth={isMobile}
             sx={{
               borderRadius: '16px',
               py: 2,
               px: 3,
-              background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
-              boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
+              background: canAddMoreSites 
+                ? 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)'
+                : 'linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%)',
+              boxShadow: canAddMoreSites 
+                ? '0 8px 25px rgba(59, 130, 246, 0.3)'
+                : '0 4px 12px rgba(156, 163, 175, 0.2)',
               fontWeight: 600,
               fontSize: '0.95rem',
-              '&:hover': {
+              '&:hover': canAddMoreSites ? {
                 background: 'linear-gradient(135deg, #1D4ED8 0%, #7C3AED 100%)',
                 transform: 'translateY(-2px)',
                 boxShadow: '0 12px 35px rgba(59, 130, 246, 0.4)',
-              },
+              } : {},
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
