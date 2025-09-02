@@ -130,6 +130,9 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
   console.log(userId, isBundle, planIds, planId, '----------------');
   
   try {
+    // Set end date to 10 years from now (effectively lifetime for one-time payments)
+    const endDate = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000);
+    
     if (isBundle === 'true' && planIds) {
       // Handle bundle payment - create memberships for all plans
       const planIdArray = planIds.split(',');
@@ -144,12 +147,12 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
             },
           },
           update: {
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            endDate,
           },
           create: {
             userId,
             membershipPlanId: planId,
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            endDate,
           },
         });
 
@@ -170,12 +173,12 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
                 },
               },
               update: {
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+                endDate,
               },
               create: {
                 userId,
                 featureKey,
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+                endDate,
               },
             });
           }
@@ -193,12 +196,12 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
           },
         },
         update: {
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          endDate,
         },
         create: {
           userId,
           membershipPlanId: planId,
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          endDate,
         },
       });
 
@@ -219,12 +222,12 @@ const handlePaymentSuccess = async (paymentIntent: Stripe.Charge) => {
               },
             },
             update: {
-              endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+              endDate,
             },
             create: {
               userId,
               featureKey,
-              endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+              endDate,
             },
           });
         }
