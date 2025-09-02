@@ -47,15 +47,6 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
 
     const [isHovered, setIsHovered] = useState(false);
 
-    // Helper function to format date
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
-
     const getPlanIcon = (planName: string) => {
         switch (planName.toLowerCase()) {
             case 'intro plan':
@@ -328,21 +319,6 @@ export default function MembershipPlans() {
             membership.membershipPlanId === planId &&
             new Date(membership.endDate) > now
         );
-    };
-
-    // Helper function to get membership end date for a plan
-    const getMembershipEndDate = (planId: string) => {
-        const membership = userMemberships.find(m => m.membershipPlanId === planId);
-        return membership ? new Date(membership.endDate) : null;
-    };
-
-    // Helper function to format date
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
     };
 
     const isPlanSelected = (plan: MembershipPlan) => {

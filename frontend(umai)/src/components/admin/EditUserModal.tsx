@@ -912,39 +912,29 @@ export default function EditUserModal({
                           }}>
                             {(() => {
                               switch (featureKey) {
-                                case FEATURES.MONITORED_WEBSITES_10:
-                                case FEATURES.MONITORED_WEBSITES_50:
-                                case FEATURES.MONITORED_WEBSITES_200:
-                                  return <MonitorIcon fontSize="small" />;
                                 case FEATURES.CHECK_INTERVAL_5MIN:
                                 case FEATURES.CHECK_INTERVAL_1MIN:
                                 case FEATURES.CHECK_INTERVAL_30SEC:
                                   return <ScheduleIcon fontSize="small" />;
                                 case FEATURES.AI_DIAGNOSTICS_BASIC:
                                 case FEATURES.AI_DIAGNOSTICS_ADVANCED:
-                                case FEATURES.AI_DIAGNOSTICS_PREMIUM:
+                                case FEATURES.AI_DIAGNOSTICS_ENTERPRISE:
                                   return <PsychologyIcon fontSize="small" />;
                                 case FEATURES.ALERTS_EMAIL:
                                   return <EmailAlertIcon fontSize="small" />;
                                 case FEATURES.ALERTS_SLACK:
                                   return <ChatIcon fontSize="small" />;
-                                case FEATURES.ALERTS_TELEGRAM:
-                                  return <ChatIcon fontSize="small" />;
                                 case FEATURES.ALERTS_DISCORD:
                                   return <ChatIcon fontSize="small" />;
-                                case FEATURES.ALERTS_WEBHOOK:
-                                  return <WebhookIcon fontSize="small" />;
-                                case FEATURES.ALERTS_PUSH_NOTIFICATION:
-                                  return <NotificationsActiveIcon fontSize="small" />;
-                                case FEATURES.CLIENT_SUBACCOUNTS:
-                                case FEATURES.MULTI_USER_LOGINS:
-                                  return <PeopleIcon fontSize="small" />;
-                                case FEATURES.API_ACCESS:
-                                  return <ApiIcon fontSize="small" />;
-                                case FEATURES.WEBHOOK_ACCESS:
-                                  return <WebhookIcon fontSize="small" />;
                                 case FEATURES.PREDICTIVE_MONITORING:
+                                case FEATURES.PREDICTIVE_MONITORING_ADVANCED:
                                   return <TrendingUpIcon fontSize="small" />;
+                                case FEATURES.DNS_SSL_MONITORING:
+                                  return <MonitorIcon fontSize="small" />;
+                                case FEATURES.REPORT_PDF:
+                                  return <CheckCircleIcon fontSize="small" />;
+                                case FEATURES.LIFETIME_GUARANTEE:
+                                  return <CheckCircleIcon fontSize="small" />;
                                 default:
                                   return <CheckCircleIcon fontSize="small" />;
                               }

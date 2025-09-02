@@ -106,7 +106,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ plan, clientSecret, onSuccess
           Payment Details
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Complete your subscription to {plan.title}
+          Complete your one-time payment for {plan.title}
         </Typography>
       </Box>
 
@@ -156,7 +156,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ plan, clientSecret, onSuccess
             },
           }}
         >
-          {isProcessing ? 'Processing...' : `Pay $${plan.price}`}
+          {isProcessing ? 'Processing...' : `Pay $${plan.price} (One-time)`}
         </Button>
       </Box>
     </Box>
@@ -281,14 +281,14 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
                     {plan.title}
                   </Typography>
                   <Chip
-                    label={`$${plan.price}/month`}
+                    label={`$${plan.price} (One-time)`}
                     color="primary"
                     size="small"
                     sx={{ fontWeight: 'bold' }}
                   />
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  {plan.description}
+                  Lifetime access to {plan.title} features
                 </Typography>
               </Box>
 
@@ -356,7 +356,7 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({
                   Payment Successful!
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  Your subscription to {plan.title} has been activated.
+                  Your lifetime access to {plan.title} has been activated.
                 </Typography>
               </Box>
             </motion.div>
