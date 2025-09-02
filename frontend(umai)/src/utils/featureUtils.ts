@@ -96,27 +96,6 @@ export function getFeaturesGroupedByCategory(): Record<string, { key: FeatureKey
 }
 
 /**
- * Check if a user can monitor a specific number of websites
- * @param userFeatures - Array of user feature objects with featureKey and endDate
- * @param requiredCount - The number of websites they want to monitor
- * @returns boolean indicating if user can monitor that many websites
- */
-export function canMonitorWebsites(userFeatures: Array<{ featureKey: string; endDate: Date }>, requiredCount: number): boolean {
-  if (requiredCount <= 10) return true; // Basic free tier
-  
-  if (requiredCount <= 50) {
-    return hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_50) || 
-           hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_200);
-  }
-  
-  if (requiredCount <= 200) {
-    return hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_200);
-  }
-  
-  return false; // Beyond enterprise limit
-}
-
-/**
  * Check if a user can use a specific check interval
  * @param userFeatures - Array of user feature objects with featureKey and endDate
  * @param intervalSeconds - The check interval in seconds
@@ -135,18 +114,6 @@ export function canUseCheckInterval(userFeatures: Array<{ featureKey: string; en
   }
   
   return false; // Less than 30 seconds not supported
-}
-
-/**
- * Get the maximum number of websites a user can monitor based on their features
- * @param userFeatures - Array of user feature objects with featureKey and endDate
- * @returns The maximum number of websites allowed
- */
-export function getMaxWebsitesAllowed(userFeatures: Array<{ featureKey: string; endDate: Date }>): number {
-  if (hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_200)) return 200;
-  if (hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_50)) return 50;
-  if (hasFeature(userFeatures, FEATURES.MONITORED_WEBSITES_10)) return 10;
-  return 0; // No monitoring features
 }
 
 /**
@@ -180,28 +147,130 @@ export function formatFeaturesForDisplay(features: string[]): Array<{ key: strin
  */
 export function getFeatureIcon(featureKey: FeatureKey): string {
   const iconMap: Record<FeatureKey, string> = {
-    [FEATURES.MONITORED_WEBSITES_10]: 'monitor',
-    [FEATURES.MONITORED_WEBSITES_50]: 'monitor',
-    [FEATURES.MONITORED_WEBSITES_200]: 'monitor',
     [FEATURES.CHECK_INTERVAL_5MIN]: 'schedule',
     [FEATURES.CHECK_INTERVAL_1MIN]: 'schedule',
     [FEATURES.CHECK_INTERVAL_30SEC]: 'schedule',
     [FEATURES.AI_DIAGNOSTICS_BASIC]: 'psychology',
     [FEATURES.AI_DIAGNOSTICS_ADVANCED]: 'psychology',
-    [FEATURES.AI_DIAGNOSTICS_PREMIUM]: 'psychology',
+    [FEATURES.AI_DIAGNOSTICS_ENTERPRISE]: 'psychology',
     [FEATURES.ALERTS_EMAIL]: 'email',
     [FEATURES.ALERTS_SLACK]: 'chat',
-    [FEATURES.ALERTS_TELEGRAM]: 'telegram',
     [FEATURES.ALERTS_DISCORD]: 'discord',
-    [FEATURES.ALERTS_WEBHOOK]: 'webhook',
-    [FEATURES.ALERTS_PUSH_NOTIFICATION]: 'notifications',
-    [FEATURES.CLIENT_SUBACCOUNTS]: 'people',
-    [FEATURES.MULTI_USER_LOGINS]: 'group',
-    [FEATURES.API_ACCESS]: 'api',
-    [FEATURES.WEBHOOK_ACCESS]: 'webhook',
     [FEATURES.PREDICTIVE_MONITORING]: 'trending_up',
-    [FEATURES.BRANDED_PDF_REPORTS]: 'picture_as_pdf',
+    [FEATURES.PREDICTIVE_MONITORING_ADVANCED]: 'trending_up',
+    [FEATURES.REPORT_PDF]: 'picture_as_pdf',
+    [FEATURES.DNS_SSL_MONITORING]: 'security',
+    [FEATURES.LIFETIME_GUARANTEE]: 'verified',
   };
   
   return iconMap[featureKey] || 'feature';
+}
+
+/**
+ * Check if a user has AI diagnostics capabilities
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns The highest level of AI diagnostics available
+ */
+export function getAIDiagnosticsLevel(userFeatures: Array<{ featureKey: string; endDate: Date }>): 'none' | 'basic' | 'advanced' | 'enterprise' {
+  if (hasFeature(userFeatures, FEATURES.AI_DIAGNOSTICS_ENTERPRISE)) return 'enterprise';
+  if (hasFeature(userFeatures, FEATURES.AI_DIAGNOSTICS_ADVANCED)) return 'advanced';
+  if (hasFeature(userFeatures, FEATURES.AI_DIAGNOSTICS_BASIC)) return 'basic';
+  return 'none';
+}
+
+/**
+ * Check if a user has predictive monitoring capabilities
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns The level of predictive monitoring available
+ */
+export function getPredictiveMonitoringLevel(userFeatures: Array<{ featureKey: string; endDate: Date }>): 'none' | 'basic' | 'advanced' {
+  if (hasFeature(userFeatures, FEATURES.PREDICTIVE_MONITORING_ADVANCED)) return 'advanced';
+  if (hasFeature(userFeatures, FEATURES.PREDICTIVE_MONITORING)) return 'basic';
+  return 'none';
+}
+
+/**
+ * Get all available alert types for a user
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns Array of available alert types
+ */
+export function getAvailableAlertTypes(userFeatures: Array<{ featureKey: string; endDate: Date }>): string[] {
+  const alertTypes: string[] = [];
+  
+  if (hasFeature(userFeatures, FEATURES.ALERTS_EMAIL)) alertTypes.push('email');
+  if (hasFeature(userFeatures, FEATURES.ALERTS_SLACK)) alertTypes.push('slack');
+  if (hasFeature(userFeatures, FEATURES.ALERTS_DISCORD)) alertTypes.push('discord');
+  
+  return alertTypes;
+}
+
+/**
+ * Get all active (non-expired) features for a user
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns Array of active features
+ */
+export function getActiveFeatures(userFeatures: Array<{ featureKey: string; endDate: Date }>): Array<{ featureKey: string; endDate: Date }> {
+  const now = new Date();
+  return userFeatures.filter(feature => feature.endDate > now);
+}
+
+/**
+ * Get all expired features for a user
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns Array of expired features
+ */
+export function getExpiredFeatures(userFeatures: Array<{ featureKey: string; endDate: Date }>): Array<{ featureKey: string; endDate: Date }> {
+  const now = new Date();
+  return userFeatures.filter(feature => feature.endDate <= now);
+}
+
+/**
+ * Get features that will expire within a specified number of days
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @param days - Number of days to check ahead
+ * @returns Array of features expiring soon
+ */
+export function getFeaturesExpiringSoon(userFeatures: Array<{ featureKey: string; endDate: Date }>, days: number = 7): Array<{ featureKey: string; endDate: Date }> {
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  return userFeatures.filter(feature => 
+    feature.endDate > now && feature.endDate <= cutoffDate
+  );
+}
+
+/**
+ * Check if a user has any active features
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @returns boolean indicating if user has any active features
+ */
+export function hasAnyActiveFeatures(userFeatures: Array<{ featureKey: string; endDate: Date }>): boolean {
+  return getActiveFeatures(userFeatures).length > 0;
+}
+
+/**
+ * Get the expiration date for a specific feature
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @param featureKey - The feature to get expiration date for
+ * @returns Date when the feature expires, or null if not found
+ */
+export function getFeatureExpirationDate(userFeatures: Array<{ featureKey: string; endDate: Date }>, featureKey: FeatureKey): Date | null {
+  const feature = userFeatures.find(f => f.featureKey === featureKey);
+  return feature ? feature.endDate : null;
+}
+
+/**
+ * Get days until a feature expires
+ * @param userFeatures - Array of user feature objects with featureKey and endDate
+ * @param featureKey - The feature to check
+ * @returns Number of days until expiration, negative if expired, null if not found
+ */
+export function getDaysUntilFeatureExpires(userFeatures: Array<{ featureKey: string; endDate: Date }>, featureKey: FeatureKey): number | null {
+  const expirationDate = getFeatureExpirationDate(userFeatures, featureKey);
+  if (!expirationDate) return null;
+  
+  const now = new Date();
+  const diffTime = expirationDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays;
 } 
