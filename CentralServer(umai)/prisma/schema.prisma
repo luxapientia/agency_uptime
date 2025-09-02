@@ -181,7 +181,7 @@ model MembershipPlan {
   name String
   price Int
   title String
-  description String
+  monitoredSites Int
   type String @default("upgrade") // "main" or "upgrade"
   features String[] // Array of feature strings
   userMemberships UserMembership[]
