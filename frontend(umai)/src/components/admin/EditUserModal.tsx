@@ -45,8 +45,6 @@ import {
   Schedule as ScheduleIcon,
   Email as EmailAlertIcon,
   Chat as ChatIcon,
-  Webhook as WebhookIcon,
-  NotificationsActive as NotificationsActiveIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
