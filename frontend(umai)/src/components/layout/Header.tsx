@@ -94,12 +94,6 @@ export default function Header() {
     ] : []),
   ];
 
-  const publicMenuItems = [
-    { text: 'FAQ', path: '/faq' },
-    { text: 'Privacy Policy', path: '/privacy-policy' },
-    { text: 'Terms of Service', path: '/terms' },
-  ];
-
   const drawer = (
     <Box sx={{ width: 280 }}>
       <Box sx={{
@@ -404,34 +398,6 @@ export default function Header() {
               </Box>
             </>
           ) : (
-            <>
-              {!isMobile && (
-                <Box sx={{ display: 'flex', gap: 2, mr: 3 }}>
-                  {publicMenuItems.map((item) => (
-                    <Button
-                      key={item.text}
-                      onClick={() => navigate(item.path)}
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        borderRadius: 2,
-                        px: 3,
-                        py: 1.5,
-                        position: 'relative',
-                        fontWeight: 500,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.primary.main, 0.05),
-                          color: theme.palette.primary.main,
-                          transform: 'translateY(-1px)',
-                        },
-                        transition: 'all 0.3s ease-in-out',
-                      }}
-                    >
-                      {item.text}
-                    </Button>
-                  ))}
-                </Box>
-              )}
-
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button
                 variant="text"
@@ -474,7 +440,6 @@ export default function Header() {
                 Get Started
               </Button>
             </Box>
-            </>
           )}
         </Toolbar>
       </AppBar>
