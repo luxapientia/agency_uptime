@@ -274,7 +274,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                 }}
                             >
-                                {isActive ? 'Current Plan' : disabled ? disabledReason || 'Unavailable' : isUpgrade ? 'Upgrade Plan' : 'Subscribe Now'}
+                                {isActive ? 'Current Plan' : disabled ? disabledReason || 'Unavailable' : isUpgrade ? 'Upgrade Plan' : 'Purchase Now'}
                             </Button>
                         </Box>
                     </Stack>

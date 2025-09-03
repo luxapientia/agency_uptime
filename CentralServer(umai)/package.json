@@ -1,7 +1,7 @@
 {
   "name": "agency-uptime-central",
   "version": "1.0.0",
-  "description": "Central Server for Agency Uptime - Monitoring and Management System",
+  "description": "Central Server for UptimeMonitoring.ai - Monitoring and Management System",
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",

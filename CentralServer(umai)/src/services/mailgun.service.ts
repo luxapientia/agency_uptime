@@ -74,7 +74,7 @@ class MailgunService {
       };
 
       await this.client.messages.create(config.mailgun.domain, {
-        from: `Agency Uptime <noreply@${config.mailgun.domain}>`,
+        from: `UptimeMonitoring.ai <noreply@${config.mailgun.domain}>`,
         to: [email],
         subject: emailData.subject,
         text: emailData.text,
@@ -129,7 +129,7 @@ class MailgunService {
   async sendEmail(emailData: EmailData): Promise<void> {
     try {
       await this.client.messages.create(config.mailgun.domain, {
-        from: `Agency Uptime <noreply@${config.mailgun.domain}>`,
+        from: `UptimeMonitoring.ai <noreply@${config.mailgun.domain}>`,
         to: [emailData.to],
         subject: emailData.subject,
         text: emailData.text,

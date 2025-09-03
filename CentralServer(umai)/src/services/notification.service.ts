@@ -131,7 +131,7 @@ class NotificationService {
         } else if (notificationSetting.type === 'TELEGRAM' && notificationSetting.contactInfo && notificationSetting.enabled) {
           await telegramService.sendMessageToChat(notificationSetting.contactInfo as string, enhancedMessage);
         } else if (notificationSetting.type === 'PUSH_NOTIFICATION' && notificationSetting.contactInfo && notificationSetting.enabled) {
-          let pushTitle = "Agency Uptime Notification";
+          let pushTitle = "UptimeMonitoring.ai Notification";
           if (healthAnalysis && healthAnalysis.severity !== 'low') {
             pushTitle += ` - ${healthAnalysis.severity.toUpperCase()} health issue`;
           }

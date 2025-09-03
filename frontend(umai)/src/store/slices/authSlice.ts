@@ -136,7 +136,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(register.fulfilled, (state, action) => {
-        showToast.success('Welcome to Agency Uptime!');
+        showToast.success('Welcome to UptimeMonitoring.ai!');
         state.isLoading = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
