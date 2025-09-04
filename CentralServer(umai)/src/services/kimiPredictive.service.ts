@@ -8,8 +8,25 @@ const prisma = new PrismaClient();
 interface HealthAnalysis {
   diagnosis: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
+  overallHealth: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  performanceAnalysis: {
+    responseTimeIssues: string;
+    uptimeIssues: string;
+    regionalIssues: string;
+  };
+  securityAnalysis: {
+    sslIssues: string;
+    dnsIssues: string;
+    tcpIssues: string;
+  };
   recommendations: string[];
+  perWorkerRecommendations: Array<{
+    workerId: string;
+    issues: string[];
+    recommendations: string[];
+  }>;
   confidence: number;
+  anomalies: string[];
   tokenUsage: {
     prompt: number;
     completion: number;
@@ -22,7 +39,19 @@ interface StatusPrediction {
   confidence: number;
   timeframe: string;
   reasoning: string;
+  performancePrediction: {
+    responseTime: string;
+    uptime: string;
+    reliability: string;
+  };
+  riskFactors: string[];
   recommendations: string[];
+  perWorkerPredictions: Array<{
+    workerId: string;
+    predictedStatus: 'up' | 'down' | 'degraded';
+    confidence: number;
+    reasoning: string;
+  }>;
   tokenUsage: {
     prompt: number;
     completion: number;
@@ -30,9 +59,20 @@ interface StatusPrediction {
   };
 }
 
+interface AIPrompt {
+  id: string;
+  name: string;
+  title: string;
+  description: string | null;
+  systemPrompt: string;
+  userPromptTemplate: string;
+  isActive: boolean;
+}
+
 class KimiPredictiveService {
   private openai: OpenAI;
   private readonly model = 'kimi-latest';
+  private promptCache: Map<string, AIPrompt> = new Map();
 
   constructor() {
     const apiKey = process.env.MOONSHOT_API_KEY || '';
@@ -47,10 +87,46 @@ class KimiPredictiveService {
   }
 
   /**
+   * Get AI prompt from database with caching
+   */
+  private async getPrompt(promptName: string): Promise<AIPrompt> {
+    // Check cache first
+    if (this.promptCache.has(promptName)) {
+      return this.promptCache.get(promptName)!;
+    }
+
+    // Fetch from database
+    const prompt = await prisma.aIPrompt.findFirst({
+      where: {
+        name: promptName,
+        isActive: true
+      }
+    });
+
+    if (!prompt) {
+      throw new Error(`AI prompt '${promptName}' not found or inactive`);
+    }
+
+    // Cache the prompt
+    this.promptCache.set(promptName, prompt);
+    return prompt;
+  }
+
+  /**
+   * Clear prompt cache (useful for testing or when prompts are updated)
+   */
+  public clearPromptCache(): void {
+    this.promptCache.clear();
+  }
+
+  /**
    * Analyze current site health using AI
    */
   async analyzeSiteHealth(siteId: string): Promise<HealthAnalysis> {
     try {
+      // Get the health analysis prompt
+      const prompt = await this.getPrompt('site_health_analysis');
+
       // Get status data from the last 3 days
       const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
       
@@ -189,51 +265,22 @@ class KimiPredictiveService {
         consensus
       };
 
+      // Replace placeholders in the user prompt template
+      const userPrompt = prompt.userPromptTemplate
+        .replace('{{siteName}}', site.name)
+        .replace('{{siteUrl}}', site.url)
+        .replace('{{analysisData}}', JSON.stringify(analysisData, null, 2));
+
       const completion = await this.openai.chat.completions.create({
         model: this.model,
         messages: [
           {
             role: 'system',
-            content: 'You are an expert site reliability engineer with deep knowledge of web infrastructure, networking, and performance optimization. Provide comprehensive, actionable analysis of site health data.'
+            content: `${prompt.systemPrompt}`
           },
           {
             role: 'user',
-            content: `Perform a comprehensive health analysis of this site using the last 3 days of data. Each worker represents a monitoring region, and consensus_worker is the combined status from all regions.
-
-Site: ${site.name} (${site.url})
-Data Period: Last 3 days
-Data: ${JSON.stringify(analysisData, null, 2)}
-
-Provide detailed analysis in JSON format:
-{
-  "diagnosis": "comprehensive explanation of current health status including any issues found",
-  "severity": "low|medium|high|critical",
-  "overallHealth": "excellent|good|fair|poor|critical",
-  "performanceAnalysis": {
-    "responseTimeIssues": "analysis of response time patterns and outliers",
-    "uptimeIssues": "analysis of uptime patterns and reliability",
-    "regionalIssues": "analysis of differences between monitoring regions"
-  },
-  "securityAnalysis": {
-    "sslIssues": "analysis of SSL certificate status and issues",
-    "dnsIssues": "analysis of DNS stability and configuration",
-    "tcpIssues": "analysis of TCP connectivity and port availability"
-  },
-  "recommendations": [
-    "specific, actionable recommendation 1",
-    "specific, actionable recommendation 2",
-    "specific, actionable recommendation 3"
-  ],
-  "perWorkerRecommendations": [
-    {
-      "workerId": "worker-1",
-      "issues": ["specific issue 1", "specific issue 2"],
-      "recommendations": ["worker-specific recommendation 1", "worker-specific recommendation 2"]
-    }
-  ],
-  "confidence": 0.95,
-  "anomalies": ["detailed description of anomaly 1", "detailed description of anomaly 2"]
-}`
+            content: `${userPrompt}`
           }
         ],
         max_tokens: 2000,
@@ -264,7 +311,15 @@ Provide detailed analysis in JSON format:
       }
 
       return {
-        ...result,
+        diagnosis: result.diagnosis || completion.choices[0].message.content,
+        severity: result.severity || 'medium',
+        overallHealth: result.overallHealth || 'fair',
+        performanceAnalysis: result.performanceAnalysis || { responseTimeIssues: '', uptimeIssues: '', regionalIssues: '' },
+        securityAnalysis: result.securityAnalysis || { sslIssues: '', dnsIssues: '', tcpIssues: '' },
+        recommendations: result.recommendations || ['Review the analysis provided'],
+        perWorkerRecommendations: result.perWorkerRecommendations || [],
+        confidence: result.confidence || 0.8,
+        anomalies: result.anomalies || [],
         tokenUsage: {
           prompt: completion.usage?.prompt_tokens || 0,
           completion: completion.usage?.completion_tokens || 0,
@@ -283,6 +338,9 @@ Provide detailed analysis in JSON format:
    */
   async predictSiteStatus(siteId: string, timeframe: string = '24h'): Promise<StatusPrediction> {
     try {
+      // Get the status prediction prompt
+      const prompt = await this.getPrompt('status_prediction');
+
       // Get historical status data from the last 7 days for more comprehensive analysis
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       
@@ -412,51 +470,23 @@ Provide detailed analysis in JSON format:
         infrastructureRisks: predictionAnalysis.infrastructureRisks
       };
 
+      // Replace placeholders in the user prompt template
+      const userPrompt = prompt.userPromptTemplate
+        .replace('{{siteName}}', site.name)
+        .replace('{{siteUrl}}', site.url)
+        .replace('{{timeframe}}', timeframe)
+        .replace('{{predictionData}}', JSON.stringify(predictionData, null, 2));
+
       const completion = await this.openai.chat.completions.create({
         model: this.model,
         messages: [
           {
             role: 'system',
-            content: 'You are an expert site reliability engineer specializing in predictive analytics and trend analysis. Provide detailed predictions based on historical patterns and current trends.'
+            content: `${prompt.systemPrompt}`
           },
           {
             role: 'user',
-            content: `Predict the site status for the next ${timeframe} based on the last 3 days of historical data.
-
-Site: ${site.name} (${site.url})
-Timeframe: ${timeframe}
-Data Period: Last 3 days
-Data: ${JSON.stringify(predictionData, null, 2)}
-
-Provide detailed prediction in JSON format:
-{
-  "predictedStatus": "up|down|degraded",
-  "confidence": 0.85,
-  "timeframe": "${timeframe}",
-  "reasoning": "detailed explanation of prediction based on patterns and trends",
-  "performancePrediction": {
-    "responseTime": "predicted response time trend",
-    "uptime": "predicted uptime percentage",
-    "reliability": "predicted reliability score"
-  },
-  "riskFactors": [
-    "specific risk factor 1 with probability",
-    "specific risk factor 2 with probability"
-  ],
-  "recommendations": [
-    "specific preventive action 1",
-    "specific preventive action 2",
-    "specific preventive action 3"
-  ],
-  "perWorkerPredictions": [
-    {
-      "workerId": "worker-1",
-      "predictedStatus": "up|down|degraded",
-      "confidence": 0.85,
-      "reasoning": "worker-specific prediction reasoning"
-    }
-  ]
-}`
+            content: `${userPrompt}`
           }
         ],
         max_tokens: 2000,
@@ -486,7 +516,14 @@ Provide detailed prediction in JSON format:
       }
 
       return {
-        ...result,
+        predictedStatus: result.predictedStatus || predictionAnalysis.predictedStatus,
+        confidence: result.confidence || predictionAnalysis.confidence,
+        timeframe: result.timeframe || timeframe,
+        reasoning: result.reasoning || predictionAnalysis.reasoning,
+        performancePrediction: result.performancePrediction || { responseTime: 'stable', uptime: '95%', reliability: 'high' },
+        riskFactors: result.riskFactors || ['Unable to parse AI response'],
+        recommendations: result.recommendations || ['Review the prediction manually'],
+        perWorkerPredictions: result.perWorkerPredictions || [],
         tokenUsage: {
           prompt: completion.usage?.prompt_tokens || 0,
           completion: completion.usage?.completion_tokens || 0,
