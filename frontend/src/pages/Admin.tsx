@@ -5,17 +5,58 @@ import {
   useTheme,
   Paper,
   alpha,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   People as PeopleIcon,
+  Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import UserManagement from '../components/admin/UserManagement';
+import PromptManagement from '../components/admin/PromptManagement';
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
 
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`admin-tabpanel-${index}`}
+      aria-labelledby={`admin-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ py: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `admin-tab-${index}`,
+    'aria-controls': `admin-tabpanel-${index}`,
+  };
+}
 
 export default function Admin() {
   const theme = useTheme();
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -41,12 +82,12 @@ export default function Admin() {
             Admin Panel
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-            Manage users and system access
+            Manage users, system access, and AI prompts
           </Typography>
         </Box>
       </motion.div>
 
-      {/* User Management Content */}
+      {/* Main Content with Tabs */}
       <Paper
         elevation={0}
         sx={{
@@ -55,25 +96,55 @@ export default function Admin() {
           overflow: 'hidden',
         }}
       >
+        {/* Tab Header */}
         <Box sx={{ 
           borderBottom: 1, 
           borderColor: 'divider',
-          px: 3,
-          py: 2,
           backgroundColor: alpha(theme.palette.primary.main, 0.05)
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <PeopleIcon sx={{ color: theme.palette.primary.main }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              User Management
-            </Typography>
-          </Box>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="admin tabs"
+            sx={{
+              px: 3,
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                minHeight: 64,
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                },
+              },
+              '& .MuiTabs-indicator': {
+                height: 3,
+                borderRadius: '3px 3px 0 0',
+              },
+            }}
+          >
+            <Tab
+              icon={<PeopleIcon />}
+              iconPosition="start"
+              label="User Management"
+              {...a11yProps(0)}
+            />
+            <Tab
+              icon={<PsychologyIcon />}
+              iconPosition="start"
+              label="AI Prompts"
+              {...a11yProps(1)}
+            />
+          </Tabs>
         </Box>
 
-        {/* Content */}
-        <Box sx={{ py: 3 }}>
+        {/* Tab Content */}
+        <TabPanel value={tabValue} index={0}>
           <UserManagement />
-        </Box>
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={1}>
+          <PromptManagement />
+        </TabPanel>
       </Paper>
     </Container>
   );
