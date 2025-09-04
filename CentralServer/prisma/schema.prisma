@@ -201,3 +201,19 @@ model UserMembership {
   @@unique([userId, membershipPlanId])
   @@map("user_memberships")
 }
+
+model AIPrompt {
+  id String @id @default(uuid())
+  name String @unique // e.g., "site_health_analysis", "status_prediction"
+  title String // Human-readable title
+  description String? // Description of what this prompt does
+  systemPrompt String // The system prompt for the AI
+  userPromptTemplate String // The user prompt template with placeholders
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+  @@map("ai_prompts")
+}
