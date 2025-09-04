@@ -849,4 +849,121 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * GET /admin/prompts
+ * Fetch all AI prompts
+ * Requires admin privileges
+ */
+router.get('/prompts', requireAdmin, async (req, res) => {
+  try {
+    const prompts = await prisma.aIPrompt.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    res.json({
+      success: true,
+      data: prompts,
+      total: prompts.length,
+    });
+  } catch (error) {
+    console.error('Error fetching prompts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch prompts',
+    });
+  }
+});
+
+/**
+ * GET /admin/prompts/:id
+ * Fetch a specific AI prompt by ID
+ * Requires admin privileges
+ */
+router.get('/prompts/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const prompt = await prisma.aIPrompt.findUnique({
+      where: { id },
+    });
+
+    if (!prompt) {
+      return res.status(404).json({
+        success: false,
+        error: 'Prompt not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: prompt,
+    });
+  } catch (error) {
+    console.error('Error fetching prompt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch prompt',
+    });
+  }
+});
+
+/**
+ * PUT /admin/prompts/:id
+ * Update an AI prompt
+ * Requires admin privileges
+ */
+router.put('/prompts/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, systemPrompt, userPromptTemplate, isActive } = req.body;
+
+    // Validate required fields
+    if (!title || !systemPrompt || !userPromptTemplate) {
+      return res.status(400).json({
+        success: false,
+        error: 'title, systemPrompt, and userPromptTemplate are required',
+      });
+    }
+
+    // Check if prompt exists
+    const existingPrompt = await prisma.aIPrompt.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+
+    if (!existingPrompt) {
+      return res.status(404).json({
+        success: false,
+        error: 'Prompt not found',
+      });
+    }
+
+    // Update prompt
+    const updatedPrompt = await prisma.aIPrompt.update({
+      where: { id },
+      data: {
+        title: title.trim(),
+        description: description?.trim() || null,
+        systemPrompt: systemPrompt.trim(),
+        userPromptTemplate: userPromptTemplate.trim(),
+        isActive: isActive !== undefined ? isActive : true,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: updatedPrompt,
+      message: 'Prompt updated successfully',
+    });
+  } catch (error) {
+    console.error('Error updating prompt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update prompt',
+    });
+  }
+});
+
 export default router; 

@@ -9,6 +9,26 @@ import type {
   CreateUserResponse
 } from '../types/admin.types';
 
+interface AIPrompt {
+  id: string;
+  name: string;
+  title: string;
+  description: string | null;
+  systemPrompt: string;
+  userPromptTemplate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface UpdatePromptRequest {
+  title: string;
+  description?: string;
+  systemPrompt: string;
+  userPromptTemplate: string;
+  isActive: boolean;
+}
+
 class AdminService {
   /**
    * Fetch all users for admin management
@@ -106,6 +126,41 @@ class AdminService {
     message: string;
   }> {
     const response = await axios.delete(`/admin/users/${userId}`);
+    return response.data;
+  }
+
+  /**
+   * Fetch all AI prompts
+   */
+  async getPrompts(): Promise<{
+    success: boolean;
+    data: AIPrompt[];
+    total: number;
+  }> {
+    const response = await axios.get('/admin/prompts');
+    return response.data;
+  }
+
+  /**
+   * Fetch a specific AI prompt by ID
+   */
+  async getPromptById(promptId: string): Promise<{
+    success: boolean;
+    data: AIPrompt;
+  }> {
+    const response = await axios.get(`/admin/prompts/${promptId}`);
+    return response.data;
+  }
+
+  /**
+   * Update an AI prompt
+   */
+  async updatePrompt(promptId: string, data: UpdatePromptRequest): Promise<{
+    success: boolean;
+    data: AIPrompt;
+    message: string;
+  }> {
+    const response = await axios.put(`/admin/prompts/${promptId}`, data);
     return response.data;
   }
 }
