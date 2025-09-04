@@ -113,7 +113,7 @@ export default function Login() {
               onChange={formik.handleChange}
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
-              sx={{ mb: 3 }}
+              sx={{ mb: 2 }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -127,6 +127,23 @@ export default function Login() {
                 ),
               }}
             />
+
+            {/* Forgot Password Link */}
+            <Box sx={{ textAlign: 'right', mb: 2 }}>
+              <Link
+                component={RouterLink}
+                to="/forgot-password"
+                variant="body2"
+                sx={{
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline',
+                  },
+                }}
+              >
+                Forgot your password?
+              </Link>
+            </Box>
 
             <Button
               type="submit"

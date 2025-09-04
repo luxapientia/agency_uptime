@@ -6,8 +6,11 @@ import { BadRequestError, UnauthorizedError } from '../utils/errors';
 import mailgunService from '../services/mailgun.service';
 import { authenticate } from '../middleware/auth.middleware';
 import type { AuthenticatedRequest } from '../types/express';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
+const prisma = new PrismaClient();
 
 const registerSchema = z.object({
   body: z.object({
@@ -100,6 +103,71 @@ router.get('/me', authenticate, async (req, res, next) => {
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       res.status(401).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
+const resetPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().email('Invalid email format'),
+    verificationCode: z.string().length(6, 'Verification code must be 6 digits'),
+    newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  }),
+});
+
+/**
+ * POST /auth/reset-password
+ * Reset password with verification code
+ */
+router.post('/reset-password', validateRequest(resetPasswordSchema), async (req, res, next) => {
+  try {
+    const { email, verificationCode, newPassword } = req.body;
+
+    // First verify the code using the existing verification system
+    const isVerified = await mailgunService.verifyCode(email.toLowerCase(), verificationCode);
+
+    if (!isVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or expired verification code',
+      });
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user password
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully',
+    });
+
+  } catch (error) {
+    if (error instanceof BadRequestError) {
+      res.status(400).json({ 
+        success: false,
+        error: error.message 
+      });
       return;
     }
     next(error);
