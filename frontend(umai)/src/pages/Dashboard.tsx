@@ -437,7 +437,7 @@ export default function Dashboard() {
                 lineHeight: 1.2,
               }}
             >
-              Welcome to Uptime Monitoring
+              Welcome to UptimeMonitoring.ai
             </Typography>
             <Typography
               variant="h5"
