@@ -299,7 +299,7 @@ export default function Dashboard() {
       path: '/sites/ssl-protected'
     },
     {
-      title: 'With Notifications',
+      title: 'With Alerts',
       value: stats?.sitesWithNotifications || 0,
       icon: <NotificationsIcon />,
       color: theme.palette.warning.main,

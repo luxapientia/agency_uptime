@@ -476,7 +476,7 @@ export default function Sites() {
                 }}>
                   <NotificationIcon fontSize="small" />
                 </Box>
-                <span>With Notifications ({filterCounts.withNotifications})</span>
+                <span>With Alerts ({filterCounts.withNotifications})</span>
               </Stack>
             }
             value="with-notifications"

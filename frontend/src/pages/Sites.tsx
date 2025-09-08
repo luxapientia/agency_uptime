@@ -372,7 +372,7 @@ export default function Sites() {
             label={
               <Stack direction="row" spacing={1} alignItems="center">
                 <NotificationIcon fontSize="small" />
-                <span>With Notifications ({filterCounts.withNotifications})</span>
+                <span>With Alerts ({filterCounts.withNotifications})</span>
               </Stack>
             } 
             value="with-notifications" 

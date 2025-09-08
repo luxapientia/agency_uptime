@@ -362,7 +362,7 @@ export default function Dashboard() {
       status: 'success' as const
     },
     {
-      title: 'With Notifications',
+      title: 'With Alerts',
       value: stats?.sitesWithNotifications || 0,
       icon: <NotificationsIcon sx={{ fontSize: '2rem', color: '#F59E0B' }} />,
       color: '#F59E0B',
