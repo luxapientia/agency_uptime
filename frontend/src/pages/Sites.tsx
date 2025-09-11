@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -27,6 +27,7 @@ import {
   Avatar,
   Tabs,
   Tab,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -43,6 +44,7 @@ import {
   SignalWifiStatusbar4Bar as OnlineIcon,
   Visibility as VisibilityIcon,
   ContentCopy as CopyIcon,
+  Upgrade as UpgradeIcon,
 } from '@mui/icons-material';
 import type { AppDispatch, RootState } from '../store';
 import {
@@ -51,6 +53,7 @@ import {
   deleteSite,
   setSelectedSite,
 } from '../store/slices/siteSlice';
+import { fetchUserMemberships } from '../store/slices/membershipSlice';
 import type { Site, CreateSiteData, UpdateSiteData } from '../types/site.types';
 import SiteForm from '../components/sites/SiteForm';
 import NotificationSettings from '../components/sites/NotificationSettings';
@@ -60,10 +63,12 @@ import { alpha } from '@mui/material/styles';
 import { showToast } from '../utils/toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { formatDate } from '../utils/dateUtils';
+import { getMaxWebsitesAllowed } from '../utils/featureUtils';
 
 export default function Sites() {
   const dispatch = useDispatch<AppDispatch>();
   const { sites, isLoading, selectedSite } = useSelector((state: RootState) => state.sites);
+  const { userMemberships } = useSelector((state: RootState) => state.membership);
   const siteStatuses = useSelector((state: RootState) => state.siteStatus.statuses);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -72,6 +77,33 @@ export default function Sites() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Fetch user memberships on component mount
+  useEffect(() => {
+    dispatch(fetchUserMemberships());
+  }, [dispatch]);
+
+  // Calculate site limits based on user's membership features
+  const maxSitesAllowed = useMemo(() => {
+    const now = new Date();
+    const activeMemberships = userMemberships.filter(membership => 
+      new Date(membership.endDate) > now
+    );
+    
+    // Get all features from active memberships
+    const userFeatures = activeMemberships.flatMap(membership => 
+      membership.membershipPlan.features.map(feature => ({
+        featureKey: feature,
+        endDate: new Date(membership.endDate)
+      }))
+    );
+    
+    return getMaxWebsitesAllowed(userFeatures);
+  }, [userMemberships]);
+
+  // Check if user has reached their site limit
+  const hasReachedSiteLimit = sites.length >= maxSitesAllowed;
+  const canAddMoreSites = !hasReachedSiteLimit;
 
   // Get current filter from URL path
   const currentPath = location.pathname.split('/').pop() || '';
@@ -111,6 +143,10 @@ export default function Sites() {
   const [downloadingPdfSiteId, setDownloadingPdfSiteId] = useState<string | null>(null);
 
   const handleAddClick = () => {
+    if (!canAddMoreSites) {
+      showToast.error(`You've reached your site limit of ${maxSitesAllowed} sites. Please upgrade your plan to add more sites.`);
+      return;
+    }
     dispatch(setSelectedSite(null));
     setIsFormOpen(true);
   };
@@ -305,27 +341,107 @@ export default function Sites() {
           <Button
             variant="contained"
             color="primary"
-            startIcon={<AddIcon />}
+            startIcon={hasReachedSiteLimit ? <UpgradeIcon /> : <AddIcon />}
             onClick={handleAddClick}
+            disabled={!canAddMoreSites}
             fullWidth={isMobile}
             sx={{
               borderRadius: theme.shape.borderRadius,
               py: 1.5,
-              background: theme.palette.mode === 'dark'
-                ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
-                : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-              boxShadow: `0 3px 5px 2px ${theme.palette.primary.main}30`,
+              background: hasReachedSiteLimit 
+                ? theme.palette.warning.main
+                : theme.palette.mode === 'dark'
+                  ? `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`
+                  : `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+              boxShadow: hasReachedSiteLimit 
+                ? `0 3px 5px 2px ${theme.palette.warning.main}30`
+                : `0 3px 5px 2px ${theme.palette.primary.main}30`,
               '&:hover': {
-                background: theme.palette.mode === 'dark'
-                  ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
-                  : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
+                background: hasReachedSiteLimit 
+                  ? theme.palette.warning.dark
+                  : theme.palette.mode === 'dark'
+                    ? `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`
+                    : `linear-gradient(45deg, ${theme.palette.secondary.main} 30%, ${theme.palette.primary.main} 90%)`,
+              },
+              '&:disabled': {
+                background: theme.palette.action.disabledBackground,
+                color: theme.palette.action.disabled,
+                boxShadow: 'none',
               }
             }}
           >
-            Add New Site
+            {hasReachedSiteLimit ? 'Upgrade to Add More Sites' : 'Add New Site'}
           </Button>
         </Stack>
       </Box>
+
+      {/* Site Limit Alert */}
+      {maxSitesAllowed > 0 && (
+        <Alert 
+          severity={hasReachedSiteLimit ? "warning" : sites.length >= maxSitesAllowed * 0.8 ? "info" : "success"}
+          sx={{ 
+            mb: 3,
+            borderRadius: theme.shape.borderRadius,
+            '& .MuiAlert-message': {
+              width: '100%'
+            }
+          }}
+          action={
+            hasReachedSiteLimit ? (
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => navigate('/membership-plans')}
+                sx={{ 
+                  fontWeight: 'bold',
+                  textTransform: 'none'
+                }}
+              >
+                Upgrade Plan
+              </Button>
+            ) : null
+          }
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              {hasReachedSiteLimit 
+                ? `You've reached your site limit of ${maxSitesAllowed} sites. Upgrade your plan to monitor more sites.`
+                : sites.length >= maxSitesAllowed * 0.8
+                  ? `You're using ${sites.length} of ${maxSitesAllowed} available sites. Consider upgrading soon.`
+                  : `You can monitor up to ${maxSitesAllowed} sites. Currently using ${sites.length}.`
+              }
+            </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              minWidth: 'fit-content'
+            }}>
+              <Typography variant="body2" color="text.secondary">
+                {sites.length}/{maxSitesAllowed}
+              </Typography>
+              <Box sx={{ 
+                width: 60, 
+                height: 6, 
+                bgcolor: theme.palette.action.hover,
+                borderRadius: 3,
+                overflow: 'hidden'
+              }}>
+                <Box sx={{
+                  width: `${(sites.length / maxSitesAllowed) * 100}%`,
+                  height: '100%',
+                  bgcolor: hasReachedSiteLimit 
+                    ? theme.palette.warning.main 
+                    : sites.length >= maxSitesAllowed * 0.8
+                      ? theme.palette.info.main
+                      : theme.palette.success.main,
+                  transition: 'width 0.3s ease'
+                }} />
+              </Box>
+            </Box>
+          </Box>
+        </Alert>
+      )}
 
       <Box sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
         <Tabs 
