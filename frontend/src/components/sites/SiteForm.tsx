@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -20,6 +21,7 @@ import {
   alpha,
   FormControlLabel,
   Switch,
+  Chip,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -30,8 +32,12 @@ import {
   Assessment as AssessmentIcon,
   CalendarMonth as CalendarMonthIcon,
   AccessTime as AccessTimeIcon,
+  Lock as LockIcon,
+  Upgrade as UpgradeIcon,
 } from '@mui/icons-material';
 import type { Site, CreateSiteData } from '../../types/site.types';
+import type { RootState } from '../../store';
+import { getMinCheckIntervalAllowed } from '../../utils/featureUtils';
 
 interface SiteFormProps {
   open: boolean;
@@ -45,6 +51,8 @@ const INTERVAL_OPTIONS = [0.5, 1, 5];
 
 export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: SiteFormProps) {
   const theme = useTheme();
+  const { userMemberships } = useSelector((state: RootState) => state.membership);
+  
   const getNowUtcDay = () => String(new Date().getUTCDate());
   const getNowUtcTime = () => {
     const now = new Date();
@@ -52,6 +60,47 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
     const mm = String(now.getUTCMinutes()).padStart(2, '0');
     return `${hh}:${mm}`;
   };
+
+  // Calculate available check intervals based on user's membership features
+  const availableIntervals = useMemo(() => {
+    const now = new Date();
+    const activeMemberships = userMemberships.filter(membership => 
+      new Date(membership.endDate) > now
+    );
+    
+    // Get all features from active memberships
+    const userFeatures = activeMemberships.flatMap(membership => 
+      membership.membershipPlan.features.map(feature => ({
+        featureKey: feature,
+        endDate: new Date(membership.endDate)
+      }))
+    );
+    
+    const minIntervalSeconds = getMinCheckIntervalAllowed(userFeatures);
+    
+    // Filter intervals based on user's membership
+    return INTERVAL_OPTIONS.filter(interval => {
+      const intervalSeconds = interval * 60; // Convert minutes to seconds
+      return intervalSeconds >= minIntervalSeconds;
+    });
+  }, [userMemberships]);
+
+  // Get the minimum allowed interval for display
+  const minAllowedInterval = useMemo(() => {
+    const now = new Date();
+    const activeMemberships = userMemberships.filter(membership => 
+      new Date(membership.endDate) > now
+    );
+    
+    const userFeatures = activeMemberships.flatMap(membership => 
+      membership.membershipPlan.features.map(feature => ({
+        featureKey: feature,
+        endDate: new Date(membership.endDate)
+      }))
+    );
+    
+    return getMinCheckIntervalAllowed(userFeatures);
+  }, [userMemberships]);
   const [formData, setFormData] = useState<Partial<Site & { monthlyReportDay?: string; monthlyReportTime?: string }>>({
     name: '',
     url: '',
@@ -65,10 +114,14 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
 
   useEffect(() => {
     if (site) {
+      // Check if the site's current interval is still allowed
+      const siteIntervalSeconds = site.checkInterval * 60;
+      const isIntervalAllowed = siteIntervalSeconds >= minAllowedInterval;
+      
       setFormData({
         name: site.name,
         url: site.url,
-        checkInterval: site.checkInterval,
+        checkInterval: isIntervalAllowed ? site.checkInterval : availableIntervals[0] || 5,
         isActive: site.isActive,
         monthlyReport: site.monthlyReport,
         monthlyReportDay: getNowUtcDay(),
@@ -78,7 +131,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
       setFormData({
         name: '',
         url: '',
-        checkInterval: 1,
+        checkInterval: availableIntervals[0] || 5,
         isActive: true,
         monthlyReport: false,
         monthlyReportDay: getNowUtcDay(),
@@ -86,7 +139,7 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
       });
     }
     setErrors({});
-  }, [site]);
+  }, [site, availableIntervals, minAllowedInterval]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -276,15 +329,70 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                   },
                 }}
               >
-                {INTERVAL_OPTIONS.map((interval) => (
-                  <MenuItem key={interval} value={interval}>
-                    {interval === 0.5 ? 'Every 30 seconds' : `Every ${interval} minute${interval > 1 ? 's' : ''}`}
-                  </MenuItem>
-                ))}
+                {INTERVAL_OPTIONS.map((interval) => {
+                  const isAvailable = availableIntervals.includes(interval);
+                  const isRestricted = !isAvailable;
+                  
+                  return (
+                    <MenuItem 
+                      key={interval} 
+                      value={interval}
+                      disabled={isRestricted}
+                      sx={{
+                        opacity: isRestricted ? 0.6 : 1,
+                        '&.Mui-disabled': {
+                          color: theme.palette.text.disabled,
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                        <Box sx={{ flex: 1 }}>
+                          {interval === 0.5 ? 'Every 30 seconds' : `Every ${interval} minute${interval > 1 ? 's' : ''}`}
+                        </Box>
+                        {isRestricted && (
+                          <Chip
+                            icon={<LockIcon />}
+                            label="Upgrade Required"
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                            sx={{ 
+                              fontSize: '0.75rem',
+                              height: '20px',
+                              '& .MuiChip-icon': {
+                                fontSize: '0.875rem'
+                              }
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </MenuItem>
+                  );
+                })}
               </Select>
               <FormHelperText>
-                <InfoIcon fontSize="small" sx={{ color: theme.palette.info.main }} />
-                Choose how often the site should be checked
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <InfoIcon fontSize="small" sx={{ color: theme.palette.info.main }} />
+                  <Typography variant="body2" component="span">
+                    Choose how often the site should be checked
+                  </Typography>
+                  {minAllowedInterval < 300 && (
+                    <Chip
+                      icon={<UpgradeIcon />}
+                      label={`Min: ${minAllowedInterval === 30 ? '30s' : minAllowedInterval === 60 ? '1m' : '5m'}`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ 
+                        fontSize: '0.75rem',
+                        height: '20px',
+                        '& .MuiChip-icon': {
+                          fontSize: '0.875rem'
+                        }
+                      }}
+                    />
+                  )}
+                </Box>
               </FormHelperText>
             </FormControl>
 
@@ -398,6 +506,38 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
             >
               The site will be monitored from multiple locations to ensure accurate uptime tracking.
             </Alert>
+
+            {/* Check Interval Limitation Alert */}
+            {availableIntervals.length < INTERVAL_OPTIONS.length && (
+              <Alert
+                severity="warning"
+                sx={{
+                  borderRadius: '12px',
+                  backgroundColor: alpha(theme.palette.warning.main, 0.08),
+                  '& .MuiAlert-icon': {
+                    color: theme.palette.warning.main,
+                  },
+                }}
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => window.open('/membership-plans', '_blank')}
+                    sx={{ 
+                      fontWeight: 'bold',
+                      textTransform: 'none'
+                    }}
+                  >
+                    Upgrade Plan
+                  </Button>
+                }
+              >
+                <Typography variant="body2">
+                  Your current plan allows check intervals of {minAllowedInterval === 30 ? '30 seconds or longer' : minAllowedInterval === 60 ? '1 minute or longer' : '5 minutes or longer'}. 
+                  Upgrade your plan to use faster check intervals for more responsive monitoring.
+                </Typography>
+              </Alert>
+            )}
           </Box>
         </DialogContent>
 
