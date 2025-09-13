@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -25,6 +26,7 @@ import {
   Group as GroupIcon,
   Schedule as ScheduleIcon,
   Celebration as CelebrationIcon,
+  Login as LoginIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -45,9 +47,10 @@ interface PlanCardProps {
     endDate?: Date | null;
     disabled?: boolean;
     disabledReason?: string;
+    isAuthenticated?: boolean;
 }
 
-const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, endDate, disabled = false, disabledReason }: PlanCardProps) => {
+const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActive = false, endDate, disabled = false, disabledReason, isAuthenticated = false }: PlanCardProps) => {
     const theme = useTheme();
     const [ref, inView] = useInView({
         triggerOnce: true,
@@ -253,6 +256,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                     onSelect(plan);
                                 }}
                                 disabled={isActive || disabled}
+                                startIcon={!isAuthenticated && !isActive && !disabled ? <LoginIcon /> : undefined}
                                 sx={{
                                     fontWeight: 'bold',
                                     py: 1.5,
@@ -279,7 +283,7 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
                                     }),
                                 }}
                             >
-                                {isActive ? 'Current Plan' : disabled ? disabledReason || 'Unavailable' : 'Purchase Now'}
+                                {isActive ? 'Current Plan' : disabled ? disabledReason || 'Unavailable' : isAuthenticated ? 'Purchase Now' : 'Login to Purchase'}
                             </Button>
                         </Box>
                     </Stack>
@@ -291,7 +295,9 @@ const PlanCard = ({ plan, isPopular = false, delay, onSelect, isSelected, isActi
 
 export default function MembershipPlans() {
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
     const { plans, bundlePrice, totalPrice, savings, userMemberships, isLoading, error } = useSelector((state: RootState) => state.membership);
+    const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const theme = useTheme();
     const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -299,10 +305,24 @@ export default function MembershipPlans() {
 
     useEffect(() => {
         dispatch(fetchMembershipPlans());
-        dispatch(fetchUserMemberships());
-    }, [dispatch]);
+        // Only fetch user memberships if user is authenticated
+        if (isAuthenticated) {
+            dispatch(fetchUserMemberships());
+        }
+    }, [dispatch, isAuthenticated]);
 
     const handlePlanSelect = (plan: MembershipPlan) => {
+        // If user is not authenticated, redirect to login with return URL
+        if (!isAuthenticated) {
+            navigate('/login', { 
+                state: { 
+                    from: '/membership-plans',
+                    message: 'Please log in to purchase a membership plan'
+                } 
+            });
+            return;
+        }
+        
         setSelectedPlan(plan);
         setShowPaymentModal(true);
     };
@@ -320,6 +340,17 @@ export default function MembershipPlans() {
     };
 
     const handleBundlePayment = () => {
+        // If user is not authenticated, redirect to login with return URL
+        if (!isAuthenticated) {
+            navigate('/login', { 
+                state: { 
+                    from: '/membership-plans',
+                    message: 'Please log in to purchase a membership plan'
+                } 
+            });
+            return;
+        }
+        
         setShowBundlePaymentModal(true);
     };
 
@@ -329,6 +360,7 @@ export default function MembershipPlans() {
 
     // Helper function to check if user has an active membership for a plan
     const isPlanActive = (planId: string) => {
+        if (!isAuthenticated) return false;
         const now = new Date();
         return userMemberships.some(membership => 
             membership.membershipPlanId === planId && 
@@ -338,6 +370,7 @@ export default function MembershipPlans() {
 
     // Helper function to get membership end date for a plan
     const getMembershipEndDate = (planId: string) => {
+        if (!isAuthenticated) return null;
         const membership = userMemberships.find(m => m.membershipPlanId === planId);
         return membership ? new Date(membership.endDate) : null;
     };
@@ -359,14 +392,14 @@ export default function MembershipPlans() {
     const mainPlans = plans.filter(plan => plan.type === 'main');
     const upgradePlans = plans.filter(plan => plan.type === 'upgrade');
 
-    // Check if user has any active main plan
-    const hasActiveMainPlan = mainPlans.some(plan => isPlanActive(plan.id));
+    // Check if user has any active main plan (only if authenticated)
+    const hasActiveMainPlan = isAuthenticated && mainPlans.some(plan => isPlanActive(plan.id));
     
     // Get the active main plan (user can only have one)
-    const activeMainPlan = mainPlans.find(plan => isPlanActive(plan.id));
+    const activeMainPlan = isAuthenticated ? mainPlans.find(plan => isPlanActive(plan.id)) : null;
 
-    // Check if all upgrade plans are purchased
-    const allUpgradePlansPurchased = upgradePlans.length > 0 && upgradePlans.every(plan => isPlanActive(plan.id));
+    // Check if all upgrade plans are purchased (only if authenticated)
+    const allUpgradePlansPurchased = isAuthenticated && upgradePlans.length > 0 && upgradePlans.every(plan => isPlanActive(plan.id));
 
     if (isLoading) {
         return (
@@ -412,6 +445,42 @@ export default function MembershipPlans() {
                     </Typography>
                 </Box>
             </motion.div>
+
+            {/* Unauthenticated User Message */}
+            {!isAuthenticated && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                    <Alert 
+                        severity="info" 
+                        sx={{ 
+                            mb: 4, 
+                            borderRadius: 2,
+                            background: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.05)} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
+                            border: `1px solid ${theme.palette.info.main}`,
+                        }}
+                        action={
+                            <Button
+                                color="inherit"
+                                size="small"
+                                onClick={() => navigate('/register')}
+                                sx={{ 
+                                    fontWeight: 'bold',
+                                    textTransform: 'none'
+                                }}
+                            >
+                                Sign Up
+                            </Button>
+                        }
+                    >
+                        <Typography variant="body2">
+                            <strong>Welcome!</strong> View our membership plans below. You'll need to create an account to purchase a plan and start monitoring your websites.
+                        </Typography>
+                    </Alert>
+                </motion.div>
+            )}
 
             {/* Current Memberships */}
             {userMemberships.length > 0 && (
@@ -506,6 +575,7 @@ export default function MembershipPlans() {
                                     endDate={getMembershipEndDate(plan.id)}
                                     disabled={hasActiveMainPlan && !isPlanActive(plan.id)}
                                     disabledReason={hasActiveMainPlan && !isPlanActive(plan.id) ? "One Main Plan Only" : undefined}
+                                    isAuthenticated={isAuthenticated}
                                 />
                             </Box>
                         ))}
@@ -578,6 +648,7 @@ export default function MembershipPlans() {
                                     endDate={getMembershipEndDate(plan.id)}
                                     disabled={!hasActiveMainPlan}
                                     disabledReason="Requires Main Plan"
+                                    isAuthenticated={isAuthenticated}
                                 />
                             </Box>
                         ))}
@@ -661,6 +732,7 @@ export default function MembershipPlans() {
                             fullWidth
                             disabled={allUpgradePlansPurchased}
                             onClick={handleBundlePayment}
+                            startIcon={!isAuthenticated && !allUpgradePlansPurchased ? <LoginIcon /> : undefined}
                             sx={{
                                 py: 1.5,
                                 fontWeight: 'bold',
@@ -681,7 +753,9 @@ export default function MembershipPlans() {
                         >
                             {allUpgradePlansPurchased 
                                 ? 'All Upgrade Plans Purchased' 
-                                : `Select All Upgrade Plans ($${bundlePrice}/month)`
+                                : isAuthenticated 
+                                    ? `Select All Upgrade Plans ($${bundlePrice}/month)`
+                                    : `Login to Purchase Bundle ($${bundlePrice}/month)`
                             }
                         </Button>
                     </Paper>

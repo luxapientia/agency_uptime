@@ -4,7 +4,6 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { store, persistor } from './store';
 import Layout from './components/layout/Layout';
-import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -87,7 +86,7 @@ function AppContent() {
         <Router basename={rootUrl}>
           <Layout>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<MembershipPlans />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -129,11 +128,7 @@ function AppContent() {
                   <Notifications />
                 </ProtectedRoute>
               } />
-              <Route path="/membership-plans" element={
-                <ProtectedRoute>
-                  <MembershipPlans />
-                </ProtectedRoute>
-              } />
+              <Route path="/membership-plans" element={<MembershipPlans />} />
               <Route path="/admin" element={
                 <AdminRoute>
                   <Admin />
