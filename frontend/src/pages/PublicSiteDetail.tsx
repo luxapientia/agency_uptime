@@ -378,6 +378,109 @@ const PublicSiteDetail: React.FC = () => {
               </Paper>
             )}
 
+            {/* AI Predictive Analysis Section */}
+            {site.aiPredictiveAnalysis && (
+              <Paper elevation={2} sx={{ p: 3, borderRadius: 2, mb: 4 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                  <TrendingUp sx={{ color: secondaryColor }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: textPrimary }}>
+                    AI Predictive Analysis
+                  </Typography>
+                  <Chip 
+                    label={`${site.aiPredictiveAnalysis.confidence}% Confidence`}
+                    color="primary"
+                    size="small"
+                  />
+                  <Chip 
+                    label={`Next ${site.aiPredictiveAnalysis.timeframe}`}
+                    color="info"
+                    size="small"
+                    variant="outlined"
+                  />
+                </Box>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {/* Predicted Status */}
+                  <Box sx={{ textAlign: 'center', p: 3, bgcolor: `${secondaryColor}10`, borderRadius: 2 }}>
+                    <Typography variant="body2" sx={{ color: textSecondary, mb: 1 }}>
+                      Predicted Status
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+                      {site.aiPredictiveAnalysis.predictedStatus === 'up' ? (
+                        <CheckCircle sx={{ color: theme.palette.success.main, fontSize: 32 }} />
+                      ) : site.aiPredictiveAnalysis.predictedStatus === 'degraded' ? (
+                        <Warning sx={{ color: theme.palette.warning.main, fontSize: 32 }} />
+                      ) : (
+                        <Cancel sx={{ color: theme.palette.error.main, fontSize: 32 }} />
+                      )}
+                      <Typography 
+                        variant="h5" 
+                        sx={{ 
+                          fontWeight: 700, 
+                          color: site.aiPredictiveAnalysis.predictedStatus === 'up' 
+                            ? theme.palette.success.main 
+                            : site.aiPredictiveAnalysis.predictedStatus === 'degraded'
+                            ? theme.palette.warning.main
+                            : theme.palette.error.main
+                        }}
+                      >
+                        {site.aiPredictiveAnalysis.predictedStatus === 'up' ? 'Operational' : 
+                         site.aiPredictiveAnalysis.predictedStatus === 'degraded' ? 'Degraded' : 'Outage'}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ color: textSecondary }}>
+                      Predicted for the next {site.aiPredictiveAnalysis.timeframe}
+                    </Typography>
+                  </Box>
+
+                  {/* Risk Factors */}
+                  {site.aiPredictiveAnalysis.riskFactors && site.aiPredictiveAnalysis.riskFactors.length > 0 && (
+                    <Box>
+                      <Typography variant="body2" sx={{ color: textSecondary, mb: 2, fontWeight: 600 }}>
+                        Identified Risk Factors
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {site.aiPredictiveAnalysis.riskFactors.map((risk, index) => (
+                          <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                            <Warning sx={{ color: theme.palette.warning.main, fontSize: 16, mt: 0.5, flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: textPrimary }}>
+                              {risk}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Recommendations */}
+                  {site.aiPredictiveAnalysis.recommendations && site.aiPredictiveAnalysis.recommendations.length > 0 && (
+                    <Box>
+                      <Typography variant="body2" sx={{ color: textSecondary, mb: 2, fontWeight: 600 }}>
+                        AI Recommendations
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {site.aiPredictiveAnalysis.recommendations.map((recommendation, index) => (
+                          <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                            <CheckCircle sx={{ color: theme.palette.success.main, fontSize: 16, mt: 0.5, flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: textPrimary }}>
+                              {recommendation}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Analysis Timestamp */}
+                  <Box sx={{ textAlign: 'center', pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+                    <Typography variant="caption" sx={{ color: textSecondary }}>
+                      Analysis generated: {formatTimestamp(site.aiPredictiveAnalysis.predictedAt)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            )}
+
             {/* Recent Incidents Section */}
             {site.incidents.length > 0 && (
               <Paper elevation={2} sx={{ p: 3, borderRadius: 2, mb: 4 }}>

@@ -55,6 +55,14 @@ export interface PublicSite {
     recommendations: string;
     confidence: number;
   } | null;
+  aiPredictiveAnalysis: {
+    predictedStatus: 'up' | 'down' | 'degraded';
+    confidence: number;
+    timeframe: string;
+    riskFactors: string[];
+    recommendations: string[];
+    predictedAt: string;
+  } | null;
   performance: {
     averageResponseTime: number;
     sslStatus: string;

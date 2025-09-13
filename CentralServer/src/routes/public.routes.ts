@@ -256,17 +256,30 @@ router.get('/all-sites/:id', async (req, res) => {
     const latestStatus = site.statuses[0];
     const currentResponseTime = latestStatus?.httpResponseTime || latestStatus?.pingResponseTime || null;
 
-    // Get AI diagnostics if available
+    // Get AI diagnostics and predictive analysis if available
     let aiDiagnostics = null;
+    let aiPredictiveAnalysis = null;
     try {
       const aiHealthStatus = await kimiPredictiveService.getHealthStatus();
       if (aiHealthStatus.available) {
+        // Get AI health analysis
         const aiAnalysis = await kimiPredictiveService.analyzeSiteHealth(id);
         aiDiagnostics = {
           diagnosis: aiAnalysis.diagnosis,
           severity: aiAnalysis.severity,
           recommendations: aiAnalysis.recommendations,
           confidence: aiAnalysis.confidence
+        };
+
+        // Get AI predictive analysis
+        const aiPrediction = await kimiPredictiveService.predictSiteStatus(id, '24h');
+        aiPredictiveAnalysis = {
+          predictedStatus: aiPrediction.predictedStatus,
+          confidence: aiPrediction.confidence,
+          timeframe: aiPrediction.timeframe,
+          riskFactors: aiPrediction.riskFactors,
+          recommendations: aiPrediction.recommendations,
+          predictedAt: new Date().toISOString()
         };
       }
     } catch (error) {
@@ -309,6 +322,7 @@ router.get('/all-sites/:id', async (req, res) => {
       },
       incidents: incidents.slice(0, 10), // Last 10 incidents
       aiDiagnostics,
+      aiPredictiveAnalysis,
       performance: {
         averageResponseTime: site.statuses
           .filter(s => s.httpResponseTime)
