@@ -431,7 +431,6 @@ export default function SiteForm({ open, onClose, onSubmit, site, isLoading }: S
                 }}
               >
                 {INTERVAL_OPTIONS.map((interval) => {
-                  const intervalSeconds = interval * 60;
                   const isAvailable = availableIntervals.includes(interval);
                   const isRestricted = !isAvailable;
                   
